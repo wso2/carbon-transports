@@ -272,7 +272,7 @@
         <slf4j.version>1.7.5</slf4j.version>
         <carbon.p2.plugin.version>2.0.0-alpha</carbon.p2.plugin.version>
         <carbon.transport.version>1.0.0-SNAPSHOT</carbon.transport.version>
-        <carbon.transport.osgi.version>1.0.0.SNAPSHOT</carbon.transport.osgi.version>
+        <carbon.transport.osgi.version>1.0.0.alpha</carbon.transport.osgi.version>
     </properties>
 
 </project>
