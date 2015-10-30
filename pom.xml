@@ -14,9 +14,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -27,13 +25,13 @@
     <packaging>pom</packaging>
     <groupId>org.wso2.carbon.transport</groupId>
     <artifactId>org.wso2.carbon.transport.parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-alpha</version>
 
     <scm>
         <url>https://github.com/wso2/carbon-transports.git</url>
         <developerConnection>scm:git:https://github.com/wso2/carbon-transports.git</developerConnection>
         <connection>scm:git:https://github.com/wso2/carbon-transports.git</connection>
-        <tag>HEAD</tag>
+        <tag>v1.0.0-alpha</tag>
     </scm>
     
     <modules>
@@ -271,7 +269,7 @@
         <osgi.service.tracker.import.version.range>[1.5.1, 2.0.0)</osgi.service.tracker.import.version.range>
         <slf4j.version>1.7.5</slf4j.version>
         <carbon.p2.plugin.version>2.0.0-alpha</carbon.p2.plugin.version>
-        <carbon.transport.version>1.0.0-SNAPSHOT</carbon.transport.version>
+        <carbon.transport.version>1.0.0-alpha</carbon.transport.version>
         <carbon.transport.osgi.version>1.0.0.alpha</carbon.transport.osgi.version>
     </properties>
 
