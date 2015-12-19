@@ -56,32 +56,25 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpResponse) {
-            log.info("YYYYYYYYY - ChannelRead not a response - 1");
             cMsg = new NettyCarbonMessage();
             cMsg.setProperty("PORT", ((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
             cMsg.setProperty("HOST", ((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
             cMsg.setProperty("DIRECTION", "response");
             cMsg.setProperty("CALL_BACK", callback);
             HttpResponse httpResponse = (HttpResponse) msg;
-            log.info("YYYYYYYYY - ChannelRead not a response - 2" + httpResponse);
             cMsg.setProperty(Constants.HTTP_STATUS_CODE, httpResponse.getStatus().code());
             cMsg.setHeaders(Util.getHeaders(httpResponse));
             ringBuffer.publishEvent(new CarbonEventPublisher(cMsg));
         } else {
             if (cMsg != null) {
-                log.info("XXXXXXXXXXX - ChannelRead not a response - 1");
-
                 HttpContent httpContent;
                 if (msg instanceof LastHttpContent) {
-                    log.info("XXXXXXXXXXX - ChannelRead not a response - 2");
                     httpContent = (LastHttpContent) msg;
                     cMsg.setEomAdded(true);
                     connectionManager.returnChannel(targetChannel);
                 } else {
-                    log.info("XXXXXXXXXXX - ChannelRead not a response - 3");
                     httpContent = (DefaultHttpContent) msg;
                 }
-                log.info("XXXXXXXXXXX - ChannelRead not a response - 4");
                 ((NettyCarbonMessage) cMsg).addHttpContent(httpContent);
             }
         }
