@@ -16,10 +16,13 @@
 package org.wso2.carbon.transport.http.netty.sender.channel;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
@@ -131,17 +134,28 @@ public class ChannelUtils {
 
     public static boolean writeContent(Channel channel, HttpRequest httpRequest, CarbonMessage carbonMessage) {
         channel.write(httpRequest);
-        NettyCarbonMessage nettyCMsg = (NettyCarbonMessage) carbonMessage;
-        while (true) {
-            HttpContent httpContent = nettyCMsg.getHttpContent();
-            if (httpContent instanceof LastHttpContent) {
-                channel.writeAndFlush(httpContent);
-                break;
+        if (carbonMessage instanceof NettyCarbonMessage) {
+            NettyCarbonMessage nettyCMsg = (NettyCarbonMessage) carbonMessage;
+            while (true) {
+                HttpContent httpContent = nettyCMsg.getHttpContent();
+                if (httpContent instanceof LastHttpContent) {
+                    channel.writeAndFlush(httpContent);
+                    break;
+                }
+                if (httpContent != null) {
+                    channel.write(httpContent);
+                }
             }
-            if (httpContent != null) {
-                channel.write(httpContent);
+        } else {
+            //If the carbon message is not a netty carbon message
+            ByteBuf contentBuf = Unpooled.wrappedBuffer(carbonMessage.getMessageBody());
+            if (contentBuf != null && contentBuf.isReadable()) {
+                LastHttpContent httpContent = new DefaultLastHttpContent(contentBuf);
+                channel.writeAndFlush(httpContent);
+
             }
         }
+
         return true;
     }
 

@@ -59,4 +59,18 @@ public class NettyCarbonMessage extends CarbonMessage {
         httpContentQueue.clear();
         return super.getMessageBody();
     }
+
+    @Override
+    public BlockingQueue<ByteBuffer> getClonedMessageBody() {
+        for (HttpContent httpContent : httpContentQueue) {
+            super.addMessageBody(httpContent.content().nioBuffer());
+        }
+        //httpContentQueue.clear();
+        return super.getClonedMessageBody();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return httpContentQueue.isEmpty();
+    }
 }
