@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2005-2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2015 WSO2 Inc. (http://wso2.com) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -41,12 +41,11 @@ public class NettyTransportActivator implements BundleActivator {
     public void start(BundleContext bundleContext) throws Exception {
         for (NettyListener listener : createNettyListeners()) {
             bundleContext.registerService(CarbonTransport.class, listener, null);
-            NettyTransportDataHolder.getInstance().addTransportListener(listener);
         }
         for (NettySender sender : createNettySenders()) {
             bundleContext.registerService(TransportSender.class, sender, null);
         }
-        NettyTransportDataHolder.getInstance().setBundleContext(bundleContext);
+        NettyTransportContextHolder.getInstance().setBundleContext(bundleContext);
     }
 
     /**

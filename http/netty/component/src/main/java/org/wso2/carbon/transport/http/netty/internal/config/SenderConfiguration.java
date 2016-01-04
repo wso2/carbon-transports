@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2005-2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2015 WSO2 Inc. (http://wso2.com) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -139,26 +139,23 @@ public class SenderConfiguration {
         if (certPass == null) {
             certPass = keyStorePass;
         }
-        if (keyStoreFile == null || keyStorePass == null) {
-            throw new IllegalArgumentException("keyStoreFile or keyStorePass not defined for " +
+        if (trustStoreFile == null || trustStorePass == null) {
+            throw new IllegalArgumentException("TrusstoreFile or keyStorePass not defined for " +
                                                "HTTPS scheme");
         }
-        File keyStore = new File(keyStoreFile);
-        if (!keyStore.exists()) {
-            throw new IllegalArgumentException("KeyStore File " + keyStoreFile + " not found");
+        SSLConfig sslConfig = new SSLConfig(null, null).setCertPass(null);
+        if (keyStoreFile != null) {
+            File keyStore = new File(keyStoreFile);
+            if (!keyStore.exists()) {
+                throw new IllegalArgumentException("TrustStore File " + trustStoreFile + " not found");
+            }
+            sslConfig =
+                       new SSLConfig(keyStore, keyStorePass).setCertPass(certPass);
         }
-        SSLConfig sslConfig =
-                   new SSLConfig(keyStore, keyStorePass).setCertPass(certPass);
-        if (trustStoreFile != null) {
             File trustStore = new File(trustStoreFile);
-            if (!trustStore.exists()) {
-                throw new IllegalArgumentException("trustStore File " + trustStoreFile + " not found");
-            }
-            if (trustStorePass == null) {
-                throw new IllegalArgumentException("trustStorePass is not defined for HTTPS scheme");
-            }
+
             sslConfig.setTrustStore(trustStore).setTrustStorePass(trustStorePass);
-        }
+
         return sslConfig;
     }
 }

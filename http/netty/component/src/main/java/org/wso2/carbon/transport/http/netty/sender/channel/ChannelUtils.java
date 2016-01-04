@@ -22,19 +22,21 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonMessage;
+import org.wso2.carbon.messaging.DefaultCarbonMessage;
 import org.wso2.carbon.transport.http.netty.NettyCarbonMessage;
 import org.wso2.carbon.transport.http.netty.common.HttpRoute;
 import org.wso2.carbon.transport.http.netty.sender.NettyClientInitializer;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -47,11 +49,11 @@ public class ChannelUtils {
 
     /**
      * Provides incomplete Netty channel future.
-     *
-     * @param targetChannel  Target channel which has channel specific parameters such as handler
+     * @param targetChannel Target channel which has channel specific parameters such as handler
      * @param eventLoopGroup Event loop group of inbound IO workers
      * @param eventLoopClass Event loop class if Inbound IO Workers
-     * @param httpRoute      Http Route which represents BE connections
+     * @param httpRoute  Http Route which represents BE connections
+     * @param channelInitializer channel Initializer
      * @return ChannelFuture
      */
     @SuppressWarnings("unchecked")
@@ -134,6 +136,7 @@ public class ChannelUtils {
 
     public static boolean writeContent(Channel channel, HttpRequest httpRequest, CarbonMessage carbonMessage) {
         channel.write(httpRequest);
+
         if (carbonMessage instanceof NettyCarbonMessage) {
             NettyCarbonMessage nettyCMsg = (NettyCarbonMessage) carbonMessage;
             while (true) {
@@ -146,18 +149,21 @@ public class ChannelUtils {
                     channel.write(httpContent);
                 }
             }
-        } else {
-            //If the carbon message is not a netty carbon message
-            ByteBuf contentBuf = Unpooled.wrappedBuffer(carbonMessage.getMessageBody());
-            if (contentBuf != null && contentBuf.isReadable()) {
-                LastHttpContent httpContent = new DefaultLastHttpContent(contentBuf);
-                channel.writeAndFlush(httpContent);
-
+        } else if (carbonMessage instanceof DefaultCarbonMessage) {
+            DefaultCarbonMessage defaultCMsg = (DefaultCarbonMessage) carbonMessage;
+            while (true) {
+                ByteBuffer byteBuffer = defaultCMsg.getMessageBody();
+                ByteBuf bbuf = Unpooled.copiedBuffer(byteBuffer);
+                DefaultHttpContent httpContent = new DefaultHttpContent(bbuf);
+                channel.write(httpContent);
+                if (defaultCMsg.isEomAdded() && defaultCMsg.isEmpty()) {
+                    channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+                    break;
+                }
             }
         }
 
         return true;
     }
-
 
 }
