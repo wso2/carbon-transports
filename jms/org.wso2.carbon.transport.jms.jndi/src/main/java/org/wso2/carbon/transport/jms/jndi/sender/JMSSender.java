@@ -25,6 +25,7 @@ import org.wso2.carbon.transport.jms.jndi.exception.JMSServerConnectorException;
 import org.wso2.carbon.transport.jms.jndi.factory.JMSConnectionFactory;
 import org.wso2.carbon.transport.jms.jndi.utils.JMSConstants;
 import org.wso2.carbon.transport.jms.jndi.utils.JMSUtils;
+import org.wso2.carbon.transport.jms.jndi.utils.StorableCarbonMessage;
 
 import java.nio.charset.Charset;
 import java.util.Map;
@@ -94,6 +95,9 @@ public class JMSSender implements TransportSender {
                     bytesMessage.writeBytes(((String) carbonMessage.getProperty(JMSConstants.TEXT_DATA)).getBytes(
                             Charset.defaultCharset()));
                 }
+            } else if (messageType.equals(JMSConstants.OBJECT_MESSAGE_TYPE) &&
+                       carbonMessage instanceof StorableCarbonMessage) {
+                message = session.createObjectMessage((StorableCarbonMessage) carbonMessage);
             }
 
             Object transportHeaders = carbonMessage.getProperty(JMSConstants.TRANSPORT_HEADERS);
