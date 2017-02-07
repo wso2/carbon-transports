@@ -26,6 +26,9 @@ import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.QueueConnection;
 import javax.jms.QueueSession;
@@ -96,6 +99,33 @@ public class JMSServer {
         topicConnection.close();
         topicSession.close();
         topicSender.close();
+    }
+
+    /**
+     * To receive a message from a queue
+     *
+     * @throws JMSException         JMS Exception
+     * @throws InterruptedException Interrupted exception while waiting in between messages
+     */
+    public void receiveMessagesFromQueue() throws JMSException, InterruptedException {
+        QueueConnection queueConn = (QueueConnection) connectionFactory.createConnection();
+        QueueSession queueSession = queueConn.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+        Destination destination = queueSession.createQueue(JMSTestConstants.QUEUE_NAME_1);
+        MessageConsumer queueReceiver = queueSession.createConsumer(destination);
+        MessageListener listener = new MessageListener() {
+            @Override public void onMessage(Message message) {
+                try {
+                    if (message instanceof TextMessage) {
+                        TextMessage textMessage = (TextMessage) message;
+                        logger.info("Message text received : " + (textMessage.getText()));
+                    }
+                } catch (JMSException e) {
+                    logger.info("JMS exception occurred.");
+                }
+            }
+        };
+        queueReceiver.setMessageListener(listener);
+        queueConn.start();
     }
 
 }

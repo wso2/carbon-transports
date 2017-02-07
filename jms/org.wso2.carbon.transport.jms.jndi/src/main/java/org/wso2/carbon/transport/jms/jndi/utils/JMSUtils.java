@@ -25,6 +25,8 @@ import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.transport.jms.jndi.exception.JMSServerConnectorException;
 
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.jms.Destination;
@@ -52,9 +54,9 @@ public class JMSUtils {
      * @param destinationType type of the destination to be looked up
      * @return the JMS destination, or null if it does not exist
      */
-    public static Destination lookupDestination(Context context, String destinationName, String destinationType)
-            throws NamingException {
-        if (null != destinationName) {
+    public static Destination lookupDestination(Context context, String destinationName,
+                                                String destinationType) throws NamingException {
+        if (null == destinationName) {
             return null;
         }
 
@@ -66,11 +68,12 @@ public class JMSUtils {
                 if (null != context.getEnvironment()) {
                     if (null != context.getEnvironment().get(JMSConstants.NAMING_FACTORY_INITIAL)) {
                         initialContextProperties.put(JMSConstants.NAMING_FACTORY_INITIAL,
-                                context.getEnvironment().get(JMSConstants.NAMING_FACTORY_INITIAL));
+                                                     context.getEnvironment()
+                                                            .get(JMSConstants.NAMING_FACTORY_INITIAL));
                     }
                     if (null != context.getEnvironment().get(JMSConstants.CONNECTION_STRING)) {
                         initialContextProperties.put(JMSConstants.CONNECTION_STRING,
-                                context.getEnvironment().get(JMSConstants.CONNECTION_STRING));
+                                                     context.getEnvironment().get(JMSConstants.CONNECTION_STRING));
                     }
                     if (null != context.getEnvironment().get(JMSConstants.PROVIDER_URL)) {
                         initialContextProperties.put(JMSConstants.PROVIDER_URL,
@@ -167,6 +170,79 @@ public class JMSUtils {
         } catch (JMSException e) {
             log.error("Error while changing the jms message to carbon message");
             throw new JMSServerConnectorException("Error while changing the jms message to carbon message", e);
+        }
+    }
+
+    /**
+     * To set the relevant transport headers to the jms message
+     * @param message Relevant message to set the header
+     * @param headerMap Header that need to be set
+     */
+    public static void setTransportHeaders(Message message, Map<String, Object> headerMap)
+            throws JMSServerConnectorException {
+        try {
+            if (headerMap != null) {
+                Iterator iterator = headerMap.keySet().iterator();
+
+                while (true) {
+                    String name;
+                    do {
+                        if (!iterator.hasNext()) {
+                            return;
+                        }
+
+                        Object headerName = iterator.next();
+                        name = (String) headerName;
+                    } while (name.startsWith("JMSX") && !name.equals("JMSXGroupID") && !name.equals("JMSXGroupSeq"));
+
+                    if ("JMS_COORELATION_ID".equals(name)) {
+                        message.setJMSCorrelationID((String) headerMap.get("JMS_COORELATION_ID"));
+                    } else {
+                        Object value;
+                        if ("JMS_DELIVERY_MODE".equals(name)) {
+                            value = headerMap.get("JMS_DELIVERY_MODE");
+                            if (value instanceof Integer) {
+                                message.setJMSDeliveryMode(((Integer) value).intValue());
+                            } else if (value instanceof String) {
+                                try {
+                                    message.setJMSDeliveryMode(Integer.parseInt((String) value));
+                                } catch (NumberFormatException var8) {
+
+                                }
+                            } else {
+
+                            }
+                        } else if ("JMS_EXPIRATION".equals(name)) {
+                            message.setJMSExpiration(Long.parseLong((String) headerMap.get("JMS_EXPIRATION")));
+                        } else if ("JMS_MESSAGE_ID".equals(name)) {
+                            message.setJMSMessageID((String) headerMap.get("JMS_MESSAGE_ID"));
+                        } else if ("JMS_PRIORITY".equals(name)) {
+                            message.setJMSPriority(Integer.parseInt((String) headerMap.get("JMS_PRIORITY")));
+                        } else if ("JMS_TIMESTAMP".equals(name)) {
+                            message.setJMSTimestamp(Long.parseLong((String) headerMap.get("JMS_TIMESTAMP")));
+                        } else if ("JMS_MESSAGE_TYPE".equals(name)) {
+                            message.setJMSType((String) headerMap.get("JMS_MESSAGE_TYPE"));
+                        } else {
+                            value = headerMap.get(name);
+                            if (value instanceof String) {
+                                message.setStringProperty(name, (String) value);
+                            } else if (value instanceof Boolean) {
+                                message.setBooleanProperty(name, ((Boolean) value).booleanValue());
+                            } else if (value instanceof Integer) {
+                                message.setIntProperty(name, ((Integer) value).intValue());
+                            } else if (value instanceof Long) {
+                                message.setLongProperty(name, ((Long) value).longValue());
+                            } else if (value instanceof Double) {
+                                message.setDoubleProperty(name, ((Double) value).doubleValue());
+                            } else if (value instanceof Float) {
+                                message.setFloatProperty(name, ((Float) value).floatValue());
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (JMSException exception) {
+            throw new JMSServerConnectorException("Error while setting transport headers", exception);
         }
     }
 }

@@ -31,6 +31,7 @@ import javax.jms.Destination;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
@@ -394,6 +395,34 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     }
 
     /**
+     * Create a message producer for particular session and destination
+     *
+     * @param session     JMS Session to create the producer
+     * @param destination JMS destination which the producer should publish to
+     * @return MessageProducer, who publish messages to particular destination with the given session
+     */
+    public MessageProducer createMessageProducer(Session session, Destination destination)
+            throws JMSServerConnectorException {
+        try {
+            if ((JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) || (JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec))) {
+                return session.createProducer(destination);
+            } else {
+                if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
+                    return ((QueueSession) session).createProducer((Queue) destination);
+                } else {
+                    return ((TopicSession) session).createPublisher((Topic) destination);
+                }
+            }
+        } catch (JMSException e) {
+            logger.error("JMS Exception while creating producer for the dstination  " + destinationName + ". " + e
+                    .getMessage());
+            throw new JMSServerConnectorException(
+                    "JMS Exception while creating the producer for the destination " + destinationName, e);
+        }
+    }
+
+    /**
      * To create a destination for particular session.
      *
      * @param session Specific session to create the destination
@@ -563,6 +592,22 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         } catch (JMSException e) {
             logger.error("JMS Exception while closing the subscriber.");
             throw new JMSServerConnectorException("JMS Exception while closing the subscriber. " + e.getMessage());
+        }
+    }
+
+    /**
+     * To close the message producer
+     *
+     * @param messageProducer Message producer that need to be closed
+     */
+    public void closeMessageProducer(MessageProducer messageProducer) throws JMSServerConnectorException {
+        try {
+            if (messageProducer != null) {
+                messageProducer.close();
+            }
+        } catch (JMSException e) {
+            logger.error("JMS Exception while closing the producer.");
+            throw new JMSServerConnectorException("JMS Exception while closing the producer. " + e.getMessage());
         }
     }
 }

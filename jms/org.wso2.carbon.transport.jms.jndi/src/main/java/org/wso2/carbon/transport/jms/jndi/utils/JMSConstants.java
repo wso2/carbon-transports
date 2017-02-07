@@ -48,6 +48,7 @@ public class JMSConstants {
     public static final String JMS_MESSAGE_TYPE = "JMS_MESSAGE_TYPE";
     public static final String GENERIC_MESSAGE_TYPE = "Message";
     public static final String TEXT_MESSAGE_TYPE = "TextMessage";
+    public static final String BYTES_MESSAGE_TYPE = "BytesMessage";
 
     public static final String TOPIC_PREFIX = "topic.";
     public static final String QUEUE_PREFIX = "queue.";
@@ -93,6 +94,7 @@ public class JMSConstants {
     public static final String SUBSCRIPTION_DURABLE_PARAM_NAME = "SubscriptionDurable";
     public static final String DURABLE_SUBSCRIBER_CLIENT_ID_PARAM_NAME = "DurableSubscriberClientID";
     public static final String DURABLE_SUBSCRIBER_PARAM_NAME = "DurableSubscriberName";
+    public static final String PERSISTENCE = "Persistence";
 
     public static final String CONNECTION_USERNAME = "ConnectionUsername";
     public static final String CONNECTION_PASSWORD = "ConnectionPassword";
