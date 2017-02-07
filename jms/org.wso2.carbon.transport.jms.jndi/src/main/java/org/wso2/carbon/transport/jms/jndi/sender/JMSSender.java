@@ -20,11 +20,11 @@ package org.wso2.carbon.transport.jms.jndi.sender;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.MessageProcessorException;
+import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.TransportSender;
 import org.wso2.carbon.transport.jms.jndi.exception.JMSServerConnectorException;
 import org.wso2.carbon.transport.jms.jndi.factory.JMSConnectionFactory;
 import org.wso2.carbon.transport.jms.jndi.utils.JMSConstants;
-import org.wso2.carbon.transport.jms.jndi.utils.JMSUtils;
 import org.wso2.carbon.transport.jms.jndi.utils.StorableCarbonMessage;
 
 import java.nio.charset.Charset;
@@ -48,8 +48,7 @@ import javax.jms.TextMessage;
 
 public class JMSSender implements TransportSender {
 
-    @Override
-    public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
+    @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
             throws MessageProcessorException {
         try {
             Properties properties = new Properties();
@@ -82,36 +81,30 @@ public class JMSSender implements TransportSender {
             Message message = null;
             String messageType = (String) carbonMessage.getProperty(JMSConstants.JMS_MESSAGE_TYPE);
 
-            if (messageType.equals(JMSConstants.TEXT_MESSAGE_TYPE)) {
-                message = session.createTextMessage();
-                TextMessage textMessage = (TextMessage) message;
-                if (carbonMessage.getProperty(JMSConstants.TEXT_DATA) != null) {
-                    textMessage.setText((String) carbonMessage.getProperty(JMSConstants.TEXT_DATA));
-                }
-            } else if (messageType.equals(JMSConstants.BYTES_MESSAGE_TYPE)) {
-                message = session.createBytesMessage();
-                BytesMessage bytesMessage = (BytesMessage) message;
-                if (carbonMessage.getProperty(JMSConstants.TEXT_DATA) != null) {
-                    bytesMessage.writeBytes(((String) carbonMessage.getProperty(JMSConstants.TEXT_DATA)).getBytes(
-                            Charset.defaultCharset()));
+            if (carbonMessage instanceof TextCarbonMessage) {
+                String textData = ((TextCarbonMessage) carbonMessage).getText();
+                if (messageType.equals(JMSConstants.TEXT_MESSAGE_TYPE)) {
+                    message = session.createTextMessage();
+                    TextMessage textMessage = (TextMessage) message;
+                    textMessage.setText(textData);
+                } else if (messageType.equals(JMSConstants.BYTES_MESSAGE_TYPE)) {
+                    message = session.createBytesMessage();
+                    BytesMessage bytesMessage = (BytesMessage) message;
+                    bytesMessage.writeBytes(textData.getBytes(Charset.defaultCharset()));
                 }
             } else if (messageType.equals(JMSConstants.OBJECT_MESSAGE_TYPE) &&
                        carbonMessage instanceof StorableCarbonMessage) {
                 message = session.createObjectMessage((StorableCarbonMessage) carbonMessage);
             }
 
-            Object transportHeaders = carbonMessage.getProperty(JMSConstants.TRANSPORT_HEADERS);
-            if (transportHeaders != null && transportHeaders instanceof Map) {
-                JMSUtils.setTransportHeaders(message, (Map<String, Object>) carbonMessage
-                        .getProperty(JMSConstants.TRANSPORT_HEADERS));
-            }
             if (carbonMessage.getProperty(JMSConstants.PERSISTENCE) != null &&
                 carbonMessage.getProperty(JMSConstants.PERSISTENCE).equals(false)) {
                 messageProducer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
             }
 
-            messageProducer.send(message);
-
+            if (message != null) {
+                messageProducer.send(message);
+            }
             jmsConnectionFactory.closeMessageProducer(messageProducer);
             jmsConnectionFactory.closeSession(session);
             jmsConnectionFactory.closeConnection(connection);
@@ -124,9 +117,7 @@ public class JMSSender implements TransportSender {
         return false;
     }
 
-
-    @Override
-    public String getId() {
+    @Override public String getId() {
         return "JMS";
     }
 }
