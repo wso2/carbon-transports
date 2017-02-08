@@ -15,7 +15,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.wso2.carbon.serverconnector.framework;
+package org.wso2.carbon.connector.framework;
 
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
@@ -31,9 +31,10 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 
 /**
- * {@code ServerConnectorManager} is responsible for managing all the server connectors with an application runtime.
- * For an application that uses the transport framework, this manager uses the same message processor instance
- * used with initializing.
+ * {@code ConnectorManager} is responsible for managing all the server connectors and client connectors with an
+ * application runtime. For an application that uses the transport framework, this manager uses the same message
+ * processor instance used with initializing server connectors. The server connectors are loaded using
+ * {@code ServerConnectorProvider} SPI and client connectors are loaded using {@code ClientConnector} SPI.
  */
 public class ConnectorManager {
 
@@ -167,10 +168,12 @@ public class ConnectorManager {
         initializeServerConnectors();
     }
 
+    /**
+     * Initialize and load all the client connectors that are register via {@code ClientConnector} SPI.
+     */
     public void initializeClientConnectors() {
         // Loading client connectors
-        ServiceLoader<ClientConnector> clientConnectorLoader =
-                ServiceLoader.load(ClientConnector.class);
+        ServiceLoader<ClientConnector> clientConnectorLoader = ServiceLoader.load(ClientConnector.class);
         clientConnectorLoader.forEach(this::registerClientConnector);
     }
 }
