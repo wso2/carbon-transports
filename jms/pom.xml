@@ -30,7 +30,7 @@
     <artifactId>org.wso2.carbon.transport.jms.parent</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>org.wso2.carbon.transport.jms.jndi</module>
+        <module>org.wso2.carbon.transport.jms</module>
     </modules>
 
 
