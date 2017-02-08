@@ -37,7 +37,7 @@ import javax.jms.MessageConsumer;
 import javax.jms.Session;
 
 /**
- * This is a transport listener for JMS
+ * This is a transport listener for JMS.
  */
 public class JMSServerConnector extends ServerConnector {
     private static final Log logger = LogFactory.getLog(JMSServerConnector.class.getName());
@@ -76,7 +76,7 @@ public class JMSServerConnector extends ServerConnector {
         }
     }
 
-    /** Close the connection, session and consumer
+    /** Close the connection, session and consumer.
      * @throws JMSConnectorException Exception that can be thrown when trying to close the connection, session
      * and message consumer
      */
