@@ -80,7 +80,7 @@
             org.osgi.util.tracker;version="${osgi.service.tracker.import.version.range}",
             org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
             org.wso2.carbon.messaging.*;version="${carbon.messaging.package.import.version.range}",
-            javax.jms.*;version="${javax.jms.import.version.range},
+            javax.jms.*;version="${javax.jms.import.version.range}",
             org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}"
         </import.package>
     </properties>

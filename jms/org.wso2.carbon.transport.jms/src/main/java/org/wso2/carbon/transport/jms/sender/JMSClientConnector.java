@@ -20,14 +20,17 @@ package org.wso2.carbon.transport.jms.sender;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.ClientConnector;
-import org.wso2.carbon.messaging.SerializableCarbonMessage;
+import org.wso2.carbon.messaging.MapCarbonMessage;
 import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.factory.CachedJMSConnectionFactory;
 import org.wso2.carbon.transport.jms.factory.JMSConnectionFactory;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
+import org.wso2.carbon.messaging.SerializableCarbonMessage;
 
 import java.nio.charset.Charset;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -37,6 +40,7 @@ import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.MapMessage;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
@@ -85,6 +89,14 @@ public class JMSClientConnector implements ClientConnector {
             } else if (messageType.equals(JMSConstants.OBJECT_MESSAGE_TYPE) &&
                        carbonMessage instanceof SerializableCarbonMessage) {
                 message = session.createObjectMessage((SerializableCarbonMessage) carbonMessage);
+            } else if (messageType.equals(JMSConstants.MAP_MESSAGE_TYPE) && carbonMessage instanceof MapCarbonMessage) {
+                message = session.createMapMessage();
+                MapMessage mapMessage = (MapMessage) message;
+                Enumeration<String> mapNames = ((MapCarbonMessage) carbonMessage).getMapNames();
+                while (mapNames.hasMoreElements()) {
+                    String key = mapNames.nextElement();
+                    mapMessage.setString(key, ((MapCarbonMessage) carbonMessage).getValue(key));
+                }
             }
 
             if (carbonMessage.getProperty(JMSConstants.PERSISTENCE) != null &&
@@ -110,6 +122,13 @@ public class JMSClientConnector implements ClientConnector {
         return false;
     }
 
+    /**
+     * To create jms connection.
+     *
+     * @param propertySet Set of user defined properties
+     * @throws JMSConnectorException
+     * @throws JMSException
+     */
     private void createConnection(Set<Map.Entry<String, String>> propertySet)
             throws JMSConnectorException, JMSException {
         Properties properties = new Properties();
@@ -121,27 +140,32 @@ public class JMSClientConnector implements ClientConnector {
                 properties.put(entry.getKey(), entry.getValue());
             }
         }
-        JMSConnectionFactory jmsConnectionFactory = new JMSConnectionFactory(properties);
-        this.jmsConnectionFactory = jmsConnectionFactory;
+        JMSConnectionFactory jmsConnectionFactory;
+        if ((Integer.parseInt(properties.getProperty(JMSConstants.PARAM_CACHE_LEVEL)) > JMSConstants.CACHE_NONE) &&
+            this.jmsConnectionFactory != null) {
+            jmsConnectionFactory = this.jmsConnectionFactory;
+        } else {
+            jmsConnectionFactory = new CachedJMSConnectionFactory(properties);
+            this.jmsConnectionFactory = jmsConnectionFactory;
+        }
 
         String conUsername = properties.getProperty(JMSConstants.CONNECTION_USERNAME);
         String conPassword = properties.getProperty(JMSConstants.CONNECTION_PASSWORD);
 
         Connection connection;
         if (conUsername != null && conPassword != null) {
-            connection = jmsConnectionFactory.createConnection(conUsername, conPassword);
+            connection = jmsConnectionFactory.getConnection(conUsername, conPassword);
         } else {
-            connection = jmsConnectionFactory.createConnection();
+            connection = jmsConnectionFactory.getConnection();
         }
 
         this.connection = connection;
 
-        Session session = jmsConnectionFactory.createSession(connection);
+        Session session = jmsConnectionFactory.getSession(connection);
         this.session = session;
 
         Destination destination = jmsConnectionFactory.getDestination(session);
-        MessageProducer messageProducer =
-                jmsConnectionFactory.createMessageProducer(session, destination);
+        MessageProducer messageProducer = jmsConnectionFactory.createMessageProducer(session, destination);
         this.messageProducer = messageProducer;
     }
 

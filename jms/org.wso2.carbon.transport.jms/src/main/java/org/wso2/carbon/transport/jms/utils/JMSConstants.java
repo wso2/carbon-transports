@@ -50,6 +50,7 @@ public class JMSConstants {
     public static final String TEXT_MESSAGE_TYPE = "TextMessage";
     public static final String BYTES_MESSAGE_TYPE = "BytesMessage";
     public static final String OBJECT_MESSAGE_TYPE = "ObjectMessage";
+    public static final String MAP_MESSAGE_TYPE = "MapMessage";
 
     public static final String TOPIC_PREFIX = "topic.";
     public static final String QUEUE_PREFIX = "queue.";
@@ -96,6 +97,7 @@ public class JMSConstants {
     public static final String DURABLE_SUBSCRIBER_CLIENT_ID_PARAM_NAME = "DurableSubscriberClientID";
     public static final String DURABLE_SUBSCRIBER_PARAM_NAME = "DurableSubscriberName";
     public static final String PERSISTENCE = "Persistence";
+    public static final String CACHE_LEVEL = "CacheLevel";
 
     public static final String CONNECTION_USERNAME = "ConnectionUsername";
     public static final String CONNECTION_PASSWORD = "ConnectionPassword";
@@ -151,6 +153,7 @@ public class JMSConstants {
         MAPPING_PARAMETERS.put(NAMING_FACTORY_INITIAL_PARAM_NAME, NAMING_FACTORY_INITIAL);
         MAPPING_PARAMETERS.put(PROVIDER_URL_PARAM_NAME, PROVIDER_URL);
         MAPPING_PARAMETERS.put(SESSION_ACK_MODE_PARAM_NAME, SESSION_ACK);
+        MAPPING_PARAMETERS.put(CACHE_LEVEL, PARAM_CACHE_LEVEL);
         MAPPING_PARAMETERS.put(SUBSCRIPTION_DURABLE_PARAM_NAME, PARAM_SUB_DURABLE);
         MAPPING_PARAMETERS.put(DURABLE_SUBSCRIBER_CLIENT_ID_PARAM_NAME, PARAM_DURABLE_SUB_CLIENT_ID);
         MAPPING_PARAMETERS.put(DURABLE_SUBSCRIBER_PARAM_NAME, PARAM_DURABLE_SUB_NAME);
@@ -198,6 +201,33 @@ public class JMSConstants {
 
     public static final String RETRY_INTERVAL = "retryInterval";
     public static final String MAX_RETRY_COUNT = "maxRetryCount";
+
+    /**
+     * Do not cache any JMS resources between tasks (when sending) or JMS CF's
+     * (when sending)
+     */
+    public static final int CACHE_NONE = 0;
+    /**
+     * Cache only the JMS connection between tasks (when receiving), or JMS CF's
+     * (when sending)
+     */
+    public static final int CACHE_CONNECTION = 1;
+    /**
+     * Cache only the JMS connection and Session between tasks (receiving), or
+     * JMS CF's (sending)
+     */
+    public static final int CACHE_SESSION = 2;
+    /**
+     * Cache the JMS connection, Session and Consumer between tasks when
+     * receiving
+     */
+    public static final int CACHE_CONSUMER = 3;
+    /**
+     * Cache the JMS connection, Session and Producer within a
+     * JMSConnectionFactory when sending
+     */
+    public static final int CACHE_PRODUCER = 4;
+
 
 
 }

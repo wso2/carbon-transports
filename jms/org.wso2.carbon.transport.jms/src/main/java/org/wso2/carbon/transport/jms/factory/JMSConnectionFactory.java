@@ -49,23 +49,24 @@ import javax.naming.NamingException;
 /**
  * JMSConnectionFactory that handles the JMS Connection, Session creation and closing.
  */
-public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionFactory, TopicConnectionFactory {
+public class JMSConnectionFactory
+        implements ConnectionFactory, QueueConnectionFactory, TopicConnectionFactory {
     private static final Log logger = LogFactory.getLog(JMSConnectionFactory.class.getName());
-    private Context ctx;
-    private ConnectionFactory connectionFactory;
-    private String connectionFactoryString;
-    private JMSConstants.JMSDestinationType destinationType;
-    private Destination destination;
-    private String destinationName;
-    private boolean transactedSession = false;
-    private int sessionAckMode = Session.AUTO_ACKNOWLEDGE;
-    private String jmsSpec;
-    private boolean isDurable;
-    private boolean noPubSubLocal;
-    private String clientId;
-    private String subscriptionName;
-    private String messageSelector;
-    private boolean isSharedSubscription;
+    protected Context ctx;
+    protected ConnectionFactory connectionFactory;
+    protected String connectionFactoryString;
+    protected JMSConstants.JMSDestinationType destinationType;
+    protected Destination destination;
+    protected String destinationName;
+    protected boolean transactedSession = false;
+    protected int sessionAckMode = Session.AUTO_ACKNOWLEDGE;
+    protected String jmsSpec;
+    protected boolean isDurable;
+    protected boolean noPubSubLocal;
+    protected String clientId;
+    protected String subscriptionName;
+    protected String messageSelector;
+    protected boolean isSharedSubscription;
 
     /**
      * Initialization of JMS ConnectionFactory with the user specified properties.
@@ -139,6 +140,14 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         createConnectionFactory();
     }
 
+    public ConnectionFactory getConnectionFactory() throws JMSConnectorException {
+        if (this.connectionFactory != null) {
+            return this.connectionFactory;
+        }
+
+        return createConnectionFactory();
+    }
+
     /**
      * To create the JMS Connection Factory.
      *
@@ -165,8 +174,15 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         return this.connectionFactory;
     }
 
-    @Override
-    public Connection createConnection() throws JMSException {
+    public Connection getConnection() throws JMSException {
+        return createConnection();
+    }
+
+    public Connection getConnection(String userName, String password) throws JMSException {
+        return createConnection(userName, password);
+    }
+
+    @Override public Connection createConnection() throws JMSException {
         if (null == connectionFactory) {
             logger.error("Connection cannot be establish to the broker. Please check the broker libs provided.");
             return null;
@@ -345,6 +361,11 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         return createDestination(session);
     }
 
+    public MessageConsumer getMessageConsumer(Session session, Destination destination)
+            throws JMSConnectorException {
+        return createMessageConsumer(session, destination);
+    }
+
     /**
      * Create a message consumer for particular session and destination.
      *
@@ -386,8 +407,14 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
             logger.error("JMS Exception while creating consumer for the destination " + destinationName + ". " + e
                     .getMessage(), e);
             throw new JMSConnectorException(
-                    "JMS Exception while creating consumer for the destination " + destinationName, e);
+                    "JMS Exception while creating consumer for the destination " + destinationName,
+                    e);
         }
+    }
+
+    public MessageProducer getMessageProducer(Session session, Destination destination)
+            throws JMSConnectorException {
+        return createMessageProducer(session, destination);
     }
 
     /**
@@ -478,6 +505,10 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                     "Naming exception while looking up for the destination name " + destinationName, e);
         }
         return destination;
+    }
+
+    public Session getSession(Connection connection) throws JMSConnectorException {
+        return createSession(connection);
     }
 
     /**
