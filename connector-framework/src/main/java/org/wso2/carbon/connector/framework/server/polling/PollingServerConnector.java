@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.connector.framework.server.polling;
 
-import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 
@@ -32,42 +31,8 @@ public abstract class PollingServerConnector extends ServerConnector {
     private long interval = 1000L;  //default polling interval
     private PollingTaskRunner pollingTaskRunner;
 
-    private CarbonMessageProcessor messageProcessor;
-
-
     public PollingServerConnector(String id) {
         super(id);
-    }
-
-    @Override
-    public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
-        messageProcessor = carbonMessageProcessor;
-    }
-
-    public CarbonMessageProcessor getMessageProcessor() {
-        return messageProcessor;
-    }
-
-    @Override
-    protected void init() throws ServerConnectorException {
-        //Generally, there is nothing to do in the connector init phase (at the server start up)
-    }
-
-    @Override
-    protected void destroy() throws ServerConnectorException {
-        if (pollingTaskRunner != null) {
-            pollingTaskRunner.terminate();
-        }
-    }
-
-    @Override
-    protected void beginMaintenance() {
-        //Generally, there is nothing to do
-    }
-
-    @Override
-    protected void endMaintenance() {
-        //Generally, there is nothing to do
     }
 
     /**
@@ -79,7 +44,12 @@ public abstract class PollingServerConnector extends ServerConnector {
         this.parameters = parameters;
         String pollingInterval = parameters.get(POLLING_INTERVAL);
         if (pollingInterval != null) {
-            this.interval = Long.parseLong(pollingInterval);
+            try {
+                this.interval = Long.parseLong(pollingInterval);
+            } catch (NumberFormatException e) {
+                throw new ServerConnectorException("Could not parse parameter: " + POLLING_INTERVAL
+                        + " to numeric type: Long");
+            }
         }
         pollingTaskRunner = new PollingTaskRunner(this);
         pollingTaskRunner.start();
@@ -96,14 +66,10 @@ public abstract class PollingServerConnector extends ServerConnector {
     /**
      * Generic polling method which will be invoked with each polling invocation.
      */
-    public abstract void poll();
+    public abstract void poll();    // TODO: 2/8/17 make this protected
 
 
     public long getInterval() {
         return interval;
-    }
-
-    public Map<String, String> getParameters() {
-        return parameters;
     }
 }

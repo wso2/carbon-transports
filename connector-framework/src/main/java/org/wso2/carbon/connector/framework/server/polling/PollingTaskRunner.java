@@ -38,7 +38,7 @@ public class PollingTaskRunner implements Runnable {
     }
 
     public void start() {
-        Thread runningThread = new Thread(this);
+        Thread runningThread = new Thread(this);    // TODO: 2/8/17 use excutor
         runningThread.start();
     }
 
