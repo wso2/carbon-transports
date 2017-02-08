@@ -64,7 +64,7 @@ public class AcknowledgementCallback implements CarbonCallback {
                 try {
                     session.commit();
                 } catch (JMSException e) {
-                    logger.error("Error while commiting the session " + e.getMessage());
+                    logger.error("Error while committing the session " + e.getMessage());
                 }
             } else {
                 try {

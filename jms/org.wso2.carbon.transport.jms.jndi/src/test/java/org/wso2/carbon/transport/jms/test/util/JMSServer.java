@@ -69,7 +69,7 @@ public class JMSServer {
             TextMessage queueMessage = queueSession.createTextMessage(queueText);
             queueSender.send(queueMessage);
             logger.info("Publishing " + queueText + " to queue " + queueName);
-            Thread.sleep(1000);
+
         }
         queueConn.close();
         queueSession.close();

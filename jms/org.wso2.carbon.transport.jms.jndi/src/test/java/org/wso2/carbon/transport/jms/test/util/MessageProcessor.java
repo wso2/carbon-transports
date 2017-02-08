@@ -21,6 +21,7 @@ package org.wso2.carbon.transport.jms.test.util;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
+import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.TransportSender;
 import org.wso2.carbon.transport.jms.jndi.utils.JMSConstants;
@@ -52,6 +53,10 @@ public class MessageProcessor implements CarbonMessageProcessor {
 
     @Override
     public void setTransportSender(TransportSender transportSender) {}
+
+    @Override public void setClientConnector(ClientConnector clientConnector) {
+
+    }
 
     @Override
     public String getId() {

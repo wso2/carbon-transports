@@ -23,12 +23,15 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.messaging.CarbonMessage;
-import org.wso2.carbon.messaging.DefaultCarbonMessage;
-import org.wso2.carbon.messaging.MessageProcessorException;
-import org.wso2.carbon.transport.jms.jndi.sender.JMSSender;
+import org.wso2.carbon.messaging.TextCarbonMessage;
+import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
+import org.wso2.carbon.transport.jms.jndi.sender.JMSClientConnector;
 import org.wso2.carbon.transport.jms.jndi.utils.JMSConstants;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.jms.JMSException;
 
@@ -38,22 +41,24 @@ import javax.jms.JMSException;
 public class SendMessageTestCase {
     private JMSServer jmsServer;
     private CarbonMessage carbonMessage;
+    private Map<String, String> properties;
     private static final Logger LOGGER = LoggerFactory.getLogger(SendMessageTestCase.class);
 
     @BeforeClass(groups = "queueSending", description = "Setting up the server and carbon message to be sent")
     public void setUp() {
-        carbonMessage = new DefaultCarbonMessage();
-        carbonMessage.setProperty(JMSConstants.DESTINATION_PARAM_NAME, JMSTestConstants.QUEUE_NAME_1);
-        carbonMessage.setProperty(JMSConstants.CONNECTION_FACTORY_JNDI_PARAM_NAME,
+        carbonMessage = new TextCarbonMessage("Hello World");
+        properties = new HashMap();
+        properties.put(JMSConstants.DESTINATION_PARAM_NAME, JMSTestConstants.QUEUE_NAME_1);
+        properties.put(JMSConstants.CONNECTION_FACTORY_JNDI_PARAM_NAME,
                                   JMSTestConstants.QUEUE_CONNECTION_FACTORY);
-        carbonMessage.setProperty(JMSConstants.NAMING_FACTORY_INITIAL_PARAM_NAME,
+        properties.put(JMSConstants.NAMING_FACTORY_INITIAL_PARAM_NAME,
                                   JMSTestConstants.ACTIVEMQ_FACTORY_INITIAL);
-        carbonMessage.setProperty(JMSConstants.PROVIDER_URL_PARAM_NAME,
+        properties.put(JMSConstants.PROVIDER_URL_PARAM_NAME,
                                   JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
-        carbonMessage.setProperty(JMSConstants.CONNECTION_FACTORY_TYPE_PARAM_NAME,
+        properties.put(JMSConstants.CONNECTION_FACTORY_TYPE_PARAM_NAME,
                                   JMSConstants.DESTINATION_TYPE_QUEUE);
-        carbonMessage.setProperty(JMSConstants.TEXT_DATA, "Hello World");
-        carbonMessage.setProperty(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.TEXT_MESSAGE_TYPE);
+        properties.put(JMSConstants.TEXT_DATA, "Hello World");
+        properties.put(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.TEXT_MESSAGE_TYPE);
         jmsServer = new JMSServer();
         jmsServer.startServer();
     }
@@ -61,11 +66,11 @@ public class SendMessageTestCase {
     @Test(groups = "queueSending", description =
             "Testing whether queue sending is working correctly without any " +
             "exceptions") public void queueListeningTestCase()
-            throws InterruptedException, JMSException, MessageProcessorException {
+            throws InterruptedException, JMSException, ClientConnectorException {
         LOGGER.info("JMS Transport Sender is sending a message to the queue " +
                     JMSTestConstants.QUEUE_NAME_1);
-        JMSSender sender = new JMSSender();
+        JMSClientConnector sender = new JMSClientConnector();
         jmsServer.receiveMessagesFromQueue();
-        sender.send(carbonMessage, null);
+        sender.send(carbonMessage, null, properties);
     }
 }
