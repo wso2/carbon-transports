@@ -28,22 +28,22 @@ import javax.xml.namespace.QName;
 public class JMSConstants {
 
     /**
-     * Enum for JMS destination type
+     * Enum for JMS destination type.
      */
     public enum JMSDestinationType {
         QUEUE, TOPIC
     }
 
     /**
-     * JMS protocol
+     * JMS protocol.
      */
     public static final String PROTOCOL_JMS = "jms";
     /**
-     * ID of the service, that this listener is bounded to
+     * ID of the service, that this listener is bounded to.
      */
     public static final String JMS_SERVICE_ID = "JMS_SERVICE_ID";
     /**
-     * A MessageContext property or client Option indicating the JMS message type
+     * A MessageContext property or client Option indicating the JMS message type.
      */
     public static final String JMS_MESSAGE_TYPE = "JMS_MESSAGE_TYPE";
     public static final String GENERIC_MESSAGE_TYPE = "Message";
@@ -63,7 +63,7 @@ public class JMSConstants {
     public static final String SESSION_TRANSACTED = "transport.jms.SessionTransacted";
     public static final String SESSION_ACK = "transport.jms.SessionAcknowledgement";
 
-    // Durable subscription related parameters
+    // Durable subscription related parameters.
     public static final String PARAM_SUB_DURABLE = "transport.jms.SubscriptionDurable";
     public static final String PARAM_DURABLE_SUB_NAME = "transport.jms.DurableSubscriberName";
     public static final String PARAM_DURABLE_SUB_CLIENT_ID = "transport.jms.DurableSubscriberClientID";
@@ -76,7 +76,7 @@ public class JMSConstants {
     public static final String JMS_MESSAGE_DELIVERY_STATUS = "JMS_MESSAGE_DELIVERY_STATUS";
 
     /**
-     * Acknowledge Modes
+     * Acknowledge Modes.
      */
     public static final String AUTO_ACKNOWLEDGE_MODE = "AUTO_ACKNOWLEDGE";
     public static final String CLIENT_ACKNOWLEDGE_MODE = "CLIENT_ACKNOWLEDGE";
@@ -84,7 +84,7 @@ public class JMSConstants {
     public static final String SESSION_TRANSACTED_MODE = "SESSION_TRANSACTED";
 
     /**
-     * Parameters from the user
+     * Parameters from the user.
      */
     public static final String CONNECTION_FACTORY_JNDI_PARAM_NAME = "ConnectionFactoryJNDIName";
     public static final String CONNECTION_FACTORY_TYPE_PARAM_NAME = "ConnectionFactoryType";
@@ -103,7 +103,7 @@ public class JMSConstants {
     public static final String TEXT_DATA = "TextData";
 
     /**
-     * Namespace for JMS map payload representation
+     * Namespace for JMS map payload representation.
      */
     public static final String JMS_MAP_NS = "http://axis.apache.org/axis2/java/transports/jms/map-payload";
     /**
@@ -127,18 +127,18 @@ public class JMSConstants {
     public static final String PROVIDER_URL = "java.naming.provider.url";
     public static final String DESTINATION_TYPE_GENERIC = "generic";
     /**
-     * Naming factory initial
+     * Naming factory initial.
      */
     public static final String NAMING_FACTORY_INITIAL = "java.naming.factory.initial";
     /**
-     * Default Connection Factory
+     * Default Connection Factory.
      */
     public static final String CONNECTION_STRING = "connectionfactory.QueueConnectionFactory";
 
     public static final String PARAM_CACHE_LEVEL = "transport.jms.CacheLevel";
 
     /**
-     * Mapping between parameters and actual values
+     * Mapping between parameters and actual values.
      */
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"MS_MUTABLE_COLLECTION"})
     public static final Map<String, String> MAPPING_PARAMETERS;

@@ -47,7 +47,7 @@ public class QueueTopicClientAckListeningTestCase {
 
     /**
      * Starts the JMS Server, and create two jms server connectors.
-     * Make the server connectors to listen to topic and queue
+     * Make the server connectors to listen to topic and queue.
      * @throws ServerConnectorException Server Connector Exception
      */
     @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS listener and message processor")
@@ -91,7 +91,7 @@ public class QueueTopicClientAckListeningTestCase {
      * JMS Server connector will start listening to a queue in client ack mode and there will be a publisher publishing
      * to the queue. For some messages call acknowledge, reject some messages so that session recover can be called.
      * After publishing the messages to queue, check whether the number of received messages are greater than the
-     * sent messages, since the jms provider need to re-deliver the messages when session recover is called
+     * sent messages, since the jms provider need to re-deliver the messages when session recover is called.
      *
      */
     @Test(groups = "jmsListening", description = "Testing whether queue listening is working correctly without any "
@@ -113,7 +113,7 @@ public class QueueTopicClientAckListeningTestCase {
      * JMS Server connector will start listening to a topic in client ack mode and there will be a publisher publishing
      * to the topic. For some messages call acknowledge, reject some messages so that session recover can be called.
      * After publishing the messages to topic, check whether the number of received messages are greater than the
-     * sent messages, since the jms provider need to re-deliver the messages when session recover is called
+     * sent messages, since the jms provider need to re-deliver the messages when session recover is called.
      *
      */
     @Test(groups = "jmsListening", description = "Testing whether topic listening is working correctly without any "

@@ -8,7 +8,7 @@ import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
 
 /**
- * Listener that listens to the problem in the jms connection
+ * Listener that listens to the problem in the jms connection.
  */
 class JMSExceptionListener implements ExceptionListener {
     private static final Log logger = LogFactory.getLog(JMSExceptionListener.class.getName());

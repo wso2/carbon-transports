@@ -28,7 +28,7 @@ import javax.jms.JMSException;
 import javax.jms.Session;
 
 /**
- * Call back used for transacted sessions. To commit or rollback the sessions
+ * Call back used for transacted sessions. To commit or rollback the sessions.
  */
 public class CommitOrRollback implements CarbonCallback {
     private Session session;

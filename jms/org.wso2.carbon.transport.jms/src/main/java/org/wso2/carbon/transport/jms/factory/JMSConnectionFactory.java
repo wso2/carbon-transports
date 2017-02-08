@@ -592,7 +592,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     }
 
     /**
-     * To close the message producer
+     * To close the message producer.
      *
      * @param messageProducer Message producer that need to be closed
      */
