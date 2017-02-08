@@ -53,6 +53,11 @@ public class JMSClientConnector implements ClientConnector {
     private Connection connection;
     private JMSConnectionFactory jmsConnectionFactory;
 
+    @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
+            throws ClientConnectorException {
+        return false;
+    }
+
     @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback,
                                   Map<String, String> propertyMap) throws ClientConnectorException {
         try {
