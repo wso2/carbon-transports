@@ -15,7 +15,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.wso2.carbon.serverconnector.framework;
+package org.wso2.carbon.connector.framework;
 
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
