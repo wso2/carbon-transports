@@ -15,9 +15,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.wso2.carbon.serverconnector.framework;
+package org.wso2.carbon.connector.framework;
 
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
+import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.ServerConnectorErrorHandler;
 import org.wso2.carbon.messaging.ServerConnectorProvider;
@@ -30,13 +31,16 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 
 /**
- * {@code ServerConnectorManager} is responsible for managing all the server connectors with ballerina runtime.
- * For an application that uses the transport framework, this manager uses the same message processor instance
- * used with initializing.
+ * {@code ConnectorManager} is responsible for managing all the server connectors and client connectors with an
+ * application runtime. For an application that uses the transport framework, this manager uses the same message
+ * processor instance used with initializing server connectors. The server connectors are loaded using
+ * {@code ServerConnectorProvider} SPI and client connectors are loaded using {@code ClientConnector} SPI.
  */
-public class ServerConnectorManager {
+public class ConnectorManager {
 
     private Map<String, ServerConnector> serverConnectors = new HashMap<>();
+
+    private Map<String, ClientConnector> clientConnectors = new HashMap<>();
 
     private Map<String, ServerConnectorProvider> serverConnectorProviders = new HashMap<>();
 
@@ -48,15 +52,20 @@ public class ServerConnectorManager {
         serverConnectors.put(serverConnector.getId(), serverConnector);
     }
 
-    private void initializeConnectors() throws ServerConnectorException {
+    private void registerClientConnector(ClientConnector clientConnector) {
+        clientConnectors.put(clientConnector.getProtocol(), clientConnector);
+    }
+
+
+    private void initializeServerConnectors() throws ServerConnectorException {
         for (ServerConnector connector : serverConnectors.values()) {
             connector.initConnector();
         }
     }
 
     /**
-     * Returns the server connector instance associated with the given.
-     * @param id the identified of the server connector.
+     * Returns the server connector instance associated with the given protocol.
+     * @param id the identifier of the server connector.
      * @return server connector instance.
      */
     public ServerConnector getServerConnector(String id) {
@@ -85,6 +94,15 @@ public class ServerConnectorManager {
         serverConnector.setMessageProcessor(messageProcessor);
         registerServerConnector(serverConnector);
         return serverConnector;
+    }
+
+    /**
+     * Returns the client connector instance associated with the given protocol.
+     * @param protocol of the client connector.
+     * @return client connector instance.
+     */
+    public ClientConnector getClientConnector(String protocol) {
+        return clientConnectors.get(protocol);
     }
 
     private void registerServerConnectorProvider(ServerConnectorProvider serverConnectorProvider) {
@@ -141,12 +159,24 @@ public class ServerConnectorManager {
                     });
                 });
 
-        //2. Loading transport listener error handlers
+        //2. Loading server connector error handlers
         ServiceLoader<ServerConnectorErrorHandler> errorHandlerLoader =
                 ServiceLoader.load(ServerConnectorErrorHandler.class);
         errorHandlerLoader.forEach(this::registerServerConnectorErrorHandler);
 
-        //3. Initialize all the connectors
-        initializeConnectors();
+        //3. Initialize all server connectors
+        initializeServerConnectors();
+    }
+
+    /**
+     * Initialize and load all the client connectors that are register via {@code ClientConnector} SPI.
+     */
+    public void initializeClientConnectors(CarbonMessageProcessor carbonMessageProcessor) {
+        // Loading client connectors
+        ServiceLoader<ClientConnector> clientConnectorLoader = ServiceLoader.load(ClientConnector.class);
+        clientConnectorLoader.forEach(clientConnector ->  {
+            clientConnector.setMessageProcessor(carbonMessageProcessor);
+            this.registerClientConnector(clientConnector);
+        });
     }
 }

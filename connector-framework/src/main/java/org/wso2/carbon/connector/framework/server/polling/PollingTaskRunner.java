@@ -15,14 +15,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.wso2.carbon.serverconnector.framework.polling;
+package org.wso2.carbon.connector.framework.server.polling;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
 /**
- * The {@link Runnable} which executes a periodic poll.
+ * The {@link PollingTaskRunner} which executes a periodic poll.
  */
 public class PollingTaskRunner implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(PollingTaskRunner.class);
