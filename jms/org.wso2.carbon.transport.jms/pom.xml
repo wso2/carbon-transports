@@ -57,7 +57,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.transport</groupId>
-            <artifactId>org.wso2.carbon.serverconnector.framework</artifactId>
+            <artifactId>org.wso2.carbon.connector.framework</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -81,7 +81,7 @@
             org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
             org.wso2.carbon.messaging.*;version="${carbon.messaging.package.import.version.range}",
             javax.jms.*;version="${javax.jms.import.version.range},
-            org.wso2.carbon.serverconnector.framework.*;version="${serverconnector.framework.package.export.version}"
+            org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}"
         </import.package>
     </properties>
 </project>
