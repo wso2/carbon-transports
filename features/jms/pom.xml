@@ -30,6 +30,6 @@
     <packaging>pom</packaging>
     <name>WSO2 Carbon Transport Jms Feature Parent</name>
     <modules>
-        <module>org.wso2.carbon.transport.jms.jndi.feature</module>
+        <module>org.wso2.carbon.transport.jms.feature</module>
     </modules>
 </project>
