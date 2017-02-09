@@ -94,10 +94,11 @@ public class QueueTopicAutoAckListeningTestCase {
             logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME);
             jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME);
             Assert.assertEquals(queueTestMessageProcessor.getCount(), 10,
-                    "Expected message count is not received when " + "listing to queue " + JMSTestConstants.QUEUE_NAME);
+                    "Expected message count is not received when " + "listening to queue "
+                            + JMSTestConstants.QUEUE_NAME);
             jmsQueueTransportListener.stop();
         } catch (Exception e) {
-            Assert.fail("Error while listing to queue");
+            Assert.fail("Error while listening to queue");
         }
     }
 
@@ -118,7 +119,7 @@ public class QueueTopicAutoAckListeningTestCase {
                             + JMSTestConstants.TOPIC_NAME);
             jmsTopicTransportListener.stop();
         } catch (Exception e) {
-            Assert.fail("Error while listing to topic");
+            Assert.fail("Error while listening to topic");
         }
     }
 

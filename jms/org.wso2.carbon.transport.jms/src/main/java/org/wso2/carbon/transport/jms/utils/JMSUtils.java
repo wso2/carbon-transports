@@ -46,8 +46,7 @@ import javax.naming.Reference;
  * This class is maintains the common methods used by JMS transport.
  */
 public class JMSUtils {
-
-    private static final Logger log = LoggerFactory.getLogger(JMSUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger(JMSUtils.class);
 
     /**
      * Return the JMS destination with the given destination name looked up from the context.
@@ -62,49 +61,34 @@ public class JMSUtils {
         if (null == destinationName) {
             return null;
         }
-
         try {
             return JMSUtils.lookup(context, Destination.class, destinationName);
         } catch (NameNotFoundException e) {
-            try {
-                Properties initialContextProperties = new Properties();
-                if (null != context.getEnvironment()) {
-                    if (null != context.getEnvironment().get(JMSConstants.NAMING_FACTORY_INITIAL)) {
-                        initialContextProperties.put(JMSConstants.NAMING_FACTORY_INITIAL,
-                                context.getEnvironment().get(JMSConstants.NAMING_FACTORY_INITIAL));
-                    }
-                    if (null != context.getEnvironment().get(JMSConstants.CONNECTION_STRING)) {
-                        initialContextProperties.put(JMSConstants.CONNECTION_STRING,
-                                context.getEnvironment().get(JMSConstants.CONNECTION_STRING));
-                    }
-                    if (null != context.getEnvironment().get(JMSConstants.PROVIDER_URL)) {
-                        initialContextProperties.put(JMSConstants.PROVIDER_URL,
-                                context.getEnvironment().get(JMSConstants.PROVIDER_URL));
-                    }
-                }
-                if (JMSConstants.DESTINATION_TYPE_TOPIC.equalsIgnoreCase(destinationType)) {
-                    initialContextProperties.put(JMSConstants.TOPIC_PREFIX + destinationName, destinationName);
-                } else if (JMSConstants.DESTINATION_TYPE_QUEUE.equalsIgnoreCase(destinationType)
-                        || JMSConstants.DESTINATION_TYPE_GENERIC.equalsIgnoreCase(destinationType)) {
-                    initialContextProperties.put(JMSConstants.QUEUE_PREFIX + destinationName, destinationName);
-                }
-                InitialContext initialContext = new InitialContext(initialContextProperties);
-                try {
-                    return JMSUtils.lookup(initialContext, Destination.class, destinationName);
-                } catch (NamingException e1) {
-                    return JMSUtils.lookup(context, Destination.class,
-                            (JMSConstants.DESTINATION_TYPE_TOPIC.equalsIgnoreCase(destinationType) ?
-                                    "dynamicTopics/" :
-                                    "dynamicQueues/") + destinationName);
-                }
-
-            } catch (NamingException ex) {
-                log.warn("Cannot locate destination : " + destinationName);
-                throw ex;
+            Properties initialContextProperties = new Properties();
+            initialContextProperties.put(JMSConstants.NAMING_FACTORY_INITIAL,
+                    context.getEnvironment().get(JMSConstants.NAMING_FACTORY_INITIAL));
+            initialContextProperties
+                    .put(JMSConstants.PROVIDER_URL, context.getEnvironment().get(JMSConstants.PROVIDER_URL));
+            if (null != context.getEnvironment().get(JMSConstants.CONNECTION_STRING)) {
+                initialContextProperties.put(JMSConstants.CONNECTION_STRING,
+                        context.getEnvironment().get(JMSConstants.CONNECTION_STRING));
             }
-        } catch (NamingException ex) {
-            log.warn("Cannot locate destination : " + destinationName, ex);
-            throw ex;
+            if (JMSConstants.DESTINATION_TYPE_TOPIC.equalsIgnoreCase(destinationType)) {
+                initialContextProperties.put(JMSConstants.TOPIC_PREFIX + destinationName, destinationName);
+            } else if (JMSConstants.DESTINATION_TYPE_QUEUE.equalsIgnoreCase(destinationType)
+                    || JMSConstants.DESTINATION_TYPE_GENERIC.equalsIgnoreCase(destinationType)) {
+                initialContextProperties.put(JMSConstants.QUEUE_PREFIX + destinationName, destinationName);
+            }
+            InitialContext initialContext = new InitialContext(initialContextProperties);
+            try {
+                return JMSUtils.lookup(initialContext, Destination.class, destinationName);
+            } catch (NamingException e1) {
+                return JMSUtils.lookup(context, Destination.class,
+                        (JMSConstants.DESTINATION_TYPE_TOPIC.equalsIgnoreCase(destinationType) ?
+                                "dynamicTopics/" :
+                                "dynamicQueues/") + destinationName);
+            }
+
         }
     }
 
@@ -135,7 +119,7 @@ public class JMSUtils {
                 String errorMessage =
                         "JNDI lookup of name " + name + " returned a " + object.getClass().getName() + " while a "
                                 + clazz + " was expected";
-                log.error(errorMessage);
+                logger.error(errorMessage);
                 throw new NamingException(errorMessage);
             }
         }
@@ -186,7 +170,7 @@ public class JMSUtils {
             }
             return jmsCarbonMessage;
         } catch (JMSException e) {
-            log.error("Error while changing the jms message to carbon message");
+            logger.error("Error while changing the jms message to carbon message");
             throw new JMSConnectorException("Error while changing the jms message to carbon message", e);
         }
     }

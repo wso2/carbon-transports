@@ -55,6 +55,7 @@ public class JMSServerConnector extends ServerConnector {
 
     /**
      * Creates a jms server connector with the id.
+     *
      * @param id Unique identifier for the server connector.
      */
     public JMSServerConnector(String id) {
@@ -114,11 +115,17 @@ public class JMSServerConnector extends ServerConnector {
         return connection;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
         this.carbonMessageProcessor = carbonMessageProcessor;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void init() throws ServerConnectorException {
         /*
@@ -127,26 +134,41 @@ public class JMSServerConnector extends ServerConnector {
         */
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void destroy() throws JMSConnectorException {
         closeAll();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void stop() throws JMSConnectorException {
         closeAll();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void beginMaintenance() throws JMSConnectorException {
         jmsConnectionFactory.stop(connection);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void endMaintenance() throws JMSConnectorException {
         jmsConnectionFactory.start(connection);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void start(Map<String, String> map) throws ServerConnectorException {
         properties = new Properties();
@@ -194,7 +216,7 @@ public class JMSServerConnector extends ServerConnector {
             closeAll();
             JMSConnectionRetryHandler jmsConnectionRetryHandler = new JMSConnectionRetryHandler(this,
                     this.retryInterval, this.maxRetryCount);
-            jmsConnectionRetryHandler.start();
+            jmsConnectionRetryHandler.retry();
 
         }
     }

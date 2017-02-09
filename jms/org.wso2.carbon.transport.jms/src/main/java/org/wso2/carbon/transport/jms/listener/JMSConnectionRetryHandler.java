@@ -48,16 +48,16 @@ class JMSConnectionRetryHandler {
     }
 
     /**
-     * To start the retrying to connect to JMS provider.
+     * To retry the retrying to connect to JMS provider.
      *
      * @throws JMSConnectorException JMS Connector Exception
      */
-    void start() throws JMSConnectorException {
+    void retry() throws JMSConnectorException {
         logger.error("Re-connection will be attempted after " + retryInterval + " milli-seconds.");
         try {
             TimeUnit.MILLISECONDS.sleep(retryInterval);
         } catch (InterruptedException e) {
-            //Ignore the exception
+            Thread.currentThread().interrupt();
         }
         while (retryCount < maxRetryCount) {
             try {
@@ -79,7 +79,7 @@ class JMSConnectionRetryHandler {
                     try {
                         TimeUnit.MILLISECONDS.sleep(retryInterval);
                     } catch (InterruptedException e) {
-                        // ignore the exception
+                        Thread.currentThread().interrupt();
                     }
                 }
             }

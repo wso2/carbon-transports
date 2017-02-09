@@ -46,11 +46,17 @@ public class JMSServerConnectorProvider extends ServerConnectorProvider {
         super(protocol);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<ServerConnector> initializeConnectors() {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ServerConnector createConnector(String s) {
         return new JMSServerConnector(s);

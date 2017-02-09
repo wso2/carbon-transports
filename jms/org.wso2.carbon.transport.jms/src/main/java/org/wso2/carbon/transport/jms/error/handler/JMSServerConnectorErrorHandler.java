@@ -28,9 +28,11 @@ import org.wso2.carbon.transport.jms.utils.JMSConstants;
  * Error handler for jms listener.
  */
 public class JMSServerConnectorErrorHandler implements ServerConnectorErrorHandler {
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    @SuppressFBWarnings({"BC_UNCONFIRMED_CAST"})
+    @SuppressFBWarnings({ "BC_UNCONFIRMED_CAST" })
     public void handleError(Throwable throwable, CarbonMessage carbonMessage, CarbonCallback carbonCallback) {
         if (null != carbonCallback) {
             carbonMessage
@@ -41,6 +43,9 @@ public class JMSServerConnectorErrorHandler implements ServerConnectorErrorHandl
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getProtocol() {
         return JMSConstants.PROTOCOL_JMS;
