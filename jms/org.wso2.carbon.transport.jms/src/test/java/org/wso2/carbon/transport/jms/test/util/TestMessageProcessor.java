@@ -32,8 +32,10 @@ import org.wso2.carbon.transport.jms.utils.JMSConstants;
 public class TestMessageProcessor implements CarbonMessageProcessor {
     private int count = 0;
 
-    @Override
-    public boolean receive(CarbonMessage carbonMessage, CarbonCallback carbonCallback) throws Exception {
+    /**
+     * {@inheritDoc}
+     */
+    @Override public boolean receive(CarbonMessage carbonMessage, CarbonCallback carbonCallback) throws Exception {
         if (carbonMessage instanceof TextCarbonMessage) {
             count++;
             if (null != carbonCallback) {
@@ -51,17 +53,30 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
         return true;
     }
 
-    @Override
-    public void setTransportSender(TransportSender transportSender) {}
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void setTransportSender(TransportSender transportSender) {
+    }
 
-    @Override
-    public void setClientConnector(ClientConnector clientConnector) {}
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void setClientConnector(ClientConnector clientConnector) {
+    }
 
-    @Override
-    public String getId() {
+    /**
+     * {@inheritDoc}
+     */
+    @Override public String getId() {
         return null;
     }
 
+    /**
+     * To get the count of the messages received
+     *
+     * @return Number of messages
+     */
     public int getCount() {
         return count;
     }

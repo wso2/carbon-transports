@@ -30,14 +30,29 @@ import javax.jms.Session;
  * Callback to be used when there is a need for acknowledgement.
  */
 public class AcknowledgementCallback implements CarbonCallback {
+    /**
+     * The {@link Message} instance representing JMS Message related with this callback.
+     */
     private Message message;
+    /**
+     * The {@link Session} instance representing JMS Session related with this call back
+     */
     private Session session;
 
+    /**
+     * Creates a acknowledgement call back to acknowledge or receover messages in client acknowledgement mode
+     *
+     * @param message {@link Message} JMS message related with this call back
+     * @param session {@link Session} JMS session related with this call back
+     */
     public AcknowledgementCallback(Message message, Session session) {
         this.message = message;
         this.session = session;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void done(CarbonMessage carbonMessage) {
         if (carbonMessage.getProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS).toString()

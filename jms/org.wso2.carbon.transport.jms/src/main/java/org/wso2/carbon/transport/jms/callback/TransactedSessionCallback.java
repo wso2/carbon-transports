@@ -29,12 +29,23 @@ import javax.jms.Session;
  * Call back used for transacted sessions. To commit or rollback the sessions.
  */
 public class TransactedSessionCallback implements CarbonCallback {
+    /**
+     * The {@link Session} instance representing JMS Session related with this call back
+     */
     private Session session;
 
+    /**
+     * Creates a call back for the transacted session.
+     *
+     * @param session JMS Session connected with this callback
+     */
     public TransactedSessionCallback(Session session) {
         this.session = session;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void done(CarbonMessage carbonMessage) {
         if (carbonMessage.getProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS)

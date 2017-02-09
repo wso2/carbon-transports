@@ -24,7 +24,6 @@ import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.transport.jms.callback.AcknowledgementCallback;
 import org.wso2.carbon.transport.jms.callback.TransactedSessionCallback;
-import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 import org.wso2.carbon.transport.jms.utils.JMSUtils;
 
@@ -76,8 +75,7 @@ class JMSMessageListener implements javax.jms.MessageListener {
                 carbonMessageProcessor.receive(jmsCarbonMessage, null);
             }
         } catch (Exception e) {
-            throw new RuntimeException(
-                    new JMSConnectorException("Error while getting the message from jms " + "server", e));
+            throw new RuntimeException("Error while getting the message from jms provider.", e);
         }
     }
 

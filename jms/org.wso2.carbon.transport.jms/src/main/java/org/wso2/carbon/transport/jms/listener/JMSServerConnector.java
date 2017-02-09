@@ -55,6 +55,7 @@ public class JMSServerConnector extends ServerConnector {
 
     /**
      * Creates a jms server connector with the id.
+     *
      * @param id Unique identifier for the server connector.
      */
     public JMSServerConnector(String id) {
@@ -70,6 +71,7 @@ public class JMSServerConnector extends ServerConnector {
 
     /**
      * To create a message listener to a particular jms destination
+     *
      * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
      */
     void createMessageListener() throws JMSConnectorException {
@@ -114,39 +116,60 @@ public class JMSServerConnector extends ServerConnector {
         return connection;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
         this.carbonMessageProcessor = carbonMessageProcessor;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void init() throws ServerConnectorException {
         /*
-        not needed for jms, as this will be called in server start-up. We will not know about the destination at server
-        start-up. We will get to know about that in service deployment.
+        not needed for jms, as this will be called in server retry-up. We will not know about the destination at server
+        retry-up. We will get to know about that in service deployment.
         */
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void destroy() throws JMSConnectorException {
         closeAll();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void stop() throws JMSConnectorException {
         closeAll();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void beginMaintenance() throws JMSConnectorException {
         jmsConnectionFactory.stop(connection);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void endMaintenance() throws JMSConnectorException {
         jmsConnectionFactory.start(connection);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void start(Map<String, String> map) throws ServerConnectorException {
         properties = new Properties();
@@ -194,7 +217,7 @@ public class JMSServerConnector extends ServerConnector {
             closeAll();
             JMSConnectionRetryHandler jmsConnectionRetryHandler = new JMSConnectionRetryHandler(this,
                     this.retryInterval, this.maxRetryCount);
-            jmsConnectionRetryHandler.start();
+            jmsConnectionRetryHandler.retry();
 
         }
     }

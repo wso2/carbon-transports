@@ -142,8 +142,8 @@ public class JMSConstants {
     /**
      * Mapping between parameters and actual values.
      */
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({
-            "MS_MUTABLE_COLLECTION" }) public static final Map<String, String> MAPPING_PARAMETERS;
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({ "MS_MUTABLE_COLLECTION" })
+    public static final Map<String, String> MAPPING_PARAMETERS;
 
     static {
         MAPPING_PARAMETERS = new HashMap<>();

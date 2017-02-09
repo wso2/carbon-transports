@@ -32,6 +32,4 @@
     <modules>
         <module>org.wso2.carbon.transport.jms</module>
     </modules>
-
-
 </project>

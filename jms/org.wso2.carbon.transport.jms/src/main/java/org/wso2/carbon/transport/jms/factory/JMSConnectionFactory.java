@@ -51,20 +51,65 @@ import javax.naming.NamingException;
  */
 public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionFactory, TopicConnectionFactory {
     private static final Logger logger = LoggerFactory.getLogger(JMSConnectionFactory.class);
+    /**
+     * The {@link Context} instance representing initial Context.
+     */
     private Context ctx;
+    /**
+     * The {@link ConnectionFactory} instance representing jms connection factory.
+     */
     private ConnectionFactory connectionFactory;
+    /**
+     * The {@link String} instance representing the connection factory JNDI name.
+     */
     String connectionFactoryString;
+    /**
+     * Represents whether to listen queue or topic.
+     */
     private JMSConstants.JMSDestinationType destinationType;
+    /**
+     * The {@link Destination} instance representing the jms destination listening to.
+     */
     private Destination destination;
+    /**
+     * The {@link String} instance representing the jms destination name.
+     */
     private String destinationName;
+    /**
+     * The {@link Boolean} instance representing whether the session is transacted or not.
+     */
     private boolean transactedSession = false;
+    /**
+     * The {@link Integer} instance representing the session acknowledgement mode.
+     */
     private int sessionAckMode = Session.AUTO_ACKNOWLEDGE;
+    /**
+     * The {@link String} instance representing the jms spec version.
+     */
     private String jmsSpec;
+    /**
+     * The {@link Boolean} instance representing whether subscription is durable or not.
+     */
     private boolean isDurable;
+    /**
+     * The {@link Boolean} instance representing whether to create a pub-sub connection
+     */
     private boolean noPubSubLocal;
+    /**
+     * The {@link String} instance representing the client id of the durable subscription.
+     */
     private String clientId;
+    /**
+     * The {@link String} instance representing the subscription name.
+     */
     private String subscriptionName;
+    /**
+     * The {@link String} instance representing the message selector.
+     */
     private String messageSelector;
+    /**
+     * The {@link Boolean} instance representing whether it is a shared subscription or not.
+     */
     private boolean isSharedSubscription;
 
     /**
@@ -86,15 +131,25 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
             this.destinationType = JMSConstants.JMSDestinationType.QUEUE;
         }
 
-        if (properties.getProperty(JMSConstants.PARAM_JMS_SPEC_VER) == null || JMSConstants.JMS_SPEC_VERSION_1_1
-                .equals(properties.getProperty(JMSConstants.PARAM_JMS_SPEC_VER))) {
-            jmsSpec = JMSConstants.JMS_SPEC_VERSION_1_1;
-        } else if (JMSConstants.JMS_SPEC_VERSION_2_0.equals(properties.getProperty(JMSConstants.PARAM_JMS_SPEC_VER))) {
-            jmsSpec = JMSConstants.JMS_SPEC_VERSION_2_0;
-        } else {
-            jmsSpec = JMSConstants.JMS_SPEC_VERSION_1_0;
-        }
+        String jmsSpecVersion = properties.getProperty(JMSConstants.PARAM_JMS_SPEC_VER);
 
+        if (null == jmsSpecVersion) {
+            jmsSpec = JMSConstants.JMS_SPEC_VERSION_1_1;
+        } else {
+            switch (jmsSpecVersion) {
+            case JMSConstants.JMS_SPEC_VERSION_1_1:
+                jmsSpec = JMSConstants.JMS_SPEC_VERSION_1_1;
+                break;
+            case JMSConstants.JMS_SPEC_VERSION_2_0:
+                jmsSpec = JMSConstants.JMS_SPEC_VERSION_2_0;
+                break;
+            case JMSConstants.JMS_SPEC_VERSION_1_0:
+                jmsSpec = JMSConstants.JMS_SPEC_VERSION_1_0;
+                break;
+            default:
+                jmsSpec = JMSConstants.JMS_SPEC_VERSION_1_1;
+            }
+        }
         isSharedSubscription = "true"
                 .equalsIgnoreCase(properties.getProperty(JMSConstants.PARAM_IS_SHARED_SUBSCRIPTION));
 
@@ -104,9 +159,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         subscriptionName = properties.getProperty(JMSConstants.PARAM_DURABLE_SUB_NAME);
 
         if (isSharedSubscription && subscriptionName == null) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Subscription name is not given. Therefor declaring a non-shared subscription");
-            }
+            logger.warn("Subscription name is not given. Therefore declaring a non-shared subscription");
             isSharedSubscription = false;
         }
 
@@ -195,6 +248,9 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         return createConnection(userName, password);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Connection createConnection() throws JMSException {
         if (null == connectionFactory) {
@@ -246,6 +302,9 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Connection createConnection(String userName, String password) throws JMSException {
         Connection connection = null;
@@ -293,43 +352,67 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public JMSContext createContext() {
         return connectionFactory.createContext();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public JMSContext createContext(int sessionMode) {
         return connectionFactory.createContext(sessionMode);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public JMSContext createContext(String userName, String password) {
         return connectionFactory.createContext(userName, password);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public JMSContext createContext(String userName, String password, int sessionMode) {
         return connectionFactory.createContext(userName, password, sessionMode);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public QueueConnection createQueueConnection() throws JMSException {
         return ((QueueConnectionFactory) (this.connectionFactory)).createQueueConnection();
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public QueueConnection createQueueConnection(String userName, String password) throws JMSException {
         return ((QueueConnectionFactory) (this.connectionFactory)).createQueueConnection(userName, password);
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TopicConnection createTopicConnection() throws JMSException {
         return ((TopicConnectionFactory) (this.connectionFactory)).createTopicConnection();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public TopicConnection createTopicConnection(String userName, String password) throws JMSException {
         return ((TopicConnectionFactory) (this.connectionFactory)).createTopicConnection(userName, password);
@@ -355,7 +438,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session     JMS Session to create the consumer
      * @param destination JMS destination which the consumer should listen to
      * @return Message Consumer, who is listening in particular destination with the given session
-     * @throws JMSConnectorException
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public MessageConsumer getMessageConsumer(Session session, Destination destination) throws JMSConnectorException {
         return createMessageConsumer(session, destination);
@@ -410,7 +493,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session     JMS Session to create the producer
      * @param destination JMS destination which the producer should publish to
      * @return MessageProducer, who publish messages to particular destination with the given session
-     * @throws JMSConnectorException
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public MessageProducer getMessageProducer(Session session, Destination destination) throws JMSConnectorException {
         return createMessageProducer(session, destination);
@@ -500,6 +583,13 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         return destination;
     }
 
+    /**
+     * To get a session with the given connection.
+     *
+     * @param connection Connection that is needed to create the session
+     * @return Session that is created from the connection
+     * @throws JMSConnectorException JMS Connector Exception
+     */
     public Session getSession(Connection connection) throws JMSConnectorException {
         return createSession(connection);
     }

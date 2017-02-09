@@ -29,6 +29,9 @@ class JMSExceptionListener implements ExceptionListener {
         this.maxRetryCount = maxRetryCount;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onException(JMSException exception) {
         logger.error("Error in the JMS connection. " + exception.getMessage());
@@ -40,7 +43,7 @@ class JMSExceptionListener implements ExceptionListener {
               * connection
              */
             logger.error("Error while closing the connection, session or consumer after receiving the exception call "
-                    + "from jms provider. " + e.getMessage());
+                    + "from jms provider. " + e);
         }
         try {
             jmsServerConnector.createMessageListener();
@@ -48,7 +51,7 @@ class JMSExceptionListener implements ExceptionListener {
             JMSConnectionRetryHandler jmsConnectionRetryHandler = new JMSConnectionRetryHandler(jmsServerConnector,
                     retryInterval, maxRetryCount);
             try {
-                jmsConnectionRetryHandler.start();
+                jmsConnectionRetryHandler.retry();
             } catch (JMSConnectorException e1) {
                 throw new RuntimeException(
                         "Cannot establish the connection again after retrying for " + maxRetryCount + " times", e);
