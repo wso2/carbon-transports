@@ -199,7 +199,7 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
     public MessageProducer getMessageProducer(Session session, Destination destination)
             throws JMSConnectorException {
         MessageProducer messageProducer;
-        if (cachedMessageConsumer == null) {
+        if (cachedMessageProducer == null) {
             messageProducer = createMessageProducer(session, destination);
         } else {
             messageProducer = cachedMessageProducer;
