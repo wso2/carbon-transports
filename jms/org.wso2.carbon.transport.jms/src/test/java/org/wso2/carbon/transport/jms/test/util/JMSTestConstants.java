@@ -19,7 +19,7 @@
 package org.wso2.carbon.transport.jms.test.util;
 
 /**
- * Constants that are used within the test scope
+ * Constants that are used within the test scope.
  */
 public class JMSTestConstants {
     public static final String QUEUE_CONNECTION_FACTORY = "QueueConnectionFactory";

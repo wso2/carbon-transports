@@ -123,7 +123,7 @@ public class JMSConstants {
      * an applet parameter, a system property, or a resource file.
      * If it is not specified in any of these sources,
      * the default configuration is determined by the service provider.
-     *
+     * <p>
      * The value of this constant is "java.naming.provider.url".
      */
     public static final String PROVIDER_URL = "java.naming.provider.url";
@@ -142,8 +142,8 @@ public class JMSConstants {
     /**
      * Mapping between parameters and actual values.
      */
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({"MS_MUTABLE_COLLECTION"})
-    public static final Map<String, String> MAPPING_PARAMETERS;
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({
+            "MS_MUTABLE_COLLECTION" }) public static final Map<String, String> MAPPING_PARAMETERS;
 
     static {
         MAPPING_PARAMETERS = new HashMap<>();
@@ -227,7 +227,5 @@ public class JMSConstants {
      * JMSConnectionFactory when sending
      */
     public static final int CACHE_PRODUCER = 4;
-
-
 
 }

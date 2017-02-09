@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.jms.listener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
@@ -40,27 +40,45 @@ import javax.jms.Session;
  * This is a transport listener for JMS.
  */
 public class JMSServerConnector extends ServerConnector {
-    private static final Log logger = LogFactory.getLog(JMSServerConnector.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(JMSServerConnector.class);
     private CarbonMessageProcessor carbonMessageProcessor;
     private JMSConnectionFactory jmsConnectionFactory = null;
     private Connection connection;
     private Session session;
     private Destination destination;
     private MessageConsumer messageConsumer;
+    private String userName;
+    private String password;
     private Properties properties;
     private long retryInterval = 10000;
     private int maxRetryCount = 5;
 
+    /**
+     * Creates a jms server connector with the id.
+     * @param id Unique identifier for the server connector.
+     */
     public JMSServerConnector(String id) {
         super(id);
     }
+
+    /**
+     * Creates a jms server connector with the protocol name
+     */
     public JMSServerConnector() {
-        super("jms");
+        super(JMSConstants.PROTOCOL_JMS);
     }
 
+    /**
+     * To create a message listener to a particular jms destination
+     * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
+     */
     void createMessageListener() throws JMSConnectorException {
         try {
-            connection = jmsConnectionFactory.createConnection();
+            if (null != userName && null != password) {
+                connection = jmsConnectionFactory.createConnection(userName, password);
+            } else {
+                connection = jmsConnectionFactory.createConnection();
+            }
             connection.setExceptionListener(new JMSExceptionListener(this, retryInterval, maxRetryCount));
             jmsConnectionFactory.start(connection);
             session = jmsConnectionFactory.createSession(connection);
@@ -69,21 +87,31 @@ public class JMSServerConnector extends ServerConnector {
             messageConsumer.setMessageListener(
                     new JMSMessageListener(carbonMessageProcessor, id, session.getAcknowledgeMode(), session));
         } catch (RuntimeException e) {
-            logger.error("Error while creating the connection from connection factory. ", e);
             throw new JMSConnectorException("Error while creating the connection from connection factory", e);
         } catch (JMSException e) {
             throw new JMSConnectorException("Error while creating the connection from the connection factory. ", e);
         }
     }
 
-    /** Close the connection, session and consumer.
+    /**
+     * Close the connection, session and consumer.
+     *
      * @throws JMSConnectorException Exception that can be thrown when trying to close the connection, session
-     * and message consumer
+     *                               and message consumer
      */
     void closeAll() throws JMSConnectorException {
         jmsConnectionFactory.closeMessageConsumer(messageConsumer);
         jmsConnectionFactory.closeSession(session);
         jmsConnectionFactory.closeConnection(connection);
+    }
+
+    /**
+     * To get the jms connection.
+     *
+     * @return JMS Connection
+     */
+    Connection getConnection() {
+        return connection;
     }
 
     @Override
@@ -93,7 +121,10 @@ public class JMSServerConnector extends ServerConnector {
 
     @Override
     public void init() throws ServerConnectorException {
-        // not needed
+        /*
+        not needed for jms, as this will be called in server start-up. We will not know about the destination at server
+        start-up. We will get to know about that in service deployment.
+        */
     }
 
     @Override
@@ -101,10 +132,9 @@ public class JMSServerConnector extends ServerConnector {
         closeAll();
     }
 
-
     @Override
     public void stop() throws JMSConnectorException {
-       closeAll();
+        closeAll();
     }
 
     @Override
@@ -128,6 +158,8 @@ public class JMSServerConnector extends ServerConnector {
             }
         }
 
+        userName = map.get(JMSConstants.CONNECTION_USERNAME);
+        password = map.get(JMSConstants.CONNECTION_PASSWORD);
         String retryInterval = map.get(JMSConstants.RETRY_INTERVAL);
         if (retryInterval != null) {
             try {
@@ -153,16 +185,15 @@ public class JMSServerConnector extends ServerConnector {
             createMessageListener();
         } catch (JMSConnectorException e) {
             if (null == jmsConnectionFactory) {
-                throw new JMSConnectorException(
-                        "Cannot create the jms connection factory. please check the connection"
-                                + " properties and re-deploy the jms service. " + e.getMessage());
+                throw new JMSConnectorException("Cannot create the jms connection factory. please check the connection"
+                        + " properties and re-deploy the jms service. " + e.getMessage());
             } else if (connection != null) {
                 closeAll();
                 throw e;
             }
             closeAll();
-            JMSConnectionRetryHandler jmsConnectionRetryHandler = new JMSConnectionRetryHandler(this, this
-                    .retryInterval, this.maxRetryCount);
+            JMSConnectionRetryHandler jmsConnectionRetryHandler = new JMSConnectionRetryHandler(this,
+                    this.retryInterval, this.maxRetryCount);
             jmsConnectionRetryHandler.start();
 
         }

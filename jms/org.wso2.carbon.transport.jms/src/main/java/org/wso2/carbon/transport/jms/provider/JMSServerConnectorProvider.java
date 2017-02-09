@@ -30,9 +30,18 @@ import java.util.List;
  */
 public class JMSServerConnectorProvider extends ServerConnectorProvider {
 
+    /**
+     * Creates a server connector provider for jms with the protocol name.
+     */
     public JMSServerConnectorProvider() {
         super(JMSConstants.PROTOCOL_JMS);
     }
+
+    /**
+     * Creates a server connector provider with the protocol name.
+     *
+     * @param protocol Name of the protocol
+     */
     public JMSServerConnectorProvider(String protocol) {
         super(protocol);
     }
