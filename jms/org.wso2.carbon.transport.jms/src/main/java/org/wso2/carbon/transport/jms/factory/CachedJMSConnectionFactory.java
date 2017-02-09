@@ -287,35 +287,19 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
 
     private void resetCache() throws JMSException {
         if (cachedMessageConsumer != null) {
-            try {
-                cachedMessageConsumer.close();
-            } catch (JMSException e) {
-                throw e;
-            }
+            cachedMessageConsumer.close();
             cachedMessageConsumer = null;
         }
         if (cachedMessageProducer != null) {
-            try {
-                cachedMessageProducer.close();
-            } catch (JMSException e) {
-                throw e;
-            }
+            cachedMessageProducer.close();
             cachedMessageProducer = null;
         }
         if (cachedSession != null) {
-            try {
-                cachedSession.close();
-            } catch (JMSException e) {
-                throw e;
-            }
+            cachedSession.close();
             cachedSession = null;
         }
         if (cachedConnection != null) {
-            try {
-                cachedConnection.close();
-            } catch (JMSException e) {
-                throw e;
-            }
+            cachedConnection.close();
             cachedConnection = null;
         }
     }
