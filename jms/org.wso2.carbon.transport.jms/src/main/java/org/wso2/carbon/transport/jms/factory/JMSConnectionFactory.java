@@ -140,6 +140,11 @@ public class JMSConnectionFactory
         createConnectionFactory();
     }
 
+    /**
+     * To get the JMS Connection Factory.
+     *
+     * @return JMS Connection Factory
+     */
     public ConnectionFactory getConnectionFactory() throws JMSConnectorException {
         if (this.connectionFactory != null) {
             return this.connectionFactory;
@@ -174,10 +179,24 @@ public class JMSConnectionFactory
         return this.connectionFactory;
     }
 
+    /**
+     * To create a connection.
+     *
+     * @return JMS connection
+     * @throws JMSException
+     */
     public Connection getConnection() throws JMSException {
         return createConnection();
     }
 
+    /**
+     * To create a connection to a password protected connection factory.
+     *
+     * @param userName Valid username
+     * @param password valid password
+     * @return JMS connection
+     * @throws JMSException
+     */
     public Connection getConnection(String userName, String password) throws JMSException {
         return createConnection(userName, password);
     }
@@ -361,6 +380,14 @@ public class JMSConnectionFactory
         return createDestination(session);
     }
 
+    /**
+     * Get a message consumer for particular session and destination.
+     *
+     * @param session     JMS Session to create the consumer
+     * @param destination JMS destination which the consumer should listen to
+     * @return Message Consumer, who is listening in particular destination with the given session
+     * @throws JMSConnectorException
+     */
     public MessageConsumer getMessageConsumer(Session session, Destination destination)
             throws JMSConnectorException {
         return createMessageConsumer(session, destination);
@@ -412,13 +439,21 @@ public class JMSConnectionFactory
         }
     }
 
+    /**
+     * Get a message producer for particular session and destination.
+     *
+     * @param session     JMS Session to create the producer
+     * @param destination JMS destination which the producer should publish to
+     * @return MessageProducer, who publish messages to particular destination with the given session
+     * @throws JMSConnectorException
+     */
     public MessageProducer getMessageProducer(Session session, Destination destination)
             throws JMSConnectorException {
         return createMessageProducer(session, destination);
     }
 
     /**
-     * Create a message producer for particular session and destination
+     * Create a message producer for particular session and destination.
      *
      * @param session     JMS Session to create the producer
      * @param destination JMS destination which the producer should publish to
@@ -623,7 +658,7 @@ public class JMSConnectionFactory
     }
 
     /**
-     * To close the message producer
+     * To close the message producer.
      *
      * @param messageProducer Message producer that need to be closed
      */

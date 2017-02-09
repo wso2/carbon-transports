@@ -21,13 +21,13 @@ import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.MapCarbonMessage;
+import org.wso2.carbon.messaging.SerializableCarbonMessage;
 import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.factory.CachedJMSConnectionFactory;
 import org.wso2.carbon.transport.jms.factory.JMSConnectionFactory;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
-import org.wso2.carbon.messaging.SerializableCarbonMessage;
 
 import java.nio.charset.Charset;
 import java.util.Enumeration;
