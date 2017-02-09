@@ -29,6 +29,7 @@ import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
 import org.wso2.carbon.transport.jms.test.util.TestMessageProcessor;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,7 +81,6 @@ public class QueueTopicAutoAckListeningTestCase {
         jmsTopicTransportListener.setMessageProcessor(topicTestMessageProcessor);
     }
 
-
     /**
      * JMS Server connector will start listening to a queue in auto ack mode and there will be a publisher publishing to
      * the queue. After publishing the messages to queue, check whether the count of messages received is equal to
@@ -93,8 +93,8 @@ public class QueueTopicAutoAckListeningTestCase {
             jmsQueueTransportListener.start(queueListeningParameters);
             logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME);
             jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME);
-            Assert.assertEquals(queueTestMessageProcessor.getCount(), 10, "Expected message count is not received when "
-                    + "listing to queue " + JMSTestConstants.QUEUE_NAME);
+            Assert.assertEquals(queueTestMessageProcessor.getCount(), 10,
+                    "Expected message count is not received when " + "listing to queue " + JMSTestConstants.QUEUE_NAME);
             jmsQueueTransportListener.stop();
         } catch (Exception e) {
             Assert.fail("Error while listing to queue");
@@ -113,8 +113,9 @@ public class QueueTopicAutoAckListeningTestCase {
             jmsTopicTransportListener.start(topicListeningParameters);
             logger.info("JMS Transport Listener is starting to listen to the topic " + JMSTestConstants.TOPIC_NAME);
             jmsServer.publishMessagesToTopic(JMSTestConstants.TOPIC_NAME);
-            Assert.assertEquals(topicTestMessageProcessor.getCount(), 10, "Expected message count is not received when "
-                    + "listening to topic " +  JMSTestConstants.TOPIC_NAME);
+            Assert.assertEquals(topicTestMessageProcessor.getCount(), 10,
+                    "Expected message count is not received when " + "listening to topic "
+                            + JMSTestConstants.TOPIC_NAME);
             jmsTopicTransportListener.stop();
         } catch (Exception e) {
             Assert.fail("Error while listing to topic");

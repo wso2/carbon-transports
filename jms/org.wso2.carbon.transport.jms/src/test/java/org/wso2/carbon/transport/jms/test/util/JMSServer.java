@@ -102,7 +102,7 @@ public class JMSServer {
     }
 
     /**
-     * To receive a message from a queue
+     * To receive a message from a queue.
      *
      * @throws JMSException         JMS Exception
      * @throws InterruptedException Interrupted exception while waiting in between messages

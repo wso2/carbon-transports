@@ -19,6 +19,7 @@ package org.wso2.carbon.transport.jms.sender;
 
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
+import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.MapCarbonMessage;
 import org.wso2.carbon.messaging.SerializableCarbonMessage;
@@ -175,5 +176,10 @@ public class JMSClientConnector implements ClientConnector {
 
     @Override public String getProtocol() {
         return "jms";
+    }
+
+    @Override
+    public void setMessageProcessor(CarbonMessageProcessor messageProcessor) {
+        // Message processor is not needed with regards to jms client connector
     }
 }

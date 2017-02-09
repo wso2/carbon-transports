@@ -54,9 +54,8 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
     @Override
     public void setTransportSender(TransportSender transportSender) {}
 
-    @Override public void setClientConnector(ClientConnector clientConnector) {
-
-    }
+    @Override
+    public void setClientConnector(ClientConnector clientConnector) {}
 
     @Override
     public String getId() {

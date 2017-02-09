@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.jms.utils;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.MapCarbonMessage;
 import org.wso2.carbon.messaging.SerializableCarbonMessage;
@@ -47,7 +47,7 @@ import javax.naming.Reference;
  */
 public class JMSUtils {
 
-    private static final Log log = LogFactory.getLog(JMSUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(JMSUtils.class);
 
     /**
      * Return the JMS destination with the given destination name looked up from the context.

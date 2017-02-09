@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.transport.jms.callback;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
@@ -30,11 +28,10 @@ import javax.jms.Session;
 /**
  * Call back used for transacted sessions. To commit or rollback the sessions.
  */
-public class CommitOrRollback implements CarbonCallback {
+public class TransactedSessionCallback implements CarbonCallback {
     private Session session;
-    private static final Log logger = LogFactory.getLog(CommitOrRollback.class.getName());
 
-    public CommitOrRollback(Session session) {
+    public TransactedSessionCallback(Session session) {
         this.session = session;
     }
 
@@ -45,15 +42,13 @@ public class CommitOrRollback implements CarbonCallback {
             try {
                 session.commit();
             } catch (JMSException e) {
-                logger.error("Error while committing the session. " + e.getMessage(), e);
-                throw new RuntimeException("Error while committing the session. " + e.getMessage(), e);
+                throw new RuntimeException("Error while committing the session. ", e);
             }
         } else {
             try {
                 session.rollback();
             } catch (JMSException e) {
-                logger.error("Error while rolling back the session. " + e.getMessage(), e);
-                throw new RuntimeException("Error while rolling back the session. " + e.getMessage(), e);
+                throw new RuntimeException("Error while rolling back the session. ", e);
             }
         }
     }

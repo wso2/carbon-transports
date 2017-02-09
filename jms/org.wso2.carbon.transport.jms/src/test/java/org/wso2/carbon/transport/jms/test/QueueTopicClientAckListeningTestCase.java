@@ -29,6 +29,7 @@ import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
 import org.wso2.carbon.transport.jms.test.util.TestMessageProcessor;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,6 +49,7 @@ public class QueueTopicClientAckListeningTestCase {
     /**
      * Starts the JMS Server, and create two jms server connectors.
      * Make the server connectors to listen to topic and queue.
+     *
      * @throws ServerConnectorException Server Connector Exception
      */
     @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS listener and message processor")
@@ -92,7 +94,6 @@ public class QueueTopicClientAckListeningTestCase {
      * to the queue. For some messages call acknowledge, reject some messages so that session recover can be called.
      * After publishing the messages to queue, check whether the number of received messages are greater than the
      * sent messages, since the jms provider need to re-deliver the messages when session recover is called.
-     *
      */
     @Test(groups = "jmsListening", description = "Testing whether queue listening is working correctly without any "
             + "exceptions in client ack mode")
@@ -101,11 +102,12 @@ public class QueueTopicClientAckListeningTestCase {
             jmsQueueTransportListener.start(queueListeningParameters);
             logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME_2);
             jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME_2);
-            Assert.assertTrue(queueTestMessageProcessor.getCount() > 10, "Expected message count is not received when "
-                    + "listing to queue " + JMSTestConstants.QUEUE_NAME_2);
+            Assert.assertTrue(queueTestMessageProcessor.getCount() > 10,
+                    "Expected message count is not received when " + "listing to queue "
+                            + JMSTestConstants.QUEUE_NAME_2);
             jmsQueueTransportListener.stop();
         } catch (Exception e) {
-            Assert.fail("Error while listing to queue");
+            Assert.fail("Error while listening to queue");
         }
     }
 
@@ -114,7 +116,6 @@ public class QueueTopicClientAckListeningTestCase {
      * to the topic. For some messages call acknowledge, reject some messages so that session recover can be called.
      * After publishing the messages to topic, check whether the number of received messages are greater than the
      * sent messages, since the jms provider need to re-deliver the messages when session recover is called.
-     *
      */
     @Test(groups = "jmsListening", description = "Testing whether topic listening is working correctly without any "
             + "exceptions in client ack mode")
@@ -123,8 +124,9 @@ public class QueueTopicClientAckListeningTestCase {
             jmsTopicTransportListener.start(topicListeningParameters);
             logger.info("JMS Transport Listener is starting to listen to the topic " + JMSTestConstants.TOPIC_NAME_1);
             jmsServer.publishMessagesToTopic(JMSTestConstants.TOPIC_NAME_1);
-            Assert.assertTrue(topicTestMessageProcessor.getCount() > 10, "Expected message count is not received when "
-                    + "listening to topic " +  JMSTestConstants.TOPIC_NAME_1);
+            Assert.assertTrue(topicTestMessageProcessor.getCount() > 10,
+                    "Expected message count is not received when " + "listening to topic "
+                            + JMSTestConstants.TOPIC_NAME_1);
             jmsTopicTransportListener.stop();
         } catch (Exception e) {
             Assert.fail("Error while listing to topic");
