@@ -119,9 +119,6 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
                 resetCache();
                 getConnection(userName, password);
             } else {
-                logger.error(
-                        "JMS Exception while starting connection for factory '" + this.connectionFactoryString + "' " +
-                        e.getMessage());
                 throw e;
             }
 
