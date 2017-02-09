@@ -92,7 +92,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      */
     private boolean isDurable;
     /**
-     * The {@link Boolean} instance representing whether to create a pub-sub connection
+     * The {@link Boolean} instance representing whether to create a pub-sub connection.
      */
     private boolean noPubSubLocal;
     /**
