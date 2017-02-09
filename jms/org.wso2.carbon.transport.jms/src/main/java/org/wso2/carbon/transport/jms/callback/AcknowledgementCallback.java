@@ -40,7 +40,7 @@ public class AcknowledgementCallback implements CarbonCallback {
     private Session session;
 
     /**
-     * Creates a acknowledgement call back to acknowledge or receover messages in client acknowledgement mode
+     * Creates a acknowledgement call back to acknowledge or recover messages in client acknowledgement mode
      *
      * @param message {@link Message} JMS message related with this call back
      * @param session {@link Session} JMS session related with this call back

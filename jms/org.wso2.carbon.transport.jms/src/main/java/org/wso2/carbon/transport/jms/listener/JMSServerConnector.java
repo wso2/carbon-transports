@@ -63,14 +63,14 @@ public class JMSServerConnector extends ServerConnector {
     }
 
     /**
-     * Creates a jms server connector with the protocol name
+     * Creates a jms server connector with the protocol name.
      */
     public JMSServerConnector() {
         super(JMSConstants.PROTOCOL_JMS);
     }
 
     /**
-     * To create a message listener to a particular jms destination
+     * To create a message listener to a particular jms destination.
      *
      * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
      */
@@ -130,8 +130,8 @@ public class JMSServerConnector extends ServerConnector {
     @Override
     public void init() throws ServerConnectorException {
         /*
-        not needed for jms, as this will be called in server retry-up. We will not know about the destination at server
-        retry-up. We will get to know about that in service deployment.
+        not needed for jms, as this will be called in server start-up. We will not know about the destination at server
+        start-up. We will get to know about that in service deployment.
         */
     }
 
