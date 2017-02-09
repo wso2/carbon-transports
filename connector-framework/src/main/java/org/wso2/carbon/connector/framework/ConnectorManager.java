@@ -171,9 +171,12 @@ public class ConnectorManager {
     /**
      * Initialize and load all the client connectors that are register via {@code ClientConnector} SPI.
      */
-    public void initializeClientConnectors() {
+    public void initializeClientConnectors(CarbonMessageProcessor carbonMessageProcessor) {
         // Loading client connectors
         ServiceLoader<ClientConnector> clientConnectorLoader = ServiceLoader.load(ClientConnector.class);
-        clientConnectorLoader.forEach(this::registerClientConnector);
+        clientConnectorLoader.forEach(clientConnector ->  {
+            clientConnector.setMessageProcessor(carbonMessageProcessor);
+            this.registerClientConnector(clientConnector);
+        });
     }
 }
