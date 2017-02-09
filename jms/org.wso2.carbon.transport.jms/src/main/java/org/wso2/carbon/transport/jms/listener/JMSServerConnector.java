@@ -62,14 +62,14 @@ public class JMSServerConnector extends ServerConnector {
     }
 
     /**
-     * Creates a jms server connector with the protocol name
+     * Creates a jms server connector with the protocol name.
      */
     public JMSServerConnector() {
         super(JMSConstants.PROTOCOL_JMS);
     }
 
     /**
-     * To create a message listener to a particular jms destination
+     * To create a message listener to a particular jms destination.
      * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
      */
     void createMessageListener() throws JMSConnectorException {
