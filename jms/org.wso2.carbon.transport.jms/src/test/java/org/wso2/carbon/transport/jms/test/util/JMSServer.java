@@ -77,7 +77,7 @@ public class JMSServer {
     }
 
     /**
-     * To publish the messages to a queue.
+     * To publish the messages to a topic.
      *
      * @throws JMSException         JMS Exception
      * @throws InterruptedException Interrupted exception while waiting in between messages
