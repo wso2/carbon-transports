@@ -26,16 +26,15 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.UriParser;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
+import org.wso2.carbon.messaging.StreamingCarbonMessage;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.file.connector.server.exception.FileServerConnectorException;
 import org.wso2.carbon.transport.file.connector.server.util.Constants;
 import org.wso2.carbon.transport.file.connector.server.util.FileTransportUtils;
-import org.wso2.carbon.transport.file.message.StreamingCarbonMessage;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -49,22 +48,13 @@ import java.util.Map;
 public class FileConsumer {
 
     private static final Log log = LogFactory.getLog(FileConsumer.class);
+
     private Map<String, String> fileProperties;
-    private boolean fileLock = true;
     private FileSystemManager fsManager = null;
     private String serviceName;
-    private int lastCycle;
-
     private CarbonMessageProcessor messageProcessor;
-
     private String fileURI;
     private FileObject fileObject;
-    private Integer iFileProcessingInterval = null;
-    private Integer iFileProcessingCount = null;
-    private String strFilePattern;
-    private boolean autoLockRelease;
-    private Boolean autoLockReleaseSameNode;
-    private Long autoLockReleaseInterval;
     private FileSystemOptions fso;
 
     public FileConsumer(String id, Map<String, String> fileProperties,
@@ -97,7 +87,7 @@ public class FileConsumer {
      * Do the file processing operation for the given set of properties. Do the
      * checks and pass the control to processFile method
      */
-    public FileObject consume() throws FileServerConnectorException {
+    public void consume() throws FileServerConnectorException {
         if (log.isDebugEnabled()) {
             log.debug("Polling for directory or file : " +
                     FileTransportUtils.maskURLPassword(fileURI));
@@ -105,24 +95,22 @@ public class FileConsumer {
 
         // If file/folder found proceed to the processing stage
         try {
-            lastCycle = 0;
             boolean isFileExists;
             try {
                 isFileExists = fileObject.exists();
-            } catch (FileSystemException e1) {
-                log.error("Error occurred when determining whether the file at URI : "
-                        + FileTransportUtils.maskURLPassword(fileURI) + " exists. " + e1.getMessage());
-                return null;    //// TODO: 2/8/17 throw an exception and return, rather than returning with a null.
+            } catch (FileSystemException e) {
+                throw new FileServerConnectorException("Error occurred when determining whether the file at URI : "
+                        + FileTransportUtils.maskURLPassword(fileURI) + " exists. " + e.getMessage());
             }
 
             boolean isFileReadable;
             try {
                 isFileReadable = fileObject.isReadable();
-            } catch (FileSystemException e1) {
-                log.error("Error occurred when determining whether the file at URI : "
-                        + FileTransportUtils.maskURLPassword(fileURI) + " is readable. " + e1.getMessage());
-                return null;
+            } catch (FileSystemException e) {
+                throw new FileServerConnectorException("Error occurred when determining whether the file at URI : "
+                        + FileTransportUtils.maskURLPassword(fileURI) + " is readable. " + e.getMessage());
             }
+
             if (isFileExists && isFileReadable) {
                 FileObject[] children = null;
                 try {
@@ -140,89 +128,27 @@ public class FileConsumer {
                     processFile(fileObject);
                     deleteFile(fileObject);
                 } else {
-                    FileObject fileObject;
-                    fileObject = directoryHandler(children);
-                    if (fileObject != null) {
-                        return fileObject;
-                    }
+                    directoryHandler(children);
                 }
             } else {
-                log.warn("Unable to access or read file or directory : "
+                throw new FileServerConnectorException("Unable to access or read file or directory : "
                         + FileTransportUtils.maskURLPassword(fileURI)
                         + ". Reason: "
                         + (isFileExists ? (isFileReadable ? "Unknown reason"
                         : "The file can not be read!") : "The file does not exist!"));
-                return null;
             }
         } finally {
             try {
-                if (fsManager != null) {
-                    fsManager.closeFileSystem(fileObject.getParent().getFileSystem());
-                }
                 fileObject.close();
-            } catch (Exception e) {
-                log.error("Unable to close the file system. " + e.getMessage());
+            } catch (FileSystemException e) {
+                log.warn("Could not close file at URI: " + FileTransportUtils.maskURLPassword(fileURI));
             }
         }
         if (log.isDebugEnabled()) {
             log.debug("End : Scanning directory or file : " + FileTransportUtils.maskURLPassword(fileURI));
         }
-        return null;
     }
 
-    /**
-     * If not a folder just a file handle the flow
-     *
-     * @throws FileSystemException
-     */
-    private void fileHandler() throws FileServerConnectorException {
-        FileType fileType;
-        try {
-            fileType = fileObject.getType();
-        } catch (FileSystemException e) {
-            throw new FileServerConnectorException("Could not get file type for file: " +
-                    fileObject.getName().toString() + e.getMessage());
-        }
-        if (fileType == FileType.FILE) {
-            if (!fileLock || acquireLock(fsManager, fileObject)) {
-                boolean runPostProcess = true;
-                FileObject fo = null;
-                fo = processFile(fileObject);
-                if (fo == null) {
-                    runPostProcess = false;
-                }
-                lastCycle = 1;
-
-                if (runPostProcess) {
-                    try {
-                        deleteFile(fileObject);
-                    } catch (FileServerConnectorException e) {
-                        lastCycle = 3;
-                        FileTransportUtils.markFailRecord(fsManager, fileObject);
-                        throw new FileServerConnectorException("File object '" + fileObject.getName().toString() + "' "
-                                + "could not be moved. " + e.getMessage());
-                    }
-                }
-                if (fileLock) {
-                    FileTransportUtils.releaseLock(fsManager, fileObject, fso);
-                    if (log.isDebugEnabled()) {
-                        log.debug("Removed the lock file '" +
-                                FileTransportUtils.maskURLPassword(fileObject.toString())
-                                + ".lock' of the file '" +
-                                FileTransportUtils.maskURLPassword(fileObject.toString()));
-                    }
-                }
-            } else {
-                throw new FileServerConnectorException("Couldn't get the lock for processing the file : " +
-                        FileTransportUtils.maskURLPassword(fileObject.getName().toString()));
-            }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Cannot find the file or failed file record. File : "
-                        + FileTransportUtils.maskURLPassword(fileURI));
-            }
-        }
-    }
 
     /**
      * Setup the required transport parameters
@@ -238,75 +164,6 @@ public class FileConsumer {
             throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " parameter " +
                     "cannot be empty for " + Constants.PROTOCOL_NAME + " transport.");
         }
-
-        String strFileLock = fileProperties.get(Constants.TRANSPORT_FILE_LOCKING);
-        if (strFileLock != null
-                && strFileLock.equalsIgnoreCase(Constants.TRANSPORT_FILE_LOCKING_DISABLED)) {
-            fileLock = false;
-        }
-
-        strFilePattern = fileProperties.get(Constants.TRANSPORT_FILE_FILE_NAME_PATTERN);
-        if (fileProperties.get(Constants.TRANSPORT_FILE_INTERVAL) != null) {
-            try {
-                iFileProcessingInterval = Integer.valueOf(fileProperties
-                        .get(Constants.TRANSPORT_FILE_INTERVAL));
-            } catch (NumberFormatException e) {
-                log.warn("Invalid parameter value given for " + Constants.TRANSPORT_FILE_INTERVAL + " : "
-                        + fileProperties.get(Constants.TRANSPORT_FILE_INTERVAL)
-                        + ". Expected numeric value. " + e.getMessage());
-            }
-        }
-        if (fileProperties.get(Constants.TRANSPORT_FILE_COUNT) != null) {
-            try {
-                iFileProcessingCount = Integer.valueOf(fileProperties
-                        .get(Constants.TRANSPORT_FILE_COUNT));
-            } catch (NumberFormatException e) {
-                log.warn("Invalid param value for " + Constants.TRANSPORT_FILE_COUNT + " : "
-                        + fileProperties.get(Constants.TRANSPORT_FILE_COUNT)
-                        + ". Expected numeric value. " + e.getMessage());
-            }
-        }
-
-        String strAutoLock = fileProperties.get(Constants.TRANSPORT_AUTO_LOCK_RELEASE);
-        autoLockRelease = false;
-        autoLockReleaseSameNode = true;
-        autoLockReleaseInterval = null;
-        if (strAutoLock != null) {
-            try {
-                autoLockRelease = Boolean.parseBoolean(strAutoLock);
-            } catch (Exception e) {
-                autoLockRelease = false;
-                log.warn(Constants.TRANSPORT_AUTO_LOCK_RELEASE + " property should be" +
-                        " a boolean. Given value is : " + strAutoLock + ". " + e.getMessage());
-            }
-            if (autoLockRelease) {
-                String strAutoLockInterval = fileProperties
-                        .get(Constants.TRANSPORT_AUTO_LOCK_RELEASE_INTERVAL);
-                if (strAutoLockInterval != null) {
-                    try {
-                        autoLockReleaseInterval = Long.parseLong(strAutoLockInterval);
-                    } catch (Exception e) {
-                        autoLockReleaseInterval = null;
-                        log.warn(Constants.TRANSPORT_AUTO_LOCK_RELEASE_INTERVAL + " property " +
-                                "should be a Long. Given value is : " + strAutoLockInterval + ". "
-                                + e.getMessage());
-                    }
-                }
-                String strAutoLockReleaseSameNode = fileProperties
-                        .get(Constants.TRANSPORT_AUTO_LOCK_RELEASE_SAME_NODE);
-                if (strAutoLockReleaseSameNode != null) {
-                    try {
-                        autoLockReleaseSameNode = Boolean.parseBoolean(strAutoLockReleaseSameNode);
-                    } catch (Exception e) {
-                        autoLockReleaseSameNode = true;
-                        log.warn(Constants.TRANSPORT_AUTO_LOCK_RELEASE_SAME_NODE +
-                                " property should be a boolean. Given value is : "
-                                + strAutoLockReleaseSameNode + e.getMessage());
-                    }
-                }
-            }
-
-        }
     }
 
     private Map<String, String> parseSchemeFileOptions(String fileURI) {
@@ -314,7 +171,7 @@ public class FileConsumer {
         if (scheme == null) {
             return null;
         }
-        HashMap<String, String> schemeFileOptions = new HashMap<String, String>();
+        HashMap<String, String> schemeFileOptions = new HashMap<>();
         schemeFileOptions.put(Constants.SCHEME, scheme);
         addOptions(scheme, schemeFileOptions);
         return schemeFileOptions;
@@ -339,11 +196,11 @@ public class FileConsumer {
      * @return
      * @throws FileSystemException
      */
-    private FileObject directoryHandler(FileObject[] children) throws FileServerConnectorException {
+    private void directoryHandler(FileObject[] children) throws FileServerConnectorException {
         // Sort the files
         String strSortParam = fileProperties.get(Constants.FILE_SORT_PARAM);
         if (strSortParam != null && !"NONE".equals(strSortParam)) {
-            log.debug("Start sorting the files.");
+            log.debug("Starting to sort the files in folder: " + FileTransportUtils.maskURLPassword(fileURI));
             String strSortOrder = fileProperties.get(Constants.FILE_SORT_ORDER);
             boolean bSortOrderAscending = true;
             if (strSortOrder != null) {
@@ -377,7 +234,7 @@ public class FileConsumer {
                     && !bSortOrderAscending) {
                 Arrays.sort(children, new FileLastmodifiedtimestampDesComparator());
             }
-            log.debug("End Sorting the files.");
+            log.debug("End sorting the files.");
         }
 
         for (FileObject child : children) {
@@ -387,66 +244,13 @@ public class FileConsumer {
             //close the file system after processing
             try {
                 child.close();
-            } catch (Exception e) {
+            } catch (FileSystemException e) {
                 log.warn("Could not close the file: " + child.getName().getPath());
                 //todo: debug child.getName().getPath()
             }
-
         }
-        return null;
     }
 
-    /**
-     * Do the file level locking
-     *
-     * @param fsManager
-     * @param fileObject
-     * @return
-     */
-    private boolean acquireLock(FileSystemManager fsManager, FileObject fileObject) {
-        String strContext = fileObject.getName().getURI();
-        boolean rtnValue;
-        // When processing a directory list is fetched initially. Therefore
-        // there is still a chance of file processed by another process.
-        // Need to check the source file before processing.
-        String parentURI = null;
-        try {
-            parentURI = fileObject.getParent().getName().getURI();
-        } catch (FileSystemException e) {
-            log.error("Error occurred when trying to get parent of file: "
-                    + fileObject.getName().toString() + ". " + e.getMessage());
-            return false;
-        }
-        if (parentURI.contains("?")) {
-            String suffix = parentURI.substring(parentURI.indexOf("?"));
-            strContext += suffix;
-        }
-        FileObject sourceFile;
-        try {
-            sourceFile = fsManager.resolveFile(strContext);
-        } catch (FileSystemException e) {
-            log.error("Error occurred when trying to resolve file: " + strContext
-                    + ". " + e.getMessage());
-            return false;
-        }
-        boolean isSourceFileExist = false;
-        try {
-            isSourceFileExist = sourceFile.exists();
-        } catch (FileSystemException e) {
-            log.error("Error occrred when trying to check whether file : "
-                    + sourceFile.getName().toString() + " exists. " + e.getMessage());
-        }
-        if (!isSourceFileExist) {
-            return false;
-        }
-        LockParamsDTO lockingParamsDTO = new LockParamsDTO();
-        lockingParamsDTO.setAutoLockRelease(autoLockRelease);
-        lockingParamsDTO.setAutoLockReleaseSameNode(autoLockReleaseSameNode);
-        lockingParamsDTO.setAutoLockReleaseInterval(autoLockReleaseInterval);
-        rtnValue = FileTransportUtils.acquireLock(fsManager, fileObject, lockingParamsDTO,
-                fso, true);
-        return rtnValue;
-    }
 
     /**
      * Actual processing of the file/folder
@@ -456,7 +260,7 @@ public class FileConsumer {
      */
     private FileObject processFile(FileObject file) throws FileServerConnectorException {
         FileContent content;
-        String fileURI = null;
+        String fileURI;
 
         String fileName = file.getName().getBaseName();
         String filePath = file.getName().getPath();
@@ -466,7 +270,7 @@ public class FileConsumer {
             content = file.getContent();
         } catch (FileSystemException e) {
             throw new FileServerConnectorException("Could not read content of file at URI: "
-                    + fileURI + ". " + e.getMessage());
+                    + fileURI + ". Reason: " + e.getMessage());
         }
 
         Map<String, Object> transportHeaders = new HashMap<>();
@@ -478,11 +282,11 @@ public class FileConsumer {
             transportHeaders.put(Constants.FILE_LENGTH, content.getSize());
             transportHeaders.put(Constants.LAST_MODIFIED, content.getLastModifiedTime());
         } catch (FileSystemException e) {
-            log.warn("Unable to set file length or last modified date header. "
+            log.warn("Unable to set file length or last modified date header. Reason: "
                     + e.getMessage());
         }
 
-        InputStream inputStream = null;
+        InputStream inputStream;
         try {
             inputStream = content.getInputStream();
         } catch (FileSystemException e) {

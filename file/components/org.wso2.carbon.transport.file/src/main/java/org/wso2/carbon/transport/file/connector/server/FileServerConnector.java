@@ -20,9 +20,9 @@ package org.wso2.carbon.transport.file.connector.server;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.connector.framework.server.polling.PollingServerConnector;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
-import org.wso2.carbon.serverconnector.framework.polling.PollingServerConnector;
 import org.wso2.carbon.transport.file.connector.server.exception.FileServerConnectorException;
 
 import java.util.Map;
@@ -33,6 +33,7 @@ import java.util.Map;
 public class FileServerConnector extends PollingServerConnector {
     private static final Log log = LogFactory.getLog(FileServerConnector.class);
 
+    private long interval = 10000L;
     private CarbonMessageProcessor messageProcessor;
     private FileConsumer consumer;
 
@@ -84,5 +85,10 @@ public class FileServerConnector extends PollingServerConnector {
     @Override
     protected void endMaintenance() {
         //No maintenance work for FileServerConnector
+    }
+
+    @Override
+    public long getInterval() {
+        return this.interval;
     }
 }
