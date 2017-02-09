@@ -46,22 +46,22 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
     private int cacheLevel = 0;
 
     /**
-     * Holds the cached jms connection instance.
+     * {@link Connection} instance representing cached jms connection instance.
      */
     private Connection cachedConnection = null;
 
     /**
-     * Holds the cached jms session instance.
+     * {@link Session} instance representing cached jms session instance.
      */
     private Session cachedSession = null;
 
     /**
-     * Holds the cached jms message consumer instance.
+     * {@link MessageConsumer} instance representing cached jms message consumer instance.
      */
     private MessageConsumer cachedMessageConsumer = null;
 
     /**
-     * Holds the cached jms message producer instance.
+     * {@link MessageProducer} instance representing cached jms message producer instance.
      */
     private MessageProducer cachedMessageProducer = null;
 
