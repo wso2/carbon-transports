@@ -71,7 +71,6 @@ public class JMSServerConnector extends ServerConnector {
 
     /**
      * To create a message listener to a particular jms destination.
-     *
      * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
      */
     void createMessageListener() throws JMSConnectorException {
