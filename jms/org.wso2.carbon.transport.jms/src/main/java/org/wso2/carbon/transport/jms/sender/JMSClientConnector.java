@@ -49,7 +49,6 @@ import javax.jms.TextMessage;
 /**
  * JMS sender implementation.
  */
-
 public class JMSClientConnector implements ClientConnector {
 
     private MessageProducer messageProducer;
@@ -57,6 +56,9 @@ public class JMSClientConnector implements ClientConnector {
     private Connection connection;
     private JMSConnectionFactory jmsConnectionFactory;
 
+    /**
+     * @return false because, in this instance, the send method with a map parameter is required.
+     */
     @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
             throws ClientConnectorException {
         return false;
@@ -106,6 +108,8 @@ public class JMSClientConnector implements ClientConnector {
 
             if (message != null) {
                 messageProducer.send(message);
+            } else {
+              throw new ClientConnectorException("Exception occured while creating the message");
             }
 
         } catch (JMSException e) {
@@ -125,7 +129,7 @@ public class JMSClientConnector implements ClientConnector {
     /**
      * To create jms connection.
      *
-     * @param propertySet Set of user defined properties
+     * @param propertySet      Set of user defined properties
      * @throws JMSConnectorException
      * @throws JMSException
      */

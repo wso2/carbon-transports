@@ -42,34 +42,28 @@ public class SendMessageTestCase {
     private JMSServer jmsServer;
     private CarbonMessage carbonMessage;
     private Map<String, String> properties;
-    private static final Logger LOGGER = LoggerFactory.getLogger(SendMessageTestCase.class);
+    private static final Logger logger = LoggerFactory.getLogger(SendMessageTestCase.class);
 
     @BeforeClass(groups = "queueSending", description = "Setting up the server and carbon message to be sent")
     public void setUp() {
         carbonMessage = new TextCarbonMessage("Hello World");
         properties = new HashMap();
         properties.put(JMSConstants.DESTINATION_PARAM_NAME, JMSTestConstants.QUEUE_NAME_1);
-        properties.put(JMSConstants.CONNECTION_FACTORY_JNDI_PARAM_NAME,
-                                  JMSTestConstants.QUEUE_CONNECTION_FACTORY);
-        properties.put(JMSConstants.NAMING_FACTORY_INITIAL_PARAM_NAME,
-                                  JMSTestConstants.ACTIVEMQ_FACTORY_INITIAL);
-        properties.put(JMSConstants.PROVIDER_URL_PARAM_NAME,
-                                  JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
-        properties.put(JMSConstants.CONNECTION_FACTORY_TYPE_PARAM_NAME,
-                                  JMSConstants.DESTINATION_TYPE_QUEUE);
+        properties.put(JMSConstants.CONNECTION_FACTORY_JNDI_PARAM_NAME, JMSTestConstants.QUEUE_CONNECTION_FACTORY);
+        properties.put(JMSConstants.NAMING_FACTORY_INITIAL_PARAM_NAME, JMSTestConstants.ACTIVEMQ_FACTORY_INITIAL);
+        properties.put(JMSConstants.PROVIDER_URL_PARAM_NAME, JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
+        properties.put(JMSConstants.CONNECTION_FACTORY_TYPE_PARAM_NAME, JMSConstants.DESTINATION_TYPE_QUEUE);
         properties.put(JMSConstants.TEXT_DATA, "Hello World");
         properties.put(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.TEXT_MESSAGE_TYPE);
-        properties.put(JMSConstants.CACHE_LEVEL,
-                       ((Integer) JMSConstants.CACHE_PRODUCER).toString());
+        properties.put(JMSConstants.CACHE_LEVEL, ((Integer) JMSConstants.CACHE_PRODUCER).toString());
         jmsServer = new JMSServer();
         jmsServer.startServer();
     }
 
-    @Test(groups = "queueSending", description =
-            "Testing whether queue sending is working correctly without any " +
-            "exceptions") public void queueListeningTestCase()
-            throws InterruptedException, JMSException, ClientConnectorException {
-        LOGGER.info("JMS Transport Sender is sending a message to the queue " +
+    @Test(groups = "queueSending", description = "Testing whether queue sending is working correctly without any " +
+            "exceptions")
+    public void queueListeningTestCase() throws InterruptedException, JMSException, ClientConnectorException {
+        logger.info("JMS Transport Sender is sending a message to the queue " +
                     JMSTestConstants.QUEUE_NAME_1);
         JMSClientConnector sender = new JMSClientConnector();
         jmsServer.receiveMessagesFromQueue();
