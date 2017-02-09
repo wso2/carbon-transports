@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.jms.callback;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
@@ -32,7 +32,7 @@ import javax.jms.Session;
  */
 public class CommitOrRollback implements CarbonCallback {
     private Session session;
-    private static final Log logger = LogFactory.getLog(CommitOrRollback.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CommitOrRollback.class);
 
     public CommitOrRollback(Session session) {
         this.session = session;

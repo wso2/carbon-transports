@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.jms.listener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
@@ -40,13 +40,15 @@ import javax.jms.Session;
  * This is a transport listener for JMS.
  */
 public class JMSServerConnector extends ServerConnector {
-    private static final Log logger = LogFactory.getLog(JMSServerConnector.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(JMSServerConnector.class);
     private CarbonMessageProcessor carbonMessageProcessor;
     private JMSConnectionFactory jmsConnectionFactory = null;
     private Connection connection;
     private Session session;
     private Destination destination;
     private MessageConsumer messageConsumer;
+    private String userName;
+    private String password;
     private Properties properties;
     private long retryInterval = 10000;
     private int maxRetryCount = 5;
@@ -60,7 +62,11 @@ public class JMSServerConnector extends ServerConnector {
 
     void createMessageListener() throws JMSConnectorException {
         try {
-            connection = jmsConnectionFactory.createConnection();
+            if (null != userName && null != password) {
+                connection = jmsConnectionFactory.createConnection(userName, password);
+            } else {
+                connection = jmsConnectionFactory.createConnection();
+            }
             connection.setExceptionListener(new JMSExceptionListener(this, retryInterval, maxRetryCount));
             jmsConnectionFactory.start(connection);
             session = jmsConnectionFactory.createSession(connection);
@@ -128,6 +134,8 @@ public class JMSServerConnector extends ServerConnector {
             }
         }
 
+        userName = map.get(JMSConstants.CONNECTION_USERNAME);
+        password = map.get(JMSConstants.CONNECTION_PASSWORD);
         String retryInterval = map.get(JMSConstants.RETRY_INTERVAL);
         if (retryInterval != null) {
             try {

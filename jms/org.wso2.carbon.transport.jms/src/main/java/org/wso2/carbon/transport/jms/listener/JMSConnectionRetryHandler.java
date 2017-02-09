@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.jms.listener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 
 /**
@@ -27,7 +27,7 @@ import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
  */
 class JMSConnectionRetryHandler {
     private JMSServerConnector jmsServerConnector;
-    private static final Log logger = LogFactory.getLog(JMSConnectionRetryHandler.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(JMSConnectionRetryHandler.class);
     private long retryInterval;
     private int retryCount = 0;
     private int maxRetryCount;

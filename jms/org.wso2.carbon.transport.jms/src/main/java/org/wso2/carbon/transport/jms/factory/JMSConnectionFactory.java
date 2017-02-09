@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.jms.factory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 import org.wso2.carbon.transport.jms.utils.JMSUtils;
@@ -50,7 +50,7 @@ import javax.naming.NamingException;
  * JMSConnectionFactory that handles the JMS Connection, Session creation and closing.
  */
 public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionFactory, TopicConnectionFactory {
-    private static final Log logger = LogFactory.getLog(JMSConnectionFactory.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(JMSConnectionFactory.class);
     private Context ctx;
     private ConnectionFactory connectionFactory;
     private String connectionFactoryString;
