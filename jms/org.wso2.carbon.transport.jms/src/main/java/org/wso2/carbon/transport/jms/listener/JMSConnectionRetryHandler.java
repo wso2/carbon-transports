@@ -28,10 +28,22 @@ import java.util.concurrent.TimeUnit;
  * This class tries to connect to JMS provider until the maximum re-try count meets.
  */
 class JMSConnectionRetryHandler {
+    /**
+     * This {@link JMSServerConnector} instance represents the jms listener that asked for retry.
+     */
     private JMSServerConnector jmsServerConnector;
     private static final Logger logger = LoggerFactory.getLogger(JMSConnectionRetryHandler.class);
+    /**
+     * Retry Interval.
+     */
     private long retryInterval;
+    /**
+     * Current retry count.
+     */
     private int retryCount = 0;
+    /**
+     * Maximum retry count.
+     */
     private int maxRetryCount;
 
     /**
