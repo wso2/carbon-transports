@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.transport.jms.callback.AcknowledgementCallback;
-import org.wso2.carbon.transport.jms.callback.CommitOrRollback;
+import org.wso2.carbon.transport.jms.callback.TransactedSessionCallback;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 import org.wso2.carbon.transport.jms.utils.JMSUtils;
@@ -41,6 +41,14 @@ class JMSMessageListener implements javax.jms.MessageListener {
     private int acknowledgementMode;
     private Session session;
 
+    /**
+     * Creates a jms message listener which receives message from a particular queue or topic.
+     *
+     * @param messageProcessor    Message where the relevant jms message should be passed to
+     * @param serviceId           Id of the service that is interested in particular destination
+     * @param acknowledgementMode Acknowledgement mode of the session
+     * @param session             Relevant session that is listening to the jms destination
+     */
     JMSMessageListener(CarbonMessageProcessor messageProcessor, String serviceId, int acknowledgementMode,
             Session session) {
         this.carbonMessageProcessor = messageProcessor;
@@ -50,7 +58,8 @@ class JMSMessageListener implements javax.jms.MessageListener {
     }
 
     /**
-     * Override this method and add the operation which is needed to be done when a message is arrived.
+     * Message is passed to application level, once the jms message is delivered.
+     *
      * @param message - the next received message
      */
     @Override
@@ -62,14 +71,13 @@ class JMSMessageListener implements javax.jms.MessageListener {
             if (Session.CLIENT_ACKNOWLEDGE == this.acknowledgementMode) {
                 carbonMessageProcessor.receive(jmsCarbonMessage, new AcknowledgementCallback(message, session));
             } else if (Session.SESSION_TRANSACTED == this.acknowledgementMode) {
-                carbonMessageProcessor.receive(jmsCarbonMessage, new CommitOrRollback(session));
+                carbonMessageProcessor.receive(jmsCarbonMessage, new TransactedSessionCallback(session));
             } else {
                 carbonMessageProcessor.receive(jmsCarbonMessage, null);
             }
         } catch (Exception e) {
-            logger.error("Error while getting the message from jms server : " + e.getMessage(), e);
-            throw new RuntimeException(new JMSConnectorException("Error while getting the message from jms "
-                    + "server", e));
+            throw new RuntimeException(
+                    new JMSConnectorException("Error while getting the message from jms " + "server", e));
         }
     }
 

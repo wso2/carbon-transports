@@ -49,24 +49,23 @@ import javax.naming.NamingException;
 /**
  * JMSConnectionFactory that handles the JMS Connection, Session creation and closing.
  */
-public class JMSConnectionFactory
-        implements ConnectionFactory, QueueConnectionFactory, TopicConnectionFactory {
-    private static final Log logger = LogFactory.getLog(JMSConnectionFactory.class.getName());
-    protected Context ctx;
-    protected ConnectionFactory connectionFactory;
-    protected String connectionFactoryString;
-    protected JMSConstants.JMSDestinationType destinationType;
-    protected Destination destination;
-    protected String destinationName;
-    protected boolean transactedSession = false;
-    protected int sessionAckMode = Session.AUTO_ACKNOWLEDGE;
-    protected String jmsSpec;
-    protected boolean isDurable;
-    protected boolean noPubSubLocal;
-    protected String clientId;
-    protected String subscriptionName;
-    protected String messageSelector;
-    protected boolean isSharedSubscription;
+public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionFactory, TopicConnectionFactory {
+    private static final Logger logger = LoggerFactory.getLogger(JMSConnectionFactory.class);
+    private Context ctx;
+    private ConnectionFactory connectionFactory;
+    String connectionFactoryString;
+    private JMSConstants.JMSDestinationType destinationType;
+    private Destination destination;
+    private String destinationName;
+    private boolean transactedSession = false;
+    private int sessionAckMode = Session.AUTO_ACKNOWLEDGE;
+    private String jmsSpec;
+    private boolean isDurable;
+    private boolean noPubSubLocal;
+    private String clientId;
+    private String subscriptionName;
+    private String messageSelector;
+    private boolean isSharedSubscription;
 
     /**
      * Initialization of JMS ConnectionFactory with the user specified properties.
@@ -77,7 +76,6 @@ public class JMSConnectionFactory
         try {
             ctx = new InitialContext(properties);
         } catch (NamingException e) {
-            logger.error("NamingException while obtaining initial context. ", e);
             throw new JMSConnectorException("NamingException while obtaining initial context. ", e);
         }
 
@@ -169,12 +167,8 @@ public class JMSConnectionFactory
                 this.connectionFactory = (TopicConnectionFactory) ctx.lookup(this.connectionFactoryString);
             }
         } catch (NamingException e) {
-            logger.error(
-                    "Naming exception while obtaining connection factory for '" + this.connectionFactoryString + "'."
-                            + e.getMessage(), e);
             throw new JMSConnectorException(
-                    "Naming exception while obtaining connection factory for " + this.connectionFactoryString + ". " + e
-                            .getMessage(), e);
+                    "Naming exception while obtaining connection factory for " + this.connectionFactoryString, e);
         }
         return this.connectionFactory;
     }
@@ -201,7 +195,8 @@ public class JMSConnectionFactory
         return createConnection(userName, password);
     }
 
-    @Override public Connection createConnection() throws JMSException {
+    @Override
+    public Connection createConnection() throws JMSException {
         if (null == connectionFactory) {
             logger.error("Connection cannot be establish to the broker. Please check the broker libs provided.");
             return null;
@@ -237,15 +232,13 @@ public class JMSConnectionFactory
                 }
                 return connection;
             }
-        } catch (Exception e) {
-            logger.error("JMS Exception while creating connection through factory " + this.connectionFactoryString, e);
-
+        } catch (JMSException e) {
             // Need to close the connection in the case if durable subscriptions
             if (null != connection) {
                 try {
                     connection.close();
                 } catch (Exception ex) {
-                    logger.error("Error while closing the connection");
+                    logger.error("Error while closing the connection. ", ex);
                 }
             }
             throw e;
@@ -288,9 +281,6 @@ public class JMSConnectionFactory
                 return connection;
             }
         } catch (JMSException e) {
-            logger.error(
-                    "JMS Exception while creating connection through factory '" + this.connectionFactoryString + "' "
-                            + e.getMessage(), e);
             // Need to close the connection in the case if durable subscriptions
             if (null != connection) {
                 try {
@@ -325,46 +315,25 @@ public class JMSConnectionFactory
 
     @Override
     public QueueConnection createQueueConnection() throws JMSException {
-        try {
-            return ((QueueConnectionFactory) (this.connectionFactory)).createQueueConnection();
-        } catch (JMSException e) {
-            logger.error("JMS Exception while creating queue connection through factory " + this.connectionFactoryString
-                    + ". " + e.getMessage(), e);
-            throw e;
-        }
+        return ((QueueConnectionFactory) (this.connectionFactory)).createQueueConnection();
+
     }
 
     @Override
     public QueueConnection createQueueConnection(String userName, String password) throws JMSException {
-        try {
-            return ((QueueConnectionFactory) (this.connectionFactory)).createQueueConnection(userName, password);
-        } catch (JMSException e) {
-            logger.error("JMS Exception while creating queue connection through factory " + this.connectionFactoryString
-                    + ". " + e.getMessage(), e);
-            throw e;
-        }
+        return ((QueueConnectionFactory) (this.connectionFactory)).createQueueConnection(userName, password);
+
     }
 
     @Override
     public TopicConnection createTopicConnection() throws JMSException {
-        try {
-            return ((TopicConnectionFactory) (this.connectionFactory)).createTopicConnection();
-        } catch (JMSException e) {
-            logger.error("JMS Exception while creating topic connection through factory " + this.connectionFactoryString
-                    + ". " + e.getMessage(), e);
-            throw e;
-        }
+        return ((TopicConnectionFactory) (this.connectionFactory)).createTopicConnection();
     }
 
     @Override
     public TopicConnection createTopicConnection(String userName, String password) throws JMSException {
-        try {
-            return ((TopicConnectionFactory) (this.connectionFactory)).createTopicConnection(userName, password);
-        } catch (JMSException e) {
-            logger.error("JMS Exception while creating topic connection through factory " + this.connectionFactoryString
-                    + ". " + e.getMessage(), e);
-            throw e;
-        }
+        return ((TopicConnectionFactory) (this.connectionFactory)).createTopicConnection(userName, password);
+
     }
 
     /**
@@ -388,8 +357,7 @@ public class JMSConnectionFactory
      * @return Message Consumer, who is listening in particular destination with the given session
      * @throws JMSConnectorException
      */
-    public MessageConsumer getMessageConsumer(Session session, Destination destination)
-            throws JMSConnectorException {
+    public MessageConsumer getMessageConsumer(Session session, Destination destination) throws JMSConnectorException {
         return createMessageConsumer(session, destination);
     }
 
@@ -431,11 +399,8 @@ public class JMSConnectionFactory
                 }
             }
         } catch (Exception e) {
-            logger.error("JMS Exception while creating consumer for the destination " + destinationName + ". " + e
-                    .getMessage(), e);
             throw new JMSConnectorException(
-                    "JMS Exception while creating consumer for the destination " + destinationName,
-                    e);
+                    "JMS Exception while creating consumer for the destination " + destinationName, e);
         }
     }
 
@@ -447,8 +412,7 @@ public class JMSConnectionFactory
      * @return MessageProducer, who publish messages to particular destination with the given session
      * @throws JMSConnectorException
      */
-    public MessageProducer getMessageProducer(Session session, Destination destination)
-            throws JMSConnectorException {
+    public MessageProducer getMessageProducer(Session session, Destination destination) throws JMSConnectorException {
         return createMessageProducer(session, destination);
     }
 
@@ -473,8 +437,6 @@ public class JMSConnectionFactory
                 }
             }
         } catch (JMSException e) {
-            logger.error("JMS Exception while creating producer for the destination  " + destinationName + ". " + e
-                    .getMessage(), e);
             throw new JMSConnectorException(
                     "JMS Exception while creating the producer for the destination " + destinationName, e);
         }
@@ -527,15 +489,11 @@ public class JMSConnectionFactory
                             + this.connectionFactoryString + "'.");
                 }
             } catch (JMSException e1) {
-                logger.error("Could not find nor create '" + destinationName + "' on connection factory for "
-                        + this.connectionFactoryString + ". " + e1.getMessage(), e1);
                 throw new JMSConnectorException(
                         "Could not find nor create '" + destinationName + "' on connection factory for "
                                 + this.connectionFactoryString, e1);
             }
         } catch (NamingException e) {
-            logger.error("Naming exception while looking up for the destination name " + destinationName + ". " + e
-                    .getMessage(), e);
             throw new JMSConnectorException(
                     "Naming exception while looking up for the destination name " + destinationName, e);
         }
@@ -566,8 +524,6 @@ public class JMSConnectionFactory
 
             }
         } catch (JMSException e) {
-            logger.error("JMS Exception while obtaining session for factory " + this.connectionFactoryString + ". " + e
-                    .getMessage(), e);
             throw new JMSConnectorException(
                     "JMS Exception while obtaining session for factory " + connectionFactoryString, e);
         }
@@ -582,9 +538,6 @@ public class JMSConnectionFactory
         try {
             connection.start();
         } catch (JMSException e) {
-            logger.error(
-                    "JMS Exception while starting connection for factory " + this.connectionFactoryString + ". " + e
-                            .getMessage(), e);
             throw new JMSConnectorException(
                     "JMS Exception while starting connection for factory " + this.connectionFactoryString, e);
         }
@@ -601,9 +554,6 @@ public class JMSConnectionFactory
                 connection.stop();
             }
         } catch (JMSException e) {
-            logger.error(
-                    "JMS Exception while stopping connection for factory " + this.connectionFactoryString + ". " + e
-                            .getMessage(), e);
             throw new JMSConnectorException(
                     "JMS Exception while stopping the connection for factory " + this.connectionFactoryString, e);
         }
@@ -620,8 +570,7 @@ public class JMSConnectionFactory
                 connection.close();
             }
         } catch (JMSException e) {
-            logger.error("JMS Exception while closing the connection.", e);
-            throw new JMSConnectorException("JMS Exception while closing the connection. " + e.getMessage(), e);
+            throw new JMSConnectorException("JMS Exception while closing the connection. ", e);
         }
     }
 
@@ -636,8 +585,7 @@ public class JMSConnectionFactory
                 session.close();
             }
         } catch (JMSException e) {
-            logger.error("JMS Exception while closing the session.", e);
-            throw new JMSConnectorException("JMS Exception while closing the session. " + e.getMessage(), e);
+            throw new JMSConnectorException("JMS Exception while closing the session. ", e);
         }
     }
 
@@ -652,8 +600,7 @@ public class JMSConnectionFactory
                 messageConsumer.close();
             }
         } catch (JMSException e) {
-            logger.error("JMS Exception while closing the subscriber.", e);
-            throw new JMSConnectorException("JMS Exception while closing the subscriber. " + e.getMessage(), e);
+            throw new JMSConnectorException("JMS Exception while closing the subscriber. ", e);
         }
     }
 
@@ -668,8 +615,7 @@ public class JMSConnectionFactory
                 messageProducer.close();
             }
         } catch (JMSException e) {
-            logger.error("JMS Exception while closing the producer.", e);
-            throw new JMSConnectorException("JMS Exception while closing the producer. " + e.getMessage(), e);
+            throw new JMSConnectorException("JMS Exception while closing the producer. ", e);
         }
     }
 }

@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.transport.jms.callback;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
@@ -34,7 +32,6 @@ import javax.jms.Session;
 public class AcknowledgementCallback implements CarbonCallback {
     private Message message;
     private Session session;
-    private static final Logger logger = LoggerFactory.getLogger(AcknowledgementCallback.class);
 
     public AcknowledgementCallback(Message message, Session session) {
         this.message = message;
@@ -48,15 +45,13 @@ public class AcknowledgementCallback implements CarbonCallback {
             try {
                 message.acknowledge();
             } catch (JMSException e) {
-                logger.error("Error while acknowledging the message. " + e.getMessage(), e);
-                throw new RuntimeException("Error while acknowledging the message. " + e.getMessage(), e);
+                throw new RuntimeException("Error while acknowledging the message. ", e);
             }
         } else {
             try {
                 session.recover();
             } catch (JMSException e) {
-                logger.error("Error while recovering the session. " + e.getMessage(), e);
-                throw new RuntimeException("Error while recovering the session. " + e.getMessage(), e);
+                throw new RuntimeException("Error while recovering the session. ", e);
             }
         }
     }
