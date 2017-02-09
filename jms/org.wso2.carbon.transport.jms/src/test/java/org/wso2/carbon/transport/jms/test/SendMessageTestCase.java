@@ -59,6 +59,8 @@ public class SendMessageTestCase {
                                   JMSConstants.DESTINATION_TYPE_QUEUE);
         properties.put(JMSConstants.TEXT_DATA, "Hello World");
         properties.put(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.TEXT_MESSAGE_TYPE);
+        properties.put(JMSConstants.CACHE_LEVEL,
+                       ((Integer) JMSConstants.CACHE_PRODUCER).toString());
         jmsServer = new JMSServer();
         jmsServer.startServer();
     }
@@ -71,6 +73,7 @@ public class SendMessageTestCase {
                     JMSTestConstants.QUEUE_NAME_1);
         JMSClientConnector sender = new JMSClientConnector();
         jmsServer.receiveMessagesFromQueue();
+        sender.send(carbonMessage, null, properties);
         sender.send(carbonMessage, null, properties);
     }
 }

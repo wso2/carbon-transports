@@ -49,23 +49,24 @@ import javax.naming.NamingException;
 /**
  * JMSConnectionFactory that handles the JMS Connection, Session creation and closing.
  */
-public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionFactory, TopicConnectionFactory {
-    private static final Logger logger = LoggerFactory.getLogger(JMSConnectionFactory.class);
-    private Context ctx;
-    private ConnectionFactory connectionFactory;
-    private String connectionFactoryString;
-    private JMSConstants.JMSDestinationType destinationType;
-    private Destination destination;
-    private String destinationName;
-    private boolean transactedSession = false;
-    private int sessionAckMode = Session.AUTO_ACKNOWLEDGE;
-    private String jmsSpec;
-    private boolean isDurable;
-    private boolean noPubSubLocal;
-    private String clientId;
-    private String subscriptionName;
-    private String messageSelector;
-    private boolean isSharedSubscription;
+public class JMSConnectionFactory
+        implements ConnectionFactory, QueueConnectionFactory, TopicConnectionFactory {
+    private static final Log logger = LogFactory.getLog(JMSConnectionFactory.class.getName());
+    protected Context ctx;
+    protected ConnectionFactory connectionFactory;
+    protected String connectionFactoryString;
+    protected JMSConstants.JMSDestinationType destinationType;
+    protected Destination destination;
+    protected String destinationName;
+    protected boolean transactedSession = false;
+    protected int sessionAckMode = Session.AUTO_ACKNOWLEDGE;
+    protected String jmsSpec;
+    protected boolean isDurable;
+    protected boolean noPubSubLocal;
+    protected String clientId;
+    protected String subscriptionName;
+    protected String messageSelector;
+    protected boolean isSharedSubscription;
 
     /**
      * Initialization of JMS ConnectionFactory with the user specified properties.
@@ -140,6 +141,19 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     }
 
     /**
+     * To get the JMS Connection Factory.
+     *
+     * @return JMS Connection Factory
+     */
+    public ConnectionFactory getConnectionFactory() throws JMSConnectorException {
+        if (this.connectionFactory != null) {
+            return this.connectionFactory;
+        }
+
+        return createConnectionFactory();
+    }
+
+    /**
      * To create the JMS Connection Factory.
      *
      * @return JMS Connection Factory
@@ -165,8 +179,29 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         return this.connectionFactory;
     }
 
-    @Override
-    public Connection createConnection() throws JMSException {
+    /**
+     * To create a connection.
+     *
+     * @return JMS connection
+     * @throws JMSException
+     */
+    public Connection getConnection() throws JMSException {
+        return createConnection();
+    }
+
+    /**
+     * To create a connection to a password protected connection factory.
+     *
+     * @param userName Valid username
+     * @param password valid password
+     * @return JMS connection
+     * @throws JMSException
+     */
+    public Connection getConnection(String userName, String password) throws JMSException {
+        return createConnection(userName, password);
+    }
+
+    @Override public Connection createConnection() throws JMSException {
         if (null == connectionFactory) {
             logger.error("Connection cannot be establish to the broker. Please check the broker libs provided.");
             return null;
@@ -346,6 +381,19 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     }
 
     /**
+     * Get a message consumer for particular session and destination.
+     *
+     * @param session     JMS Session to create the consumer
+     * @param destination JMS destination which the consumer should listen to
+     * @return Message Consumer, who is listening in particular destination with the given session
+     * @throws JMSConnectorException
+     */
+    public MessageConsumer getMessageConsumer(Session session, Destination destination)
+            throws JMSConnectorException {
+        return createMessageConsumer(session, destination);
+    }
+
+    /**
      * Create a message consumer for particular session and destination.
      *
      * @param session     JMS Session to create the consumer
@@ -386,12 +434,26 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
             logger.error("JMS Exception while creating consumer for the destination " + destinationName + ". " + e
                     .getMessage(), e);
             throw new JMSConnectorException(
-                    "JMS Exception while creating consumer for the destination " + destinationName, e);
+                    "JMS Exception while creating consumer for the destination " + destinationName,
+                    e);
         }
     }
 
     /**
-     * Create a message producer for particular session and destination
+     * Get a message producer for particular session and destination.
+     *
+     * @param session     JMS Session to create the producer
+     * @param destination JMS destination which the producer should publish to
+     * @return MessageProducer, who publish messages to particular destination with the given session
+     * @throws JMSConnectorException
+     */
+    public MessageProducer getMessageProducer(Session session, Destination destination)
+            throws JMSConnectorException {
+        return createMessageProducer(session, destination);
+    }
+
+    /**
+     * Create a message producer for particular session and destination.
      *
      * @param session     JMS Session to create the producer
      * @param destination JMS destination which the producer should publish to
@@ -478,6 +540,10 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                     "Naming exception while looking up for the destination name " + destinationName, e);
         }
         return destination;
+    }
+
+    public Session getSession(Connection connection) throws JMSConnectorException {
+        return createSession(connection);
     }
 
     /**
