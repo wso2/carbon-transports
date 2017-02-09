@@ -33,8 +33,7 @@ public class JMSServerConnectorErrorHandler implements ServerConnectorErrorHandl
      */
     @Override
     @SuppressFBWarnings({ "BC_UNCONFIRMED_CAST" })
-    public void handleError(Throwable throwable,
-            CarbonMessage carbonMessage, CarbonCallback carbonCallback) {
+    public void handleError(Throwable throwable, CarbonMessage carbonMessage, CarbonCallback carbonCallback) {
         if (null != carbonCallback) {
             carbonMessage
                     .setProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS, JMSConstants.JMS_MESSAGE_DELIVERY_ERROR);

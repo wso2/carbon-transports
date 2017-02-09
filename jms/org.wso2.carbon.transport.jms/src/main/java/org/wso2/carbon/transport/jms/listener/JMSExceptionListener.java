@@ -43,7 +43,7 @@ class JMSExceptionListener implements ExceptionListener {
               * connection
              */
             logger.error("Error while closing the connection, session or consumer after receiving the exception call "
-                    + "from jms provider. " + e);
+                    + "from jms provider. ", e);
         }
         try {
             jmsServerConnector.createMessageListener();
