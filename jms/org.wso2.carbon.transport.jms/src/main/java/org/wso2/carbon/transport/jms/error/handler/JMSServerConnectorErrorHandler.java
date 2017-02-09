@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.transport.jms.error.handler;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.ServerConnectorErrorHandler;
@@ -32,14 +31,14 @@ public class JMSServerConnectorErrorHandler implements ServerConnectorErrorHandl
      * {@inheritDoc}
      */
     @Override
-    @SuppressFBWarnings({ "BC_UNCONFIRMED_CAST" })
-    public void handleError(Throwable throwable, CarbonMessage carbonMessage, CarbonCallback carbonCallback) {
+    public void handleError(Exception e, CarbonMessage carbonMessage, CarbonCallback carbonCallback)
+            throws Exception {
         if (null != carbonCallback) {
             carbonMessage
                     .setProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS, JMSConstants.JMS_MESSAGE_DELIVERY_ERROR);
             carbonCallback.done(carbonMessage);
         } else {
-            throw (RuntimeException) throwable;
+            throw e;
         }
     }
 
@@ -51,5 +50,3 @@ public class JMSServerConnectorErrorHandler implements ServerConnectorErrorHandl
         return JMSConstants.PROTOCOL_JMS;
     }
 }
-
-
