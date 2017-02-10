@@ -17,12 +17,11 @@
  *
  */
 
-package org.wso2.carbon.serverconnector.framework.websocket;
+package org.wso2.carbon.connector.framework.websocket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,6 +38,8 @@ public class SessionManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(SessionManager.class);
 
     private static SessionManager sessionManager = new SessionManager();
+
+    //Map<uri, Map<sessionId, session>> sessionMap
     private Map<String, Map<String, Session>> sessionMap = new ConcurrentHashMap<>();
 
     private SessionManager() {
@@ -72,7 +73,7 @@ public class SessionManager {
         if (sessionMap.containsKey(uri)) {
             sessionMap.get(uri).put(session.getId(), session);
         } else {
-            Map<String, Session> sessions = new HashMap<>();
+            Map<String, Session> sessions = new ConcurrentHashMap<>();
             sessions.put(session.getId(), session);
             sessionMap.put(uri, sessions);
         }
