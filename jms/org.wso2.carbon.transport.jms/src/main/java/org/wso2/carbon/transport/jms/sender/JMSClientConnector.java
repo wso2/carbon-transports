@@ -57,6 +57,10 @@ public class JMSClientConnector implements ClientConnector {
     private Connection connection;
     private JMSConnectionFactory jmsConnectionFactory;
 
+    public JMSClientConnector() {
+        super();
+    }
+
     /**
      * @return false because, in this instance, the send method with a map parameter is required.
      */
@@ -65,7 +69,7 @@ public class JMSClientConnector implements ClientConnector {
         return false;
     }
 
-    @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback,
+    @Override public synchronized boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback,
                                   Map<String, String> propertyMap) throws ClientConnectorException {
         try {
             try {
