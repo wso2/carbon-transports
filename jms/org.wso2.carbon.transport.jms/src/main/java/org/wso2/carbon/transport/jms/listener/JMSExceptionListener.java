@@ -54,7 +54,7 @@ class JMSExceptionListener implements ExceptionListener {
                 jmsConnectionRetryHandler.retry();
             } catch (JMSConnectorException e1) {
                 throw new RuntimeException(
-                        "Cannot establish the connection again after retrying for " + maxRetryCount + " times", e);
+                        "Cannot establish the connection again after retrying for " + maxRetryCount + " times", e1);
             }
 
         }

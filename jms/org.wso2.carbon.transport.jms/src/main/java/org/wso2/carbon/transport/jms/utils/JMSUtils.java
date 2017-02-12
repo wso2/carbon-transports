@@ -149,10 +149,13 @@ public class JMSUtils {
                     }
                 }
                 jmsCarbonMessage = mapCarbonMessage;
+                jmsCarbonMessage.setProperty(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.MAP_MESSAGE_TYPE);
             } else if (message instanceof ObjectMessage) {
                 jmsCarbonMessage = (SerializableCarbonMessage) ((ObjectMessage) message).getObject();
+                jmsCarbonMessage.setProperty(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.OBJECT_MESSAGE_TYPE);
             } else {
                 jmsCarbonMessage = new TextCarbonMessage(((BytesMessage) message).readUTF());
+                jmsCarbonMessage.setProperty(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.BYTES_MESSAGE_TYPE);
             }
             String messageId = message.getJMSMessageID();
             if (null != messageId) {
