@@ -31,20 +31,18 @@ import java.util.concurrent.TimeUnit;
 public class PollingTaskRunner implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(PollingTaskRunner.class);
 
-    private volatile boolean execute = true;
-
     private final long interval;
     private final PollingServerConnector connector;
     private ScheduledFuture future;
 
     public PollingTaskRunner(PollingServerConnector connector) {
         this.connector = connector;
-        this.interval = connector.getInterval();
+        this.interval = connector.interval;
     }
 
     public void start() {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        future = executor.scheduleWithFixedDelay
+        future = executor.scheduleAtFixedRate
                 (this, interval, interval, TimeUnit.MILLISECONDS);
     }
 
@@ -65,6 +63,8 @@ public class PollingTaskRunner implements Runnable {
      * Exit the running while loop and terminate the thread
      */
     protected void terminate() {
-        future.cancel(true);
+        if (future != null) {
+            future.cancel(true);
+        }
     }
 }

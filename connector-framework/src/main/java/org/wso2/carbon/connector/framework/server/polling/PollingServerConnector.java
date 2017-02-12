@@ -26,8 +26,7 @@ import java.util.Map;
  * Abstract class which should be extended when writing polling type of server connectors such as file, jms, etc.
  */
 public abstract class PollingServerConnector extends ServerConnector {
-    private static final String POLLING_INTERVAL = "pollingInterval";
-    private long interval = 1000L;  //default polling interval
+    protected long interval = 1000L;  //default polling interval
     private PollingTaskRunner pollingTaskRunner;
 
     public PollingServerConnector(String id) {
@@ -40,12 +39,12 @@ public abstract class PollingServerConnector extends ServerConnector {
      */
     @Override
     public void start(Map<String, String> parameters) throws ServerConnectorException {
-        String pollingInterval = parameters.get(POLLING_INTERVAL);
+        String pollingInterval = parameters.get(Constants.POLLING_INTERVAL);
         if (pollingInterval != null) {
             try {
-                this.interval = Long.parseLong(pollingInterval);
+                interval = Long.parseLong(pollingInterval);
             } catch (NumberFormatException e) {
-                throw new ServerConnectorException("Could not parse parameter: " + POLLING_INTERVAL
+                throw new ServerConnectorException("Could not parse parameter: " + Constants.POLLING_INTERVAL
                         + " to numeric type: Long");
             }
         }
@@ -60,13 +59,22 @@ public abstract class PollingServerConnector extends ServerConnector {
         }
     }
 
+    @Override
+    protected void beginMaintenance() {
+        if (pollingTaskRunner != null) {
+            pollingTaskRunner.terminate();
+        }
+    }
+
+    @Override
+    protected void endMaintenance() {
+        if (pollingTaskRunner != null) {
+            pollingTaskRunner.start();
+        }
+    }
 
     /**
      * Generic polling method which will be invoked with each polling invocation.
      */
     protected abstract void poll();
-
-    public long getInterval() {
-        return interval;
-    }
 }

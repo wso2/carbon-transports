@@ -24,13 +24,9 @@ package org.wso2.carbon.transport.file.connector.server.util;
 public final class Constants {
 
     public static final String PROTOCOL_NAME = "file";
-    public static final String FILE_TRANSPORT_PROPERTY_SERVICE_NAME = "transport.ServiceName";
+    public static final String FILE_TRANSPORT_PROPERTY_SERVICE_NAME = "TRANSPORT_FILE_SERVICE_NAME";
 
-    /**
-     * Following constants are coming from earlier VFS Transport.
-     */
     public static final String TRANSPORT_FILE_FILE_URI = "fileURI";
-
     public static final String FILE_SORT_PARAM = "fileSortAttribute";
     public static final String FILE_SORT_VALUE_NAME = "Name";
     public static final String FILE_SORT_VALUE_SIZE = "Size";
@@ -53,7 +49,7 @@ public final class Constants {
     public static final String ASCII_TYPE = "ASCII";
     public static final String EBCDIC_TYPE = "EBCDIC";
 
-    public Constants() {
+    private Constants() {
     }
 
     /**
