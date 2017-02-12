@@ -33,21 +33,18 @@ import java.util.Map;
 public class FileServerConnector extends PollingServerConnector {
     private static final Log log = LogFactory.getLog(FileServerConnector.class);
 
-    private long interval = 10000L;
+    private static final long FILE_CONNECTOR_DEFAULT_INTERVAL = 10000L;
     private CarbonMessageProcessor messageProcessor;
     private FileConsumer consumer;
 
     public FileServerConnector(String id) {
         super(id);
+        interval = FILE_CONNECTOR_DEFAULT_INTERVAL; //this might be overridden in super.start()
     }
 
     @Override
     public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
         messageProcessor = carbonMessageProcessor;
-    }
-
-    public CarbonMessageProcessor getMessageProcessor() {
-        return messageProcessor;
     }
 
     @Override
@@ -56,15 +53,20 @@ public class FileServerConnector extends PollingServerConnector {
     }
 
     @Override
-    protected void destroy() throws ServerConnectorException {
+    public void destroy() throws ServerConnectorException {
         stop();
     }
 
 
     @Override
     public void start(Map<String, String> parameters) throws ServerConnectorException {
-        consumer = new FileConsumer(id, parameters, messageProcessor);
-        super.start(parameters);
+        try {
+            consumer = new FileConsumer(id, parameters, messageProcessor);
+            super.start(parameters);
+        } catch (RuntimeException e) {
+            throw new ServerConnectorException("Failed to start File server connector for Service: " +
+                    "" + id + ". Reason: " + e.getMessage());
+        }
     }
 
     @Override
@@ -72,23 +74,8 @@ public class FileServerConnector extends PollingServerConnector {
         try {
             consumer.consume();
         } catch (FileServerConnectorException e) {
-            log.error("Error executing the polling cycle for " +
-                    "server connector ID: " + id + ". Reason: " + e.getMessage());
-        }
-    }
-
-    @Override
-    protected void beginMaintenance() {
-        //No maintenance work for FileServerConnector
-    }
-
-    @Override
-    protected void endMaintenance() {
-        //No maintenance work for FileServerConnector
-    }
-
-    @Override
-    public long getInterval() {
-        return this.interval;
+            log.error("Error executing the polling cycle of File " +
+                    "server connector for service: " + id + ". Reason: " + e.getMessage());
+        } 
     }
 }

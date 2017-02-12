@@ -37,13 +37,14 @@ import org.wso2.carbon.transport.file.connector.server.util.Constants;
 import org.wso2.carbon.transport.file.connector.server.util.FileTransportUtils;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class is able to poll for a file and consume it once it is available.
+ * Provides the capability to process a file and delete it afterwards.
  */
 public class FileConsumer {
 
@@ -100,7 +101,7 @@ public class FileConsumer {
                 isFileExists = fileObject.exists();
             } catch (FileSystemException e) {
                 throw new FileServerConnectorException("Error occurred when determining whether the file at URI : "
-                        + FileTransportUtils.maskURLPassword(fileURI) + " exists. " + e.getMessage());
+                        + FileTransportUtils.maskURLPassword(fileURI) + " exists. " + e);
             }
 
             boolean isFileReadable;
@@ -108,7 +109,7 @@ public class FileConsumer {
                 isFileReadable = fileObject.isReadable();
             } catch (FileSystemException e) {
                 throw new FileServerConnectorException("Error occurred when determining whether the file at URI : "
-                        + FileTransportUtils.maskURLPassword(fileURI) + " is readable. " + e.getMessage());
+                        + FileTransportUtils.maskURLPassword(fileURI) + " is readable. " + e);
             }
 
             if (isFileExists && isFileReadable) {
@@ -246,7 +247,6 @@ public class FileConsumer {
                 child.close();
             } catch (FileSystemException e) {
                 log.warn("Could not close the file: " + child.getName().getPath());
-                //todo: debug child.getName().getPath()
             }
         }
     }
@@ -270,20 +270,7 @@ public class FileConsumer {
             content = file.getContent();
         } catch (FileSystemException e) {
             throw new FileServerConnectorException("Could not read content of file at URI: "
-                    + fileURI + ". Reason: " + e.getMessage());
-        }
-
-        Map<String, Object> transportHeaders = new HashMap<>();
-        transportHeaders.put(Constants.FILE_PATH, filePath);
-        transportHeaders.put(Constants.FILE_NAME, fileName);
-        transportHeaders.put(Constants.FILE_URI, fileURI);
-
-        try {
-            transportHeaders.put(Constants.FILE_LENGTH, content.getSize());
-            transportHeaders.put(Constants.LAST_MODIFIED, content.getLastModifiedTime());
-        } catch (FileSystemException e) {
-            log.warn("Unable to set file length or last modified date header. Reason: "
-                    + e.getMessage());
+                    + fileURI + ". ", e);
         }
 
         InputStream inputStream;
@@ -291,25 +278,35 @@ public class FileConsumer {
             inputStream = content.getInputStream();
         } catch (FileSystemException e) {
             throw new FileServerConnectorException("Error occurred when trying to get " +
-                    "input stream from file at URI :" + fileURI + ". " + e.getMessage());
+                    "input stream from file at URI :" + fileURI + ". ", e);
         }
         CarbonMessage cMessage = new StreamingCarbonMessage(inputStream);
         cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_NAME);
         cMessage.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
-        cMessage.setProperty("TRANSPORT_HEADERS", transportHeaders);
+        cMessage.setProperty(Constants.FILE_PATH, filePath);
+        cMessage.setProperty(Constants.FILE_NAME, fileName);
+        cMessage.setProperty(Constants.FILE_URI, fileURI);
+        try {
+            cMessage.setProperty(Constants.FILE_LENGTH, content.getSize());
+            cMessage.setProperty(Constants.LAST_MODIFIED, content.getLastModifiedTime());
+        } catch (FileSystemException e) {
+            log.warn("Unable to set file length or last modified date header. Reason: "
+                    + e.getMessage());
+        }
+
         FileServerConnectorCallback callback = new FileServerConnectorCallback();
         try {
             messageProcessor.receive(cMessage, callback);
         } catch (Exception e) {
             throw new FileServerConnectorException("Failed to send stream from file: "
-                    + fileURI + " to message processor. " + e.getMessage());
+                    + fileURI + " to message processor. ", e);
         }
         try {
             callback.waitTillDone();
         } catch (InterruptedException e) {
             throw new FileServerConnectorException("Error occurred while waiting for message " +
                     "processor to consume the file input stream. Input stream may be closed " +
-                    "before the Message processor reads it. " + e.getMessage());
+                    "before the Message processor reads it. ", e);
         }
         return file;
     }
@@ -344,14 +341,21 @@ public class FileConsumer {
     /**
      * Comparator classed used to sort the files according to user input
      */
-    static class FileNameAscComparator implements Comparator<FileObject> {
+    static class FileNameAscComparator implements Comparator<FileObject>, Serializable {
+
+        private static final long serialVersionUID = 1;
+
         @Override
         public int compare(FileObject o1, FileObject o2) {
             return o1.getName().compareTo(o2.getName());
         }
     }
 
-    static class FileLastmodifiedtimestampAscComparator implements Comparator<FileObject> {
+    static class FileLastmodifiedtimestampAscComparator
+            implements Comparator<FileObject>, Serializable {
+
+        private static final long serialVersionUID = 1;
+
         @Override
         public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;
@@ -359,33 +363,44 @@ public class FileConsumer {
                 lDiff = o1.getContent().getLastModifiedTime()
                         - o2.getContent().getLastModifiedTime();
             } catch (FileSystemException e) {
-                log.warn("Unable to compare lastmodified timestamp of the two files.", e);
+                log.warn("Unable to compare last modified timestamp of the two files. " +
+                        "Reason: " + e.getMessage());
             }
             return lDiff.intValue();
         }
     }
 
-    static class FileSizeAscComparator implements Comparator<FileObject> {
+    static class FileSizeAscComparator implements Comparator<FileObject>, Serializable {
+
+        private static final long serialVersionUID = 1;
+
         @Override
         public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;
             try {
                 lDiff = o1.getContent().getSize() - o2.getContent().getSize();
             } catch (FileSystemException e) {
-                log.warn("Unable to compare size of the two files.", e);
+                log.warn("Unable to compare size of the two files. Reason: " + e.getMessage());
             }
             return lDiff.intValue();
         }
     }
 
-    static class FileNameDesComparator implements Comparator<FileObject> {
+    static class FileNameDesComparator implements Comparator<FileObject>, Serializable {
+
+        private static final long serialVersionUID = 1;
+
         @Override
         public int compare(FileObject o1, FileObject o2) {
             return o2.getName().compareTo(o1.getName());
         }
     }
 
-    static class FileLastmodifiedtimestampDesComparator implements Comparator<FileObject> {
+    static class FileLastmodifiedtimestampDesComparator
+            implements Comparator<FileObject>, Serializable {
+
+        private static final long serialVersionUID = 1;
+
         @Override
         public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;
@@ -393,20 +408,24 @@ public class FileConsumer {
                 lDiff = o2.getContent().getLastModifiedTime()
                         - o1.getContent().getLastModifiedTime();
             } catch (FileSystemException e) {
-                log.warn("Unable to compare lastmodified timestamp of the two files.", e);
+                log.warn("Unable to compare last modified timestamp of the two files. " +
+                        "Reason: " + e.getMessage());
             }
             return lDiff.intValue();
         }
     }
 
-    static class FileSizeDesComparator implements Comparator<FileObject> {
+    static class FileSizeDesComparator implements Comparator<FileObject>, Serializable {
+
+        private static final long serialVersionUID = 1;
+
         @Override
         public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;
             try {
                 lDiff = o2.getContent().getSize() - o1.getContent().getSize();
             } catch (FileSystemException e) {
-                log.warn("Unable to compare size of the two files.", e);
+                log.warn("Unable to compare size of the two files. Reason: " + e.getMessage());
             }
             return lDiff.intValue();
         }
