@@ -281,12 +281,12 @@ public class FileConsumer {
         CarbonMessage cMessage = new StreamingCarbonMessage(inputStream);
         cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_NAME);
         cMessage.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
-        cMessage.setProperty(Constants.FILE_PATH, filePath);
-        cMessage.setProperty(Constants.FILE_NAME, fileName);
-        cMessage.setProperty(Constants.FILE_URI, fileURI);
+        cMessage.setHeader(Constants.FILE_PATH, filePath);
+        cMessage.setHeader(Constants.FILE_NAME, fileName);
+        cMessage.setHeader(Constants.FILE_URI, fileURI);
         try {
-            cMessage.setProperty(Constants.FILE_LENGTH, content.getSize());
-            cMessage.setProperty(Constants.LAST_MODIFIED, content.getLastModifiedTime());
+            cMessage.setHeader(Constants.FILE_LENGTH, Long.toString(content.getSize()));
+            cMessage.setHeader(Constants.LAST_MODIFIED, Long.toString(content.getLastModifiedTime()));
         } catch (FileSystemException e) {
             log.warn("Unable to set file length or last modified date header. Reason: "
                     + e.getMessage());
@@ -318,12 +318,6 @@ public class FileConsumer {
         if (log.isDebugEnabled()) {
             log.debug("Deleting file :" + FileTransportUtils.
                     maskURLPassword(fileObject.getName().getBaseName()));
-        }
-        try {
-            fileObject.close();
-        } catch (FileSystemException e) {
-            throw new FileServerConnectorException("Could not close file : "
-                    + FileTransportUtils.maskURLPassword(fileObject.getName().getBaseName()));
         }
         try {
             if (!fileObject.delete()) {
