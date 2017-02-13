@@ -17,7 +17,7 @@
  *
  */
 
-package org.wso2.carbon.connector.framework.websocket;
+package org.wso2.carbon.connector.framework;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,20 +33,20 @@ import javax.websocket.Session;
  * This is a singleton class which is used to store all the {@link Session} details in a single place.
  */
 
-public class SessionManager {
+public class WebSocketSessionManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SessionManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketSessionManager.class);
 
-    private static SessionManager sessionManager = new SessionManager();
+    private static WebSocketSessionManager webSocketSessionManager = new WebSocketSessionManager();
 
     //Map<uri, Map<sessionId, session>> sessionMap
     private Map<String, Map<String, Session>> sessionMap = new ConcurrentHashMap<>();
 
-    private SessionManager() {
+    private WebSocketSessionManager() {
     }
 
-    public static SessionManager getInstance() {
-        return sessionManager;
+    public static WebSocketSessionManager getInstance() {
+        return webSocketSessionManager;
     }
 
     /**
@@ -55,11 +55,7 @@ public class SessionManager {
      * @return requested {@link Session} for given channel.
      */
     public Session getSession(String uri, String sessionId) {
-        if (sessionMap.containsKey(uri) && sessionMap.get(uri).containsKey(sessionId)) {
-            return sessionMap.get(uri).get(sessionId);
-        } else {
-            throw new NullPointerException("Cannot find session. Error occurred");
-        }
+        return sessionMap.get(uri).get(sessionId);
     }
 
     /**
@@ -96,7 +92,7 @@ public class SessionManager {
      * Checks whether the session is contained in the session manager.
      * @param uri uri of the WebSocket endpoint.
      * @param sessionId session id for the given channel.
-     * @return true if the session is in the {@link SessionManager}.
+     * @return true if the session is in the {@link WebSocketSessionManager}.
      */
     public boolean containsSession(String uri, String sessionId) {
         return sessionMap.containsKey(uri) && sessionMap.get(uri).containsKey(sessionId);
@@ -109,12 +105,7 @@ public class SessionManager {
      * @return removed session from the session map.
      */
     public Session removeSession(String uri, String sessionId) {
-        if (sessionMap.get(uri).containsKey(sessionId)) {
-            return sessionMap.get(uri).remove(sessionId);
-        } else {
-            throw new NullPointerException("Error occurred in removing session from Session Manager.");
-        }
-
+        return sessionMap.get(uri).remove(sessionId);
     }
 
 }
