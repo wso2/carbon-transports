@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.transport.file.connector.server;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -27,6 +25,8 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.UriParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.StreamingCarbonMessage;
@@ -47,7 +47,8 @@ import java.util.Map;
  */
 public class FileConsumer {
 
-    private static final Log log = LogFactory.getLog(FileConsumer.class);
+    private static final Logger log = LoggerFactory.getLogger(FileConsumer.class);
+
 
     private Map<String, String> fileProperties;
     private FileSystemManager fsManager = null;
@@ -268,7 +269,7 @@ public class FileConsumer {
             content = file.getContent();
         } catch (FileSystemException e) {
             throw new FileServerConnectorException("Could not read content of file at URI: "
-                    + fileURI + ". ", e);
+                    + FileTransportUtils.maskURLPassword(fileURI) + ". ", e);
         }
 
         InputStream inputStream;
@@ -276,7 +277,7 @@ public class FileConsumer {
             inputStream = content.getInputStream();
         } catch (FileSystemException e) {
             throw new FileServerConnectorException("Error occurred when trying to get " +
-                    "input stream from file at URI :" + fileURI + ". ", e);
+                    "input stream from file at URI :" + FileTransportUtils.maskURLPassword(fileURI) + ". ", e);
         }
         CarbonMessage cMessage = new StreamingCarbonMessage(inputStream);
         cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_NAME);
@@ -297,7 +298,7 @@ public class FileConsumer {
             messageProcessor.receive(cMessage, callback);
         } catch (Exception e) {
             throw new FileServerConnectorException("Failed to send stream from file: "
-                    + fileURI + " to message processor. ", e);
+                    + FileTransportUtils.maskURLPassword(fileURI) + " to message processor. ", e);
         }
         try {
             callback.waitTillDone();

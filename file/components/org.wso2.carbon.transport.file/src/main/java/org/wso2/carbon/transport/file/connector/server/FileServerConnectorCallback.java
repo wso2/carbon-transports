@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.file.connector.server;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 
@@ -31,7 +31,8 @@ import java.util.concurrent.CountDownLatch;
  */
 public class FileServerConnectorCallback implements CarbonCallback {
 
-    private static final Log log = LogFactory.getLog(FileServerConnectorCallback.class);
+    private static final Logger log = LoggerFactory.getLogger(FileServerConnectorCallback.class);
+
 
     CountDownLatch latch = new CountDownLatch(1);
 

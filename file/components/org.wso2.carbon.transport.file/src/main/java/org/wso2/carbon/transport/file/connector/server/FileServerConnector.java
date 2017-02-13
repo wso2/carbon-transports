@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.file.connector.server;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.connector.framework.server.polling.PollingServerConnector;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
@@ -31,7 +31,8 @@ import java.util.Map;
  * Server connector for File transport.
  */
 public class FileServerConnector extends PollingServerConnector {
-    private static final Log log = LogFactory.getLog(FileServerConnector.class);
+    private static final Logger log = LoggerFactory.getLogger(FileServerConnector.class);
+
 
     private static final long FILE_CONNECTOR_DEFAULT_INTERVAL = 10000L;
     private CarbonMessageProcessor messageProcessor;
