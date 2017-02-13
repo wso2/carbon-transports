@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.transport.file.connector.server;
 
-import org.apache.commons.lang.WordUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.vfs2.FileContent;
@@ -181,8 +180,7 @@ public class FileConsumer {
     private void addOptions(String scheme, Map<String, String> schemeFileOptions) {
         if (scheme.equals(Constants.SCHEME_SFTP)) {
             for (Constants.SftpFileOption option : Constants.SftpFileOption.values()) {
-                String strValue = fileProperties.get(Constants.SFTP_PREFIX
-                        + WordUtils.capitalize(option.toString()));
+                String strValue = fileProperties.get(Constants.SFTP_PREFIX + option.toString());
                 if (strValue != null && !strValue.equals("")) {
                     schemeFileOptions.put(option.toString(), strValue);
                 }
