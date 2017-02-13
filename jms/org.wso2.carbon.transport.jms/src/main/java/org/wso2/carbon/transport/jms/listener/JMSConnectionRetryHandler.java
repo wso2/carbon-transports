@@ -65,7 +65,9 @@ class JMSConnectionRetryHandler {
      * @throws JMSConnectorException JMS Connector Exception
      */
     void retry() throws JMSConnectorException {
-        logger.error("Re-connection will be attempted after " + retryInterval + " milli-seconds.");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Re-connection will be attempted after " + retryInterval + " milli-seconds.");
+        }
         try {
             TimeUnit.MILLISECONDS.sleep(retryInterval);
         } catch (InterruptedException e) {

@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.transport.jms.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.MapCarbonMessage;
 import org.wso2.carbon.messaging.SerializableCarbonMessage;
@@ -46,7 +44,6 @@ import javax.naming.Reference;
  * This class is maintains the common methods used by JMS transport.
  */
 public class JMSUtils {
-    private static final Logger logger = LoggerFactory.getLogger(JMSUtils.class);
 
     /**
      * Return the JMS destination with the given destination name looked up from the context.
@@ -119,7 +116,6 @@ public class JMSUtils {
                 String errorMessage =
                         "JNDI lookup of name " + name + " returned a " + object.getClass().getName() + " while a "
                                 + clazz + " was expected";
-                logger.error(errorMessage);
                 throw new NamingException(errorMessage);
             }
         }
@@ -173,7 +169,6 @@ public class JMSUtils {
             }
             return jmsCarbonMessage;
         } catch (JMSException e) {
-            logger.error("Error while changing the jms message to carbon message");
             throw new JMSConnectorException("Error while changing the jms message to carbon message", e);
         }
     }

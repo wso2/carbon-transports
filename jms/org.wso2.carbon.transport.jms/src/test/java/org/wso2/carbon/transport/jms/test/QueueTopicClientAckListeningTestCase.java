@@ -32,6 +32,7 @@ import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.jms.JMSException;
 
 /**
  * Test case for queue topic listening in client ack mode.
@@ -97,18 +98,14 @@ public class QueueTopicClientAckListeningTestCase {
      */
     @Test(groups = "jmsListening", description = "Testing whether queue listening is working correctly without any "
             + "exceptions in client ack mode")
-    public void queueListeningTestCase() {
-        try {
-            jmsQueueTransportListener.start(queueListeningParameters);
-            logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME_2);
-            jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME_2);
-            Assert.assertTrue(queueTestMessageProcessor.getCount() > 10,
-                    "Expected message count is not received when " + "listening to queue "
-                            + JMSTestConstants.QUEUE_NAME_2);
-            jmsQueueTransportListener.stop();
-        } catch (Exception e) {
-            Assert.fail("Error while listening to queue");
-        }
+    public void queueListeningTestCase() throws ServerConnectorException, InterruptedException, JMSException {
+        jmsQueueTransportListener.start(queueListeningParameters);
+        logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME_2);
+        jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME_2);
+        Assert.assertTrue(queueTestMessageProcessor.getCount() > 10,
+                "Expected message count is not received when " + "listening to queue "
+                        + JMSTestConstants.QUEUE_NAME_2);
+        jmsQueueTransportListener.stop();
     }
 
     /**
@@ -119,18 +116,14 @@ public class QueueTopicClientAckListeningTestCase {
      */
     @Test(groups = "jmsListening", description = "Testing whether topic listening is working correctly without any "
             + "exceptions in client ack mode")
-    public void topicListeningTestCase() {
-        try {
-            jmsTopicTransportListener.start(topicListeningParameters);
-            logger.info("JMS Transport Listener is starting to listen to the topic " + JMSTestConstants.TOPIC_NAME_1);
-            jmsServer.publishMessagesToTopic(JMSTestConstants.TOPIC_NAME_1);
-            Assert.assertTrue(topicTestMessageProcessor.getCount() > 10,
-                    "Expected message count is not received when " + "listening to topic "
-                            + JMSTestConstants.TOPIC_NAME_1);
-            jmsTopicTransportListener.stop();
-        } catch (Exception e) {
-            Assert.fail("Error while listening to topic");
-        }
+    public void topicListeningTestCase() throws ServerConnectorException, InterruptedException, JMSException {
+        jmsTopicTransportListener.start(topicListeningParameters);
+        logger.info("JMS Transport Listener is starting to listen to the topic " + JMSTestConstants.TOPIC_NAME_1);
+        jmsServer.publishMessagesToTopic(JMSTestConstants.TOPIC_NAME_1);
+        Assert.assertTrue(topicTestMessageProcessor.getCount() > 10,
+                "Expected message count is not received when " + "listening to topic "
+                        + JMSTestConstants.TOPIC_NAME_1);
+        jmsTopicTransportListener.stop();
     }
 
 }
