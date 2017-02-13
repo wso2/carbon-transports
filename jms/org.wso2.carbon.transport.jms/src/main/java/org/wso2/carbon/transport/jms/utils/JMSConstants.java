@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.transport.jms.utils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import javax.xml.namespace.QName;
@@ -142,22 +143,22 @@ public class JMSConstants {
     /**
      * Mapping between parameters and actual values.
      */
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings({ "MS_MUTABLE_COLLECTION" })
-    public static final Map<String, String> MAPPING_PARAMETERS;
+    private static Map<String, String> mappingParameters;
 
     static {
-        MAPPING_PARAMETERS = new HashMap<>();
-        MAPPING_PARAMETERS.put(CONNECTION_FACTORY_JNDI_PARAM_NAME, CONNECTION_FACTORY_JNDI_NAME);
-        MAPPING_PARAMETERS.put(CONNECTION_FACTORY_TYPE_PARAM_NAME, CONNECTION_FACTORY_TYPE);
-        MAPPING_PARAMETERS.put(DESTINATION_PARAM_NAME, DESTINATION_NAME);
-        MAPPING_PARAMETERS.put(NAMING_FACTORY_INITIAL_PARAM_NAME, NAMING_FACTORY_INITIAL);
-        MAPPING_PARAMETERS.put(PROVIDER_URL_PARAM_NAME, PROVIDER_URL);
-        MAPPING_PARAMETERS.put(SESSION_ACK_MODE_PARAM_NAME, SESSION_ACK);
-        MAPPING_PARAMETERS.put(CACHE_LEVEL, PARAM_CACHE_LEVEL);
-        MAPPING_PARAMETERS.put(SUBSCRIPTION_DURABLE_PARAM_NAME, PARAM_SUB_DURABLE);
-        MAPPING_PARAMETERS.put(DURABLE_SUBSCRIBER_CLIENT_ID_PARAM_NAME, PARAM_DURABLE_SUB_CLIENT_ID);
-        MAPPING_PARAMETERS.put(DURABLE_SUBSCRIBER_PARAM_NAME, PARAM_DURABLE_SUB_NAME);
+        mappingParameters = new HashMap<>();
+        mappingParameters.put(CONNECTION_FACTORY_JNDI_PARAM_NAME, CONNECTION_FACTORY_JNDI_NAME);
+        mappingParameters.put(CONNECTION_FACTORY_TYPE_PARAM_NAME, CONNECTION_FACTORY_TYPE);
+        mappingParameters.put(DESTINATION_PARAM_NAME, DESTINATION_NAME);
+        mappingParameters.put(NAMING_FACTORY_INITIAL_PARAM_NAME, NAMING_FACTORY_INITIAL);
+        mappingParameters.put(PROVIDER_URL_PARAM_NAME, PROVIDER_URL);
+        mappingParameters.put(SESSION_ACK_MODE_PARAM_NAME, SESSION_ACK);
+        mappingParameters.put(CACHE_LEVEL, PARAM_CACHE_LEVEL);
+        mappingParameters.put(SUBSCRIPTION_DURABLE_PARAM_NAME, PARAM_SUB_DURABLE);
+        mappingParameters.put(DURABLE_SUBSCRIBER_CLIENT_ID_PARAM_NAME, PARAM_DURABLE_SUB_CLIENT_ID);
+        mappingParameters.put(DURABLE_SUBSCRIBER_PARAM_NAME, PARAM_DURABLE_SUB_NAME);
     }
+    public static final Map<String, String> MAPPING_PARAMETERS = Collections.unmodifiableMap(mappingParameters);
 
     /**
      * The parameter indicating the JMS API specification to be used - if this
