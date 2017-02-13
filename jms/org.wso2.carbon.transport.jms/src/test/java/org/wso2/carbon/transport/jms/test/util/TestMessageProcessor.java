@@ -35,7 +35,8 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
     /**
      * {@inheritDoc}
      */
-    @Override public boolean receive(CarbonMessage carbonMessage, CarbonCallback carbonCallback) throws Exception {
+    @Override
+    public boolean receive(CarbonMessage carbonMessage, CarbonCallback carbonCallback) throws Exception {
         if (carbonMessage instanceof TextCarbonMessage) {
             count++;
             if (null != carbonCallback) {
@@ -56,19 +57,22 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
     /**
      * {@inheritDoc}
      */
-    @Override public void setTransportSender(TransportSender transportSender) {
+    @Override
+    public void setTransportSender(TransportSender transportSender) {
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public void setClientConnector(ClientConnector clientConnector) {
+    @Override
+    public void setClientConnector(ClientConnector clientConnector) {
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public String getId() {
+    @Override
+    public String getId() {
         return null;
     }
 

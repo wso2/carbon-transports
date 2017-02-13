@@ -254,8 +254,8 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     @Override
     public Connection createConnection() throws JMSException {
         if (null == connectionFactory) {
-            logger.error("Connection cannot be establish to the broker. Please check the broker libs provided.");
-            return null;
+            throw new JMSException("Connection cannot be establish to the broker. Connection Factory is null. Please "
+                    + "check the Please check the broker libs provided.");
         }
         Connection connection = null;
         try {

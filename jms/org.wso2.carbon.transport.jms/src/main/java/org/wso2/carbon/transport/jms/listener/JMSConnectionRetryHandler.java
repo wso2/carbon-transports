@@ -34,7 +34,7 @@ class JMSConnectionRetryHandler {
     private JMSServerConnector jmsServerConnector;
     private static final Logger logger = LoggerFactory.getLogger(JMSConnectionRetryHandler.class);
     /**
-     * Retry Interval.
+     * Retry Interval in milli seconds.
      */
     private long retryInterval;
     /**

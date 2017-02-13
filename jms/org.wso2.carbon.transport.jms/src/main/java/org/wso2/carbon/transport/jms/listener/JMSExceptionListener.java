@@ -12,8 +12,18 @@ import javax.jms.JMSException;
  */
 class JMSExceptionListener implements ExceptionListener {
     private static final Logger logger = LoggerFactory.getLogger(JMSExceptionListener.class);
+    /**
+     * This {@link JMSServerConnector} instance represents the jms listener that is related with this exception
+     * listener.
+     */
     private JMSServerConnector jmsServerConnector;
+    /**
+     * Retry Interval in milli seconds.
+     */
     private long retryInterval;
+    /**
+     * Maximum retry count.
+     */
     private int maxRetryCount;
 
     /**

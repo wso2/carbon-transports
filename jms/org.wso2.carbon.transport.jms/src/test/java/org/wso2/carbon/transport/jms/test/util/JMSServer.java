@@ -113,7 +113,8 @@ public class JMSServer {
         Destination destination = queueSession.createQueue(JMSTestConstants.QUEUE_NAME_1);
         MessageConsumer queueReceiver = queueSession.createConsumer(destination);
         MessageListener listener = new MessageListener() {
-            @Override public void onMessage(Message message) {
+            @Override
+            public void onMessage(Message message) {
                 try {
                     if (message instanceof TextMessage) {
                         TextMessage textMessage = (TextMessage) message;

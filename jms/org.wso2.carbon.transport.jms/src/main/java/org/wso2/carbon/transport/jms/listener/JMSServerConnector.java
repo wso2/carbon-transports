@@ -41,16 +41,51 @@ import javax.jms.Session;
  */
 public class JMSServerConnector extends ServerConnector {
     private static final Logger logger = LoggerFactory.getLogger(JMSServerConnector.class);
+    /**
+     * The {@link CarbonMessageProcessor} instance represents the carbon message processor that handles the out going
+     * messages.
+     */
     private CarbonMessageProcessor carbonMessageProcessor;
+    /**
+     * The {@link JMSConnectionFactory} instance represents the jms connection factory related with this server
+     * connector.
+     */
     private JMSConnectionFactory jmsConnectionFactory = null;
+    /**
+     * The {@link Connection} instance represents the jms connection related with this server connector.
+     */
     private Connection connection;
+    /**
+     * The {@link Session} instance represents the jms session related with this server connector.
+     */
     private Session session;
+    /**
+     * The {@link Destination} instance represents a particular jms destination, this server connector listening to.
+     */
     private Destination destination;
+    /**
+     * The {@link MessageConsumer} instance represents a particular jms consumer, this server related with
+     */
     private MessageConsumer messageConsumer;
+    /**
+     * The {@link String} instance represents the jms connection user-name.
+     */
     private String userName;
+    /**
+     * The {@link String} instance represents the jms connection password.
+     */
     private String password;
+    /**
+     * The {@link Properties} instance represents the jms connection properties.
+     */
     private Properties properties;
+    /**
+     * The retry interval (in milli seconds) if the connection is lost or if the connection cannot be established.
+     */
     private long retryInterval = 10000;
+    /**
+     * The maximum retry count, for retrying to establish a jms connection with the jms provider.
+     */
     private int maxRetryCount = 5;
 
     /**

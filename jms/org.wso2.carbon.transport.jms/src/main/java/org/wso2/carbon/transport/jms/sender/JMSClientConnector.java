@@ -64,12 +64,14 @@ public class JMSClientConnector implements ClientConnector {
     /**
      * @return false because, in this instance, the send method with a map parameter is required.
      */
-    @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
+    @Override
+    public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
             throws ClientConnectorException {
         return false;
     }
 
-    @Override public synchronized boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback,
+    @Override
+    public synchronized boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback,
                                   Map<String, String> propertyMap) throws ClientConnectorException {
         try {
             try {
@@ -178,7 +180,8 @@ public class JMSClientConnector implements ClientConnector {
         this.messageProducer = messageProducer;
     }
 
-    @Override public String getProtocol() {
+    @Override
+    public String getProtocol() {
         return "jms";
     }
 
