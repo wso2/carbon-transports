@@ -87,20 +87,20 @@ public class JMSConstants {
     /**
      * Parameters from the user.
      */
-    public static final String CONNECTION_FACTORY_JNDI_PARAM_NAME = "ConnectionFactoryJNDIName";
-    public static final String CONNECTION_FACTORY_TYPE_PARAM_NAME = "ConnectionFactoryType";
-    public static final String DESTINATION_PARAM_NAME = "Destination";
-    public static final String NAMING_FACTORY_INITIAL_PARAM_NAME = "FactoryInitial";
-    public static final String PROVIDER_URL_PARAM_NAME = "ProviderUrl";
-    public static final String SESSION_ACK_MODE_PARAM_NAME = "SessionAcknowledgement";
-    public static final String SUBSCRIPTION_DURABLE_PARAM_NAME = "SubscriptionDurable";
-    public static final String DURABLE_SUBSCRIBER_CLIENT_ID_PARAM_NAME = "DurableSubscriberClientID";
-    public static final String DURABLE_SUBSCRIBER_PARAM_NAME = "DurableSubscriberName";
+    public static final String CONNECTION_FACTORY_JNDI_PARAM_NAME = "connectionFactoryJNDIName";
+    public static final String CONNECTION_FACTORY_TYPE_PARAM_NAME = "connectionFactoryType";
+    public static final String DESTINATION_PARAM_NAME = "destination";
+    public static final String NAMING_FACTORY_INITIAL_PARAM_NAME = "factoryInitial";
+    public static final String PROVIDER_URL_PARAM_NAME = "providerUrl";
+    public static final String SESSION_ACK_MODE_PARAM_NAME = "sessionAcknowledgement";
+    public static final String SUBSCRIPTION_DURABLE_PARAM_NAME = "subscriptionDurable";
+    public static final String DURABLE_SUBSCRIBER_CLIENT_ID_PARAM_NAME = "durableSubscriberClientID";
+    public static final String DURABLE_SUBSCRIBER_PARAM_NAME = "durableSubscriberName";
     public static final String PERSISTENCE = "Persistence";
     public static final String CACHE_LEVEL = "CacheLevel";
 
-    public static final String CONNECTION_USERNAME = "ConnectionUsername";
-    public static final String CONNECTION_PASSWORD = "ConnectionPassword";
+    public static final String CONNECTION_USERNAME = "connectionUsername";
+    public static final String CONNECTION_PASSWORD = "connectionPassword";
     public static final String TRANSPORT_HEADERS = "TransportHeaders";
     public static final String TEXT_DATA = "TextData";
 
