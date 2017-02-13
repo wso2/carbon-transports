@@ -35,7 +35,7 @@ import javax.websocket.Session;
 
 public class WebSocketSessionManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketSessionManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketSessionManager.class);
 
     private static WebSocketSessionManager webSocketSessionManager = new WebSocketSessionManager();
 
