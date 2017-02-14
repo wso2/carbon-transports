@@ -49,7 +49,6 @@ public class FileConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(FileConsumer.class);
 
-
     private Map<String, String> fileProperties;
     private FileSystemManager fsManager = null;
     private String serviceName;
