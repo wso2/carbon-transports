@@ -130,7 +130,7 @@ public class JMSClientConnector implements ClientConnector {
                     jmsConnectionFactory.closeSession(session);
                     jmsConnectionFactory.closeConnection(connection);
                 } catch (JMSConnectorException e) {
-                    logger.error("Exception occured when closing connection " + e.getMessage());
+                    logger.error("Exception occured when closing connection " + e.getMessage(), e);
                 }
             }
         }

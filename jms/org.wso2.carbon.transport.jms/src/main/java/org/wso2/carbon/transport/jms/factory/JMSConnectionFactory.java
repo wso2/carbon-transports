@@ -116,6 +116,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * Initialization of JMS ConnectionFactory with the user specified properties.
      *
      * @param properties Properties to be added to the initial context
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public JMSConnectionFactory(Properties properties) throws JMSConnectorException {
         try {
@@ -208,6 +209,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To create the JMS Connection Factory.
      *
      * @return JMS Connection Factory
+     * @throws JMSConnectorException JMS Connector Exception
      */
     private ConnectionFactory createConnectionFactory() throws JMSConnectorException {
         if (null != this.connectionFactory) {
@@ -230,6 +232,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To create a connection.
      *
      * @return JMS connection
+     * @throws JMSException JMS Exception
      */
     public Connection getConnection() throws JMSException {
         return createConnection();
@@ -241,6 +244,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param userName Valid username
      * @param password valid password
      * @return JMS connection
+     * @throws JMSException
      */
     public Connection getConnection(String userName, String password) throws JMSException {
         return createConnection(userName, password);
@@ -422,6 +426,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      *
      * @param session JMS session that we need to find the destination
      * @return destination the particular is related with
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public Destination getDestination(Session session) throws JMSConnectorException {
         if (null != this.destination) {
@@ -436,6 +441,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session     JMS Session to create the consumer
      * @param destination JMS destination which the consumer should listen to
      * @return Message Consumer, who is listening in particular destination with the given session
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public MessageConsumer getMessageConsumer(Session session, Destination destination) throws JMSConnectorException {
         return createMessageConsumer(session, destination);
@@ -447,6 +453,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session     JMS Session to create the consumer
      * @param destination JMS destination which the consumer should listen to
      * @return Message Consumer, who is listening in particular destination with the given session
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public MessageConsumer createMessageConsumer(Session session, Destination destination)
             throws JMSConnectorException {
@@ -490,6 +497,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session     JMS Session to create the producer
      * @param destination JMS destination which the producer should publish to
      * @return MessageProducer, who publish messages to particular destination with the given session
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public MessageProducer getMessageProducer(Session session, Destination destination) throws JMSConnectorException {
         return createMessageProducer(session, destination);
@@ -526,6 +534,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      *
      * @param session Specific session to create the destination
      * @return destination for particular session
+     * @throws JMSConnectorException JMS Connector Exception
      */
     private Destination createDestination(Session session) throws JMSConnectorException {
         this.destination = createDestination(session, this.destinationName);
@@ -538,6 +547,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session         relevant session to create the destination
      * @param destinationName Destination jms destination
      * @return the destination that is created from session
+     * @throws JMSConnectorException JMS Connector Exception
      */
     private Destination createDestination(Session session, String destinationName) throws JMSConnectorException {
         Destination destination = null;
@@ -584,6 +594,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      *
      * @param connection Connection that is needed to create the session
      * @return Session that is created from the connection
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public Session getSession(Connection connection) throws JMSConnectorException {
         return createSession(connection);
@@ -594,6 +605,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      *
      * @param connection Specific connection which we is needed for creating session
      * @return session created from the given connection
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public Session createSession(Connection connection) throws JMSConnectorException {
         try {
@@ -618,6 +630,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * Start the jms connection to start the message delivery.
      *
      * @param connection Connection that need to be started
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public void start(Connection connection) throws JMSConnectorException {
         try {
@@ -632,6 +645,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * Stop the jms connection to stop the message delivery.
      *
      * @param connection JMS connection that need to be stopped
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public void stop(Connection connection) throws JMSConnectorException {
         try {
@@ -648,6 +662,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * Close the jms connection.
      *
      * @param connection JMS connection that need to be closed
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public void closeConnection(Connection connection) throws JMSConnectorException {
         try {
@@ -663,6 +678,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To close the session.
      *
      * @param session JMS session that need to be closed
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public void closeSession(Session session) throws JMSConnectorException {
         try {
@@ -678,6 +694,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To close the message consumer.
      *
      * @param messageConsumer Message consumer that need to be closed
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public void closeMessageConsumer(MessageConsumer messageConsumer) throws JMSConnectorException {
         try {
@@ -693,6 +710,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To close the message producer.
      *
      * @param messageProducer Message producer that need to be closed
+     * @throws JMSConnectorException JMS Connector Exception
      */
     public void closeMessageProducer(MessageProducer messageProducer) throws JMSConnectorException {
         try {
