@@ -41,47 +41,46 @@ public class FileTransportUtils {
     public static FileSystemOptions attachFileSystemOptions(
             Map<String, String> options, FileSystemManager fsManager) throws FileServerConnectorException {
         if (options == null) {
-            return null;
-        } else {
-            FileSystemOptions opts = new FileSystemOptions();
-            DelegatingFileSystemOptionsBuilder delegate = new DelegatingFileSystemOptionsBuilder(fsManager);
-            if (Constants.SCHEME_SFTP.equals(options.get(Constants.SCHEME))) {
-                Iterator itr = options.entrySet().iterator();
+            return null;    //returning null as this is not an errorneous case.
+        }
+        FileSystemOptions opts = new FileSystemOptions();
+        DelegatingFileSystemOptionsBuilder delegate = new DelegatingFileSystemOptionsBuilder(fsManager);
+        if (Constants.SCHEME_SFTP.equals(options.get(Constants.SCHEME))) {
+            Iterator itr = options.entrySet().iterator();
 
-                while (itr.hasNext()) {
-                    Map.Entry<String, String> entry = (Map.Entry<String, String>) itr.next();
-                    Constants.SftpFileOption[] array = Constants.SftpFileOption.values();
-                    int length = array.length;
+            while (itr.hasNext()) {
+                Map.Entry<String, String> entry = (Map.Entry<String, String>) itr.next();
+                Constants.SftpFileOption[] array = Constants.SftpFileOption.values();
+                int length = array.length;
 
-                    for (int i = 0; i < length; ++i) {
-                        Constants.SftpFileOption option = array[i];
-                        if (entry.getKey().equals(option.toString()) && null != entry.getValue()) {
-                            try {
-                                delegate.setConfigString(opts, Constants.SCHEME_SFTP,
-                                        entry.getKey().toLowerCase(Locale.US), entry.getValue());
-                            } catch (FileSystemException e) {
-                                throw new FileServerConnectorException(
-                                        "Failed to set file transport configuration for scheme: "
-                                                + Constants.SCHEME_SFTP + " and option: " + option.toString(), e);
-                            }
+                for (int i = 0; i < length; ++i) {
+                    Constants.SftpFileOption option = array[i];
+                    if (entry.getKey().equals(option.toString()) && null != entry.getValue()) {
+                        try {
+                            delegate.setConfigString(opts, Constants.SCHEME_SFTP,
+                                    entry.getKey().toLowerCase(Locale.US), entry.getValue());
+                        } catch (FileSystemException e) {
+                            throw new FileServerConnectorException(
+                                    "Failed to set file transport configuration for scheme: "
+                                            + Constants.SCHEME_SFTP + " and option: " + option.toString(), e);
                         }
                     }
                 }
             }
-            if (options.get(Constants.FILE_TYPE) != null) {
-                try {
-                    delegate.setConfigString(opts, options.get(Constants.SCHEME),
-                            Constants.FILE_TYPE, String.valueOf(getFileType(
-                                    options.get(Constants.FILE_TYPE))));
-                } catch (FileSystemException e) {
-                    throw new FileServerConnectorException(
-                            "Failed to set file transport configuration for scheme: "
-                                    + options.get(Constants.SCHEME) + " and option: "
-                                    + Constants.FILE_TYPE, e);
-                }
-            }
-            return opts;
         }
+        if (options.get(Constants.FILE_TYPE) != null) {
+            try {
+                delegate.setConfigString(opts, options.get(Constants.SCHEME),
+                        Constants.FILE_TYPE, String.valueOf(getFileType(
+                                options.get(Constants.FILE_TYPE))));
+            } catch (FileSystemException e) {
+                throw new FileServerConnectorException(
+                        "Failed to set file transport configuration for scheme: "
+                                + options.get(Constants.SCHEME) + " and option: "
+                                + Constants.FILE_TYPE, e);
+            }
+        }
+        return opts;
     }
 
     public static String maskURLPassword(String url) {

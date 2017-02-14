@@ -243,7 +243,9 @@ public class FileConsumer {
                     && !bSortOrderAscending) {
                 Arrays.sort(children, new FileLastmodifiedtimestampDesComparator());
             }
-            log.debug("End sorting the files.");
+            if (log.isDebugEnabled()) {
+                log.debug("End sorting the files.");
+            }
         }
 
         for (FileObject child : children) {
@@ -286,7 +288,7 @@ public class FileConsumer {
             inputStream = content.getInputStream();
         } catch (FileSystemException e) {
             throw new FileServerConnectorException("Error occurred when trying to get " +
-                    "input stream from file at URI :" + FileTransportUtils.maskURLPassword(fileURI) , e);
+                    "input stream from file at URI :" + FileTransportUtils.maskURLPassword(fileURI), e);
         }
         CarbonMessage cMessage = new StreamingCarbonMessage(inputStream);
         cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_NAME);

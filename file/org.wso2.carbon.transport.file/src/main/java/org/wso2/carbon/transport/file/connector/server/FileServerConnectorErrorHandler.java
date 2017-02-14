@@ -13,7 +13,7 @@ public class FileServerConnectorErrorHandler implements ServerConnectorErrorHand
     public void handleError(Exception e, CarbonMessage carbonMessage, CarbonCallback carbonCallback)
             throws Exception {
         /*
-         * When there is an error in the ballerina side, it is required to inform to the transport, since it will be
+         * When there is an error in the application side, it is required to inform to the transport, since it will be
          * waiting for the callback. After acknowledging, error should be thrown, to the application level.
          */
         carbonCallback.done(carbonMessage);
