@@ -69,7 +69,7 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
      * Constructor to create CachedJMSConnectionFactory instance.
      *
      * @param properties    Property values required to initialize the connection factory
-     * @throws JMSConnectorException
+     * @throws JMSConnectorException Thrown when initial context factory is not found.
      */
     public CachedJMSConnectionFactory(Properties properties) throws JMSConnectorException {
         super(properties);

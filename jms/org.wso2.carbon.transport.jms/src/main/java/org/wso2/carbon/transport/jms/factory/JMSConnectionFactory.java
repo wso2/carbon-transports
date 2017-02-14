@@ -230,7 +230,6 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To create a connection.
      *
      * @return JMS connection
-     * @throws JMSException
      */
     public Connection getConnection() throws JMSException {
         return createConnection();
@@ -242,7 +241,6 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param userName Valid username
      * @param password valid password
      * @return JMS connection
-     * @throws JMSException
      */
     public Connection getConnection(String userName, String password) throws JMSException {
         return createConnection(userName, password);
@@ -438,7 +436,6 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session     JMS Session to create the consumer
      * @param destination JMS destination which the consumer should listen to
      * @return Message Consumer, who is listening in particular destination with the given session
-     * @throws JMSConnectorException JMS Connector Exception
      */
     public MessageConsumer getMessageConsumer(Session session, Destination destination) throws JMSConnectorException {
         return createMessageConsumer(session, destination);
@@ -493,7 +490,6 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session     JMS Session to create the producer
      * @param destination JMS destination which the producer should publish to
      * @return MessageProducer, who publish messages to particular destination with the given session
-     * @throws JMSConnectorException JMS Connector Exception
      */
     public MessageProducer getMessageProducer(Session session, Destination destination) throws JMSConnectorException {
         return createMessageProducer(session, destination);
@@ -588,7 +584,6 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      *
      * @param connection Connection that is needed to create the session
      * @return Session that is created from the connection
-     * @throws JMSConnectorException JMS Connector Exception
      */
     public Session getSession(Connection connection) throws JMSConnectorException {
         return createSession(connection);
@@ -606,10 +601,10 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                     .equals(jmsSpec)) {
                 return connection.createSession(transactedSession, sessionAckMode);
             } else if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
-                return (QueueSession) ((QueueConnection) (connection))
+                return ((QueueConnection) (connection))
                         .createQueueSession(transactedSession, sessionAckMode);
             } else {
-                return (TopicSession) ((TopicConnection) (connection))
+                return ((TopicConnection) (connection))
                         .createTopicSession(transactedSession, sessionAckMode);
 
             }
