@@ -116,6 +116,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * Initialization of JMS ConnectionFactory with the user specified properties.
      *
      * @param properties Properties to be added to the initial context
+     * @throws JMSConnectorException Thrown when initial context name is wrong or when creating connection factory.
      */
     public JMSConnectionFactory(Properties properties) throws JMSConnectorException {
         try {
@@ -195,6 +196,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To get the JMS Connection Factory.
      *
      * @return JMS Connection Factory
+     * @throws JMSConnectorException Thrown when creating jms connection.
      */
     public ConnectionFactory getConnectionFactory() throws JMSConnectorException {
         if (this.connectionFactory != null) {
@@ -208,6 +210,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To create the JMS Connection Factory.
      *
      * @return JMS Connection Factory
+     * @throws JMSConnectorException Thrown when creating {@link ConnectionFactory} instance.
      */
     private ConnectionFactory createConnectionFactory() throws JMSConnectorException {
         if (null != this.connectionFactory) {
@@ -230,7 +233,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To create a connection.
      *
      * @return JMS connection
-     * @throws JMSException
+     * @throws JMSException Thrown when creating jms connection.
      */
     public Connection getConnection() throws JMSException {
         return createConnection();
@@ -242,7 +245,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param userName Valid username
      * @param password valid password
      * @return JMS connection
-     * @throws JMSException
+     * @throws JMSException Thrown when creating jms connection.
      */
     public Connection getConnection(String userName, String password) throws JMSException {
         return createConnection(userName, password);
@@ -424,6 +427,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      *
      * @param session JMS session that we need to find the destination
      * @return destination the particular is related with
+     * @throws JMSConnectorException Thrown when looking up destination
      */
     public Destination getDestination(Session session) throws JMSConnectorException {
         if (null != this.destination) {
@@ -438,7 +442,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session     JMS Session to create the consumer
      * @param destination JMS destination which the consumer should listen to
      * @return Message Consumer, who is listening in particular destination with the given session
-     * @throws JMSConnectorException JMS Connector Exception
+     * @throws JMSConnectorException Thrown when creating jms message consumer.
      */
     public MessageConsumer getMessageConsumer(Session session, Destination destination) throws JMSConnectorException {
         return createMessageConsumer(session, destination);
@@ -450,6 +454,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session     JMS Session to create the consumer
      * @param destination JMS destination which the consumer should listen to
      * @return Message Consumer, who is listening in particular destination with the given session
+     * @throws JMSConnectorException Thrown when creating jms message consumer
      */
     public MessageConsumer createMessageConsumer(Session session, Destination destination)
             throws JMSConnectorException {
@@ -493,7 +498,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session     JMS Session to create the producer
      * @param destination JMS destination which the producer should publish to
      * @return MessageProducer, who publish messages to particular destination with the given session
-     * @throws JMSConnectorException JMS Connector Exception
+     * @throws JMSConnectorException Thrown when creating jms message producer
      */
     public MessageProducer getMessageProducer(Session session, Destination destination) throws JMSConnectorException {
         return createMessageProducer(session, destination);
@@ -505,6 +510,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session     JMS Session to create the producer
      * @param destination JMS destination which the producer should publish to
      * @return MessageProducer, who publish messages to particular destination with the given session
+     * @throws JMSConnectorException Thrown when creating jms message producer
      */
     public MessageProducer createMessageProducer(Session session, Destination destination)
             throws JMSConnectorException {
@@ -530,6 +536,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      *
      * @param session Specific session to create the destination
      * @return destination for particular session
+     * @throws JMSConnectorException Thrown when looking up destination
      */
     private Destination createDestination(Session session) throws JMSConnectorException {
         this.destination = createDestination(session, this.destinationName);
@@ -542,6 +549,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * @param session         relevant session to create the destination
      * @param destinationName Destination jms destination
      * @return the destination that is created from session
+     * @throws JMSConnectorException Thrown when looking up destination
      */
     private Destination createDestination(Session session, String destinationName) throws JMSConnectorException {
         Destination destination = null;
@@ -588,7 +596,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      *
      * @param connection Connection that is needed to create the session
      * @return Session that is created from the connection
-     * @throws JMSConnectorException JMS Connector Exception
+     * @throws JMSConnectorException Thrown when creating jms session
      */
     public Session getSession(Connection connection) throws JMSConnectorException {
         return createSession(connection);
@@ -599,6 +607,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      *
      * @param connection Specific connection which we is needed for creating session
      * @return session created from the given connection
+     * @throws JMSConnectorException Thrown when creating jms session
      */
     public Session createSession(Connection connection) throws JMSConnectorException {
         try {
@@ -606,10 +615,10 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                     .equals(jmsSpec)) {
                 return connection.createSession(transactedSession, sessionAckMode);
             } else if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
-                return (QueueSession) ((QueueConnection) (connection))
+                return ((QueueConnection) (connection))
                         .createQueueSession(transactedSession, sessionAckMode);
             } else {
-                return (TopicSession) ((TopicConnection) (connection))
+                return ((TopicConnection) (connection))
                         .createTopicSession(transactedSession, sessionAckMode);
 
             }
@@ -623,6 +632,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * Start the jms connection to start the message delivery.
      *
      * @param connection Connection that need to be started
+     * @throws JMSConnectorException Thrown when starting jms connection
      */
     public void start(Connection connection) throws JMSConnectorException {
         try {
@@ -637,6 +647,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * Stop the jms connection to stop the message delivery.
      *
      * @param connection JMS connection that need to be stopped
+     * @throws JMSConnectorException Thrown when stopping jms connection
      */
     public void stop(Connection connection) throws JMSConnectorException {
         try {
@@ -653,6 +664,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * Close the jms connection.
      *
      * @param connection JMS connection that need to be closed
+     * @throws JMSConnectorException Thrown when closing jms connection
      */
     public void closeConnection(Connection connection) throws JMSConnectorException {
         try {
@@ -668,6 +680,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To close the session.
      *
      * @param session JMS session that need to be closed
+     * @throws JMSConnectorException Thrown when closing jms session
      */
     public void closeSession(Session session) throws JMSConnectorException {
         try {
@@ -683,6 +696,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To close the message consumer.
      *
      * @param messageConsumer Message consumer that need to be closed
+     * @throws JMSConnectorException Thrown when closing jms message consumer
      */
     public void closeMessageConsumer(MessageConsumer messageConsumer) throws JMSConnectorException {
         try {
@@ -698,6 +712,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      * To close the message producer.
      *
      * @param messageProducer Message producer that need to be closed
+     * @throws JMSConnectorException Thrown when closing jms message producer
      */
     public void closeMessageProducer(MessageProducer messageProducer) throws JMSConnectorException {
         try {

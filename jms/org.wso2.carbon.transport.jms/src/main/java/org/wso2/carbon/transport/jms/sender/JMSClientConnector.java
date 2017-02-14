@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.transport.jms.sender;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
@@ -51,7 +53,7 @@ import javax.jms.TextMessage;
  * JMS sender implementation.
  */
 public class JMSClientConnector implements ClientConnector {
-
+    private static final Logger logger = LoggerFactory.getLogger(JMSClientConnector.class);
     private MessageProducer messageProducer;
     private Session session;
     private Connection connection;
@@ -122,12 +124,14 @@ public class JMSClientConnector implements ClientConnector {
         } catch (JMSException e) {
             throw new ClientConnectorException("Exception occurred while sending the message", e);
         } finally {
-            try {
-                jmsConnectionFactory.closeMessageProducer(messageProducer);
-                jmsConnectionFactory.closeSession(session);
-                jmsConnectionFactory.closeConnection(connection);
-            } catch (JMSConnectorException e) {
-                throw new ClientConnectorException(e.getMessage(), e);
+            if (jmsConnectionFactory != null) {
+                try {
+                    jmsConnectionFactory.closeMessageProducer(messageProducer);
+                    jmsConnectionFactory.closeSession(session);
+                    jmsConnectionFactory.closeConnection(connection);
+                } catch (JMSConnectorException e) {
+                    logger.error("Exception occured when closing connection " + e.getMessage(), e);
+                }
             }
         }
         return false;
@@ -136,9 +140,9 @@ public class JMSClientConnector implements ClientConnector {
     /**
      * To create jms connection.
      *
-     * @param propertySet      Set of user defined properties
-     * @throws JMSConnectorException
-     * @throws JMSException
+     * @param propertySet               Set of user defined properties
+     * @throws JMSConnectorException    Thrown when {@link JMSConnectionFactory} is created
+     * @throws JMSException             Thrown when jms connection is created
      */
     private void createConnection(Set<Map.Entry<String, String>> propertySet)
             throws JMSConnectorException, JMSException {
@@ -151,13 +155,9 @@ public class JMSClientConnector implements ClientConnector {
                 properties.put(entry.getKey(), entry.getValue());
             }
         }
-        JMSConnectionFactory jmsConnectionFactory;
-        if ((Integer.parseInt(properties.getProperty(JMSConstants.PARAM_CACHE_LEVEL)) > JMSConstants.CACHE_NONE) &&
-            this.jmsConnectionFactory != null) {
-            jmsConnectionFactory = this.jmsConnectionFactory;
-        } else {
-            jmsConnectionFactory = new CachedJMSConnectionFactory(properties);
-            this.jmsConnectionFactory = jmsConnectionFactory;
+        if ((Integer.parseInt(properties.getProperty(JMSConstants.PARAM_CACHE_LEVEL)) == JMSConstants.CACHE_NONE) ||
+            this.jmsConnectionFactory == null) {
+            this.jmsConnectionFactory = new CachedJMSConnectionFactory(properties);
         }
 
         String conUsername = properties.getProperty(JMSConstants.CONNECTION_USERNAME);
@@ -165,19 +165,18 @@ public class JMSClientConnector implements ClientConnector {
 
         Connection connection;
         if (conUsername != null && conPassword != null) {
-            connection = jmsConnectionFactory.getConnection(conUsername, conPassword);
+            connection = this.jmsConnectionFactory.getConnection(conUsername, conPassword);
         } else {
-            connection = jmsConnectionFactory.getConnection();
+            connection = this.jmsConnectionFactory.getConnection();
         }
 
         this.connection = connection;
 
-        Session session = jmsConnectionFactory.getSession(connection);
+        Session session = this.jmsConnectionFactory.getSession(connection);
         this.session = session;
 
-        Destination destination = jmsConnectionFactory.getDestination(session);
-        MessageProducer messageProducer = jmsConnectionFactory.createMessageProducer(session, destination);
-        this.messageProducer = messageProducer;
+        Destination destination = this.jmsConnectionFactory.getDestination(session);
+        this.messageProducer = this.jmsConnectionFactory.createMessageProducer(session, destination);
     }
 
     @Override
