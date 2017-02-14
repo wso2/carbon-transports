@@ -66,7 +66,7 @@ public class FileServerConnector extends PollingServerConnector {
             super.start(parameters);
         } catch (RuntimeException e) {
             throw new ServerConnectorException("Failed to start File server connector for Service: " +
-                    "" + id + ". Reason: " + e.getMessage());
+                    "" + id, e);
         }
     }
 
@@ -76,7 +76,7 @@ public class FileServerConnector extends PollingServerConnector {
             consumer.consume();
         } catch (FileServerConnectorException e) {
             log.error("Error executing the polling cycle of File " +
-                    "server connector for service: " + id + ". Reason: " + e.getMessage());
+                    "server connector for service: " + id, e);
         } 
     }
 }

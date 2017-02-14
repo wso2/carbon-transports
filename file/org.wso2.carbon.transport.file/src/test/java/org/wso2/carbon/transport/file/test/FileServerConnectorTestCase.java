@@ -50,7 +50,7 @@ public class FileServerConnectorTestCase {
         parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "1000");
         connector.start(parameters);
         messageProcessor.waitTillDone();
-        Assert.assertEquals(messageProcessor.getFileContent(), "VFS transport test");
+        Assert.assertEquals(messageProcessor.getFileContent(), "File Server Connector test");
         connector.stop();
     }
 }

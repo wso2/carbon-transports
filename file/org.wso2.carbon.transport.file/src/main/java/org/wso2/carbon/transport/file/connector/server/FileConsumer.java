@@ -119,7 +119,7 @@ public class FileConsumer {
                     if (log.isDebugEnabled()) {
                         log.debug("The file does not exist, or is not a folder, or an error " +
                                 "has occurred when trying to list the children. File URI : "
-                                + FileTransportUtils.maskURLPassword(fileURI));
+                                + FileTransportUtils.maskURLPassword(fileURI), ignored);
                     }
                 }
 
@@ -141,7 +141,7 @@ public class FileConsumer {
             try {
                 fileObject.close();
             } catch (FileSystemException e) {
-                log.warn("Could not close file at URI: " + FileTransportUtils.maskURLPassword(fileURI));
+                log.warn("Could not close file at URI: " + FileTransportUtils.maskURLPassword(fileURI), e);
             }
         }
         if (log.isDebugEnabled()) {
@@ -208,7 +208,7 @@ public class FileConsumer {
                 } catch (RuntimeException re) {
                     log.warn(Constants.FILE_SORT_ORDER + " parameter should be either " +
                             "\"true\" or \"false\". Found: " + strSortOrder +
-                            ". Assigning default value \"true\"." + re.getMessage());
+                            ". Assigning default value \"true\".", re);
                 }
             }
             if (log.isDebugEnabled()) {
@@ -244,7 +244,7 @@ public class FileConsumer {
             try {
                 child.close();
             } catch (FileSystemException e) {
-                log.warn("Could not close the file: " + child.getName().getPath());
+                log.warn("Could not close the file: " + child.getName().getPath(), e);
             }
         }
     }
@@ -276,7 +276,7 @@ public class FileConsumer {
             inputStream = content.getInputStream();
         } catch (FileSystemException e) {
             throw new FileServerConnectorException("Error occurred when trying to get " +
-                    "input stream from file at URI :" + FileTransportUtils.maskURLPassword(fileURI) + ". ", e);
+                    "input stream from file at URI :" + FileTransportUtils.maskURLPassword(fileURI) , e);
         }
         CarbonMessage cMessage = new StreamingCarbonMessage(inputStream);
         cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_NAME);
@@ -288,8 +288,7 @@ public class FileConsumer {
             cMessage.setHeader(Constants.FILE_LENGTH, Long.toString(content.getSize()));
             cMessage.setHeader(Constants.LAST_MODIFIED, Long.toString(content.getLastModifiedTime()));
         } catch (FileSystemException e) {
-            log.warn("Unable to set file length or last modified date header. Reason: "
-                    + e.getMessage());
+            log.warn("Unable to set file length or last modified date header.", e);
         }
 
         FileServerConnectorCallback callback = new FileServerConnectorCallback();
@@ -326,7 +325,7 @@ public class FileConsumer {
             }
         } catch (FileSystemException e) {
             throw new FileServerConnectorException("Could not delete file : "
-                    + FileTransportUtils.maskURLPassword(fileObject.getName().getBaseName()));
+                    + FileTransportUtils.maskURLPassword(fileObject.getName().getBaseName()), e);
         }
     }
 
@@ -355,8 +354,7 @@ public class FileConsumer {
                 lDiff = o1.getContent().getLastModifiedTime()
                         - o2.getContent().getLastModifiedTime();
             } catch (FileSystemException e) {
-                log.warn("Unable to compare last modified timestamp of the two files. " +
-                        "Reason: " + e.getMessage());
+                log.warn("Unable to compare last modified timestamp of the two files.", e);
             }
             return lDiff.intValue();
         }
@@ -372,7 +370,7 @@ public class FileConsumer {
             try {
                 lDiff = o1.getContent().getSize() - o2.getContent().getSize();
             } catch (FileSystemException e) {
-                log.warn("Unable to compare size of the two files. Reason: " + e.getMessage());
+                log.warn("Unable to compare size of the two files.", e);
             }
             return lDiff.intValue();
         }
@@ -400,8 +398,7 @@ public class FileConsumer {
                 lDiff = o2.getContent().getLastModifiedTime()
                         - o1.getContent().getLastModifiedTime();
             } catch (FileSystemException e) {
-                log.warn("Unable to compare last modified timestamp of the two files. " +
-                        "Reason: " + e.getMessage());
+                log.warn("Unable to compare last modified timestamp of the two files.", e);
             }
             return lDiff.intValue();
         }
@@ -417,7 +414,7 @@ public class FileConsumer {
             try {
                 lDiff = o2.getContent().getSize() - o1.getContent().getSize();
             } catch (FileSystemException e) {
-                log.warn("Unable to compare size of the two files. Reason: " + e.getMessage());
+                log.warn("Unable to compare size of the two files.", e);
             }
             return lDiff.intValue();
         }

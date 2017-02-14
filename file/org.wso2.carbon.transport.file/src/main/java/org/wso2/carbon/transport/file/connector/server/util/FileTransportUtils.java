@@ -54,15 +54,15 @@ public class FileTransportUtils {
                     int length = array.length;
 
                     for (int i = 0; i < length; ++i) {
-                        Constants.SftpFileOption o = array[i];
-                        if (entry.getKey().equals(o.toString()) && null != entry.getValue()) {
+                        Constants.SftpFileOption option = array[i];
+                        if (entry.getKey().equals(option.toString()) && null != entry.getValue()) {
                             try {
                                 delegate.setConfigString(opts, Constants.SCHEME_SFTP,
                                         entry.getKey().toLowerCase(Locale.US), entry.getValue());
                             } catch (FileSystemException e) {
                                 throw new FileServerConnectorException(
                                         "Failed to set file transport configuration for scheme: "
-                                                + Constants.SCHEME_SFTP + " and option: " + o.toString(), e);
+                                                + Constants.SCHEME_SFTP + " and option: " + option.toString(), e);
                             }
                         }
                     }
