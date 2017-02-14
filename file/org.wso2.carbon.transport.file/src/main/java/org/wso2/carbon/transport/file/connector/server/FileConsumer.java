@@ -56,6 +56,10 @@ public class FileConsumer {
     private String fileURI;
     private FileObject fileObject;
     private FileSystemOptions fso;
+    /**
+     * Time-out interval (in mill-seconds) to wait for the callback.
+     */
+    private long timeOutInterval = 30000;
 
     public FileConsumer(String id, Map<String, String> fileProperties,
                         CarbonMessageProcessor messageProcessor)
@@ -154,7 +158,6 @@ public class FileConsumer {
      * Setup the required transport parameters
      */
     private void setupParams() throws ServerConnectorException {
-
         fileURI = fileProperties.get(Constants.TRANSPORT_FILE_FILE_URI);
         if (fileURI == null) {
             throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " is a " +
@@ -163,6 +166,13 @@ public class FileConsumer {
         if (fileURI.trim().equals("")) {
             throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " parameter " +
                     "cannot be empty for " + Constants.PROTOCOL_NAME + " transport.");
+        }
+        String timeOut = fileProperties.get(Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT);
+        try {
+            timeOutInterval = Long.parseLong(timeOut);
+        } catch (NumberFormatException e) {
+            log.error("Provided fileCallbackTimeOut is invalid. Using the default callback timeout, " +
+                    timeOutInterval + " milliseconds", e);
         }
     }
 
@@ -300,7 +310,7 @@ public class FileConsumer {
                     + FileTransportUtils.maskURLPassword(fileURI) + " to message processor. ", e);
         }
         try {
-            callback.waitTillDone();
+            callback.waitTillDone(timeOutInterval);
         } catch (InterruptedException e) {
             throw new FileServerConnectorException("Error occurred while waiting for message " +
                     "processor to consume the file input stream. Input stream may be closed " +

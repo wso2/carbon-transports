@@ -32,6 +32,7 @@ public final class Constants {
     public static final String FILE_SORT_VALUE_SIZE = "Size";
     public static final String FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP = "Lastmodifiedtimestamp";
     public static final String FILE_SORT_ORDER = "fileSortAsscending";
+    public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "acknowledgementTimeOut";
 
     public static final String FILE_PATH = "FILE_PATH";
     public static final String FILE_URI = "FILE_URI";
