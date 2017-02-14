@@ -23,13 +23,13 @@
     <parent>
         <groupId>org.wso2.carbon.transport</groupId>
         <artifactId>org.wso2.carbon.transport.file.parent</artifactId>
-        <version>4.1.1-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
+        <version>4.2.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.transport.file</artifactId>
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
     <name>WSO2 Carbon Transport File Component</name>
     <description>Carbon File Transport</description>
 
@@ -51,10 +51,31 @@
             <artifactId>commons-vfs2</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.eclipse.osgi</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.eclipse.osgi</groupId>
+            <artifactId>org.eclipse.osgi.services</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <properties>
+        <export.package>
+            org.wso2.carbon.transport.file.*;version="${file.transport.package.export.version}"
+        </export.package>
+        <import.package>
+            org.osgi.framework.*;version="${osgi.framework.import.version.range}",
+            org.osgi.util.tracker;version="${osgi.service.tracker.import.version.range}",
+            org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
+            org.wso2.carbon.messaging.*;version="${carbon.messaging.package.import.version.range}",
+            org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}",
+            org.apache.commons.vfs2.*;version="${commons-vfs2.wso2.version.range}"
+        </import.package>
+    </properties>
 
 </project>

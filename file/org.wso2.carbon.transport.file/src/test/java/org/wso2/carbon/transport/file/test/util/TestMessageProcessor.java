@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.transport.file.test.util;
 
-import org.testng.Assert;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
@@ -32,13 +31,16 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * Message processor that is used for the testing purposes.
+ */
 public class TestMessageProcessor implements CarbonMessageProcessor {
-
-    CountDownLatch latch = new CountDownLatch(1);
+    private CountDownLatch latch = new CountDownLatch(1);
+    private String fileContent;
 
     @Override
     public boolean receive(CarbonMessage carbonMessage, CarbonCallback carbonCallback) throws Exception {
-        Assert.assertEquals("dilini", getStringFromInputStream(carbonMessage.getInputStream()));
+        fileContent = getStringFromInputStream(carbonMessage.getInputStream());
         done();
         return false;
     }
@@ -58,15 +60,28 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
         return "test-file-message-processor";
     }
 
+    /**
+     * To wait till file reading operation is finished.
+     * @throws InterruptedException Interrupted Exception.
+     */
     public void waitTillDone() throws InterruptedException {
         latch.await();
     }
 
-    public void done() {
+    /**
+     * To make sure the reading the file content is done.
+     */
+    private void done() {
         latch.countDown();
     }
 
-    private static String getStringFromInputStream(InputStream in) throws Exception {
+    /**
+     * To get the string from the input stream.
+     * @param in Input stream to be converted to String.
+     * @return the String value of the input stream
+     * @throws IOException IO exception when reading the input stream
+     */
+    private static String getStringFromInputStream(InputStream in) throws IOException {
         StringBuilder sb = new StringBuilder(4096);
         InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
         BufferedReader bufferedReader = new BufferedReader(reader);
@@ -75,8 +90,6 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
             while ((str = bufferedReader.readLine()) != null) {
                 sb.append(str);
             }
-        } catch (IOException ioe) {
-            throw new Exception(ioe.getMessage(), ioe);
         } finally {
             try {
                 in.close();
@@ -95,5 +108,13 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * To get the file content of the relevant file.
+     * @return the file content.
+     */
+    public String getFileContent() {
+        return fileContent;
     }
 }
