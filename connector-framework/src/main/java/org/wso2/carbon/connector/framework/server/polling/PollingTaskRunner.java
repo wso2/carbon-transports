@@ -16,10 +16,14 @@
  *  under the License.
  */
 package org.wso2.carbon.connector.framework.server.polling;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The {@link PollingTaskRunner} which executes a periodic poll.
@@ -27,47 +31,30 @@ import java.util.Date;
 public class PollingTaskRunner implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(PollingTaskRunner.class);
 
-    private volatile boolean execute = true;
-
     private final long interval;
     private final PollingServerConnector connector;
+    private ScheduledFuture future;
 
     public PollingTaskRunner(PollingServerConnector connector) {
         this.connector = connector;
-        this.interval = connector.getInterval();
+        this.interval = connector.interval;
     }
 
     public void start() {
-        Thread runningThread = new Thread(this);
-        runningThread.start();
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        future = executor.scheduleAtFixedRate
+                (this, interval, interval, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void run() {
-        log.debug("Starting the polling task for server connector ID: " + connector.getId());
-
         // Run the poll cycles
-        while (execute) {
-            log.debug("Executing the polling task for server connector ID: " + connector.getId());
-            long lastInvokedTime = getTime();
-            try {
-                connector.poll();
-            } catch (Exception e) {
-                log.error("Error executing the polling cycle for " +
-                        "server connector ID: " + connector.getId(), e);
-            }
-            long currentTime = getTime();
-            long cycleInterval = interval - (currentTime - lastInvokedTime);
-            if (cycleInterval > 0) {
-                try {
-                    Thread.sleep(interval);
-                } catch (InterruptedException e) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Unable to sleep the polling task for interval of : "
-                                + interval + "ms. Server connector ID: " + connector.getId());
-                    }
-                }
-            }
+        log.debug("Executing the polling task for server connector ID: " + connector.getId());
+        try {
+            connector.poll();
+        } catch (Exception e) {
+            log.error("Error executing the polling cycle for " +
+                    "server connector ID: " + connector.getId(), e);
         }
         log.debug("Exit the polling task running loop for server connector ID: " + connector.getId());
     }
@@ -76,10 +63,8 @@ public class PollingTaskRunner implements Runnable {
      * Exit the running while loop and terminate the thread
      */
     protected void terminate() {
-        execute = false;
-    }
-
-    private Long getTime() {
-        return new Date().getTime();
+        if (future != null) {
+            future.cancel(true);
+        }
     }
 }
