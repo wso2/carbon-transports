@@ -282,6 +282,11 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
         }
     }
 
+    /**
+     * Rests all elements in cache.
+     *
+     * @throws JMSException Thrown when closing jms connection, session, consumer and producer
+     */
     private void resetCache() throws JMSException {
         if (cachedMessageConsumer != null) {
             cachedMessageConsumer.close();
