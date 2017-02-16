@@ -39,7 +39,7 @@ public final class Constants {
     public static final String FILE_SORT_VALUE_NAME = "name";
     public static final String FILE_SORT_VALUE_SIZE = "size";
     public static final String FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP = "lastModifiedTimestamp";
-    public static final String FILE_SORT_ORDER = "fileSortAsscending";
+    public static final String FILE_SORT_ORDER = "fileSortAscending";
     public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "acknowledgementTimeOut";
 
     public static final String SCHEME = "VFS_SCHEME";
