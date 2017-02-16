@@ -168,11 +168,13 @@ public class FileConsumer {
                     "cannot be empty for " + Constants.PROTOCOL_NAME + " transport.");
         }
         String timeOut = fileProperties.get(Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT);
-        try {
-            timeOutInterval = Long.parseLong(timeOut);
-        } catch (NumberFormatException e) {
-            log.error("Provided fileCallbackTimeOut is invalid. Using the default callback timeout, " +
-                    timeOutInterval + " milliseconds", e);
+        if (timeOut != null) {
+            try {
+                timeOutInterval = Long.parseLong(timeOut);
+            } catch (NumberFormatException e) {
+                log.error("Provided "+ Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT +" is invalid. Using the default callback timeout, " +
+                        timeOutInterval + " milliseconds", e);
+            }
         }
     }
 
