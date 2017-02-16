@@ -24,21 +24,23 @@ package org.wso2.carbon.transport.file.connector.server.util;
 public final class Constants {
 
     public static final String PROTOCOL_NAME = "file";
+
+    //transport properties
     public static final String FILE_TRANSPORT_PROPERTY_SERVICE_NAME = "TRANSPORT_FILE_SERVICE_NAME";
-
-    public static final String TRANSPORT_FILE_FILE_URI = "fileURI";
-    public static final String FILE_SORT_PARAM = "fileSortAttribute";
-    public static final String FILE_SORT_VALUE_NAME = "Name";
-    public static final String FILE_SORT_VALUE_SIZE = "Size";
-    public static final String FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP = "Lastmodifiedtimestamp";
-    public static final String FILE_SORT_ORDER = "fileSortAsscending";
-    public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "acknowledgementTimeOut";
-
     public static final String FILE_PATH = "FILE_PATH";
     public static final String FILE_URI = "FILE_URI";
     public static final String FILE_NAME = "FILE_NAME";
     public static final String FILE_LENGTH = "FILE_LENGTH";
     public static final String LAST_MODIFIED = "LAST_MODIFIED";
+
+    //file connector parameters
+    public static final String TRANSPORT_FILE_FILE_URI = "fileURI";
+    public static final String FILE_SORT_PARAM = "fileSortAttribute";
+    public static final String FILE_SORT_VALUE_NAME = "name";
+    public static final String FILE_SORT_VALUE_SIZE = "size";
+    public static final String FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP = "lastModifiedTimestamp";
+    public static final String FILE_SORT_ORDER = "fileSortAscending";
+    public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "acknowledgementTimeOut";
 
     public static final String SCHEME = "VFS_SCHEME";
     public static final String SFTP_PREFIX = "sftp";
