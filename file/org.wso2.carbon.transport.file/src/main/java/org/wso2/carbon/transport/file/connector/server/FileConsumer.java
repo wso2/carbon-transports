@@ -172,7 +172,7 @@ public class FileConsumer {
             try {
                 timeOutInterval = Long.parseLong(timeOut);
             } catch (NumberFormatException e) {
-                log.error("Provided "+ Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT +" is invalid. " +
+                log.error("Provided " + Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT + " is invalid. " +
                         "Using the default callback timeout, " +
                         timeOutInterval + " milliseconds", e);
             }
