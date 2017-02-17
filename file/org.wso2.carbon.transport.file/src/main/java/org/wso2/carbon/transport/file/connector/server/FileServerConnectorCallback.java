@@ -55,7 +55,8 @@ public class FileServerConnectorCallback implements CarbonCallback {
      * @param fileURI The URI of the file which is being processed.
      * @throws InterruptedException Interrupted Exception.
      */
-    protected void waitTillDone(long timeOutInterval, String fileURI) throws InterruptedException, FileServerConnectorException {
+    protected void waitTillDone(long timeOutInterval, String fileURI) throws InterruptedException,
+            FileServerConnectorException {
         boolean isCallbackReceived = latch.await(timeOutInterval, TimeUnit.MILLISECONDS);
 
         if (!isCallbackReceived) {
