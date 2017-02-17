@@ -323,11 +323,11 @@ public class FileConsumer {
                     + FileTransportUtils.maskURLPassword(fileURI) + " to message processor. ", e);
         }
         try {
-            callback.waitTillDone(timeOutInterval);
+            callback.waitTillDone(timeOutInterval, fileURI);
         } catch (InterruptedException e) {
-            throw new FileServerConnectorException("Error occurred while waiting for message " +
-                    "processor to consume the file input stream. Input stream may be closed " +
-                    "before the Message processor reads it. ", e);
+            throw new FileServerConnectorException("Interrupted while waiting for message " +
+                    "processor to consume the file input stream. Aborting processing of file: " +
+                    FileTransportUtils.maskURLPassword(fileURI), e);
         }
         return file;
     }

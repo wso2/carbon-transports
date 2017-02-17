@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
+import org.wso2.carbon.transport.file.connector.server.exception.FileServerConnectorException;
+import org.wso2.carbon.transport.file.connector.server.util.FileTransportUtils;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -50,14 +52,15 @@ public class FileServerConnectorCallback implements CarbonCallback {
      * This makes the relevant process to wait till there is a acknowledgement from the application layer.
      *
      * @param timeOutInterval Time-out interval in milliseconds for waiting for the acknowledgement
+     * @param fileURI The URI of the file which is being processed.
      * @throws InterruptedException Interrupted Exception.
      */
-    protected void waitTillDone(long timeOutInterval) throws InterruptedException {
+    protected void waitTillDone(long timeOutInterval, String fileURI) throws InterruptedException, FileServerConnectorException {
         boolean isCallbackReceived = latch.await(timeOutInterval, TimeUnit.MILLISECONDS);
 
         if (!isCallbackReceived) {
-            log.warn("The time for waiting the acknowledgement callback exceeded " + timeOutInterval + ". Proceeding "
-                    + "to the next polling cycle");
+            throw new FileServerConnectorException("Message processor did not acknowledge. Wait timed out  after  " +
+                    timeOutInterval + ". Aborting processing of file: " + FileTransportUtils.maskURLPassword(fileURI));
         }
     }
 }
