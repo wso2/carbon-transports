@@ -41,6 +41,7 @@ public final class Constants {
     public static final String FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP = "lastModifiedTimestamp";
     public static final String FILE_SORT_ORDER = "fileSortAscending";
     public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "acknowledgementTimeOut";
+    public static final String FILE_DELETE_IF_NOT_ACKNOWLEDGED = "deleteIfNotAcknowledged";
 
     public static final String SCHEME = "VFS_SCHEME";
     public static final String SFTP_PREFIX = "sftp";
