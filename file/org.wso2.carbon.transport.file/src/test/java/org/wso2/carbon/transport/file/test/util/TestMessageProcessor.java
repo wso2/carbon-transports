@@ -41,6 +41,7 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
     @Override
     public boolean receive(CarbonMessage carbonMessage, CarbonCallback carbonCallback) throws Exception {
         fileContent = getStringFromInputStream(carbonMessage.getInputStream());
+        carbonCallback.done(carbonMessage);
         done();
         return false;
     }
@@ -62,6 +63,7 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
 
     /**
      * To wait till file reading operation is finished.
+     *
      * @throws InterruptedException Interrupted Exception.
      */
     public void waitTillDone() throws InterruptedException {
@@ -77,6 +79,7 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
 
     /**
      * To get the string from the input stream.
+     *
      * @param in Input stream to be converted to String.
      * @return the String value of the input stream
      * @throws IOException IO exception when reading the input stream
@@ -112,6 +115,7 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
 
     /**
      * To get the file content of the relevant file.
+     *
      * @return the file content.
      */
     public String getFileContent() {

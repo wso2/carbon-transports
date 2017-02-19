@@ -1,5 +1,7 @@
 package org.wso2.carbon.transport.file.connector.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.ServerConnectorErrorHandler;
@@ -9,6 +11,8 @@ import org.wso2.carbon.transport.file.connector.server.util.Constants;
  * Error handler for the file server connector.
  */
 public class FileServerConnectorErrorHandler implements ServerConnectorErrorHandler {
+    private Logger logger = LoggerFactory.getLogger(FileServerConnectorErrorHandler.class);
+
     @Override
     public void handleError(Exception e, CarbonMessage carbonMessage, CarbonCallback carbonCallback)
             throws Exception {
@@ -17,7 +21,7 @@ public class FileServerConnectorErrorHandler implements ServerConnectorErrorHand
          * waiting for the callback. After acknowledging, error should be thrown, to the application level.
          */
         carbonCallback.done(carbonMessage);
-        throw e;
+        logger.error("Error occurred while trying to process the file content", e);
     }
 
     @Override

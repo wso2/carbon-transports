@@ -23,6 +23,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.UriParser;
 import org.slf4j.Logger;
@@ -116,23 +117,42 @@ public class FileConsumer {
             }
 
             if (isFileExists && isFileReadable) {
-                FileObject[] children = null;
+                FileType fileType;
                 try {
-                    children = fileObject.getChildren();
-                } catch (FileSystemException ignored) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("The file does not exist, or is not a folder, or an error " +
-                                "has occurred when trying to list the children. File URI : "
-                                + FileTransportUtils.maskURLPassword(fileURI), ignored);
-                    }
+                    fileType = fileObject.getType();
+                } catch (FileSystemException e) {
+                    throw new FileServerConnectorException("Error occurred when determining whether file: "
+                            + FileTransportUtils.maskURLPassword(fileURI) + " is a file or a folder", e);
                 }
 
-                // if this is a file that would translate to a single message
-                if (children == null || children.length == 0) {
+                if (fileType == FileType.FILE) {
                     processFile(fileObject);
                     deleteFile(fileObject);
+                } else if (fileType == FileType.FOLDER) {
+                    FileObject[] children = null;
+                    try {
+                        children = fileObject.getChildren();
+                    } catch (FileSystemException ignored) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("The file does not exist, or is not a folder, or an error " +
+                                    "has occurred when trying to list the children. File URI : "
+                                    + FileTransportUtils.maskURLPassword(fileURI), ignored);
+                        }
+                    }
+
+                    // if this is a file that would translate to a single message
+                    if (children == null || children.length == 0) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Folder at " + FileTransportUtils.maskURLPassword(fileURI)
+                                    + " is empty.");
+                        }
+                    } else {
+                        directoryHandler(children);
+                    }
                 } else {
-                    directoryHandler(children);
+                    throw new FileServerConnectorException("File: "
+                            + FileTransportUtils.maskURLPassword(fileURI) + " is neither a file or " +
+                            "a folder" + (fileType == null ? "" : ". Found file type: " + fileType.toString()));
                 }
             } else {
                 throw new FileServerConnectorException("Unable to access or read file or directory : "
@@ -316,9 +336,9 @@ public class FileConsumer {
         try {
             callback.waitTillDone(timeOutInterval);
         } catch (InterruptedException e) {
-            throw new FileServerConnectorException("Error occurred while waiting for message " +
-                    "processor to consume the file input stream. Input stream may be closed " +
-                    "before the Message processor reads it. ", e);
+            throw new FileServerConnectorException("Interrupted while waiting for message " +
+                    "processor to consume the file input stream. Aborting processing of file: " +
+                    FileTransportUtils.maskURLPassword(fileURI), e);
         }
         return file;
     }

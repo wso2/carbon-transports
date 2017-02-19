@@ -41,13 +41,17 @@ public class FileServerConnectorTestCase {
     public void filePollingTestCase() throws ServerConnectorException, InterruptedException {
         FileServerConnectorProvider provider = new FileServerConnectorProvider();
         ServerConnector connector = provider.createConnector("testService");
+
         TestMessageProcessor messageProcessor = new TestMessageProcessor();
         connector.setMessageProcessor(messageProcessor);
-        Map<String, String> parameters = new HashMap<>();
+
         ClassLoader classLoader = getClass().getClassLoader();
         String fileURI = new File(classLoader.getResource("test.txt").getFile()).getAbsolutePath();
+
+        Map<String, String> parameters = new HashMap<>();
         parameters.put(Constants.TRANSPORT_FILE_FILE_URI, fileURI);
         parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "1000");
+
         connector.start(parameters);
         messageProcessor.waitTillDone();
         Assert.assertEquals(messageProcessor.getFileContent(), "File Server Connector test");

@@ -67,6 +67,7 @@ class JMSMessageListener implements javax.jms.MessageListener {
             CarbonMessage jmsCarbonMessage = JMSUtils.createJMSCarbonMessage(message);
             jmsCarbonMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, JMSConstants.PROTOCOL_JMS);
             jmsCarbonMessage.setProperty(JMSConstants.JMS_SERVICE_ID, serviceId);
+            jmsCarbonMessage.setProperty(JMSConstants.JMS_SESSION_ACKNOWLEDGEMENT_MODE, this.acknowledgementMode);
             if (Session.CLIENT_ACKNOWLEDGE == this.acknowledgementMode) {
                 carbonMessageProcessor.receive(jmsCarbonMessage, new AcknowledgementCallback(message, session));
             } else if (Session.SESSION_TRANSACTED == this.acknowledgementMode) {
