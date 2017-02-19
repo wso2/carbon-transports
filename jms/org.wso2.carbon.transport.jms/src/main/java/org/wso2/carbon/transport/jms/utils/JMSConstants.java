@@ -43,6 +43,12 @@ public class JMSConstants {
      * ID of the service, that this listener is bounded to.
      */
     public static final String JMS_SERVICE_ID = "JMS_SERVICE_ID";
+
+    /*
+     * Session acknowledgement mode of the particular message.
+     */
+    public static final String JMS_SESSION_ACKNOWLEDGEMENT_MODE = "JMS_SESSION_ACKNOWLEDGEMENT_MODE";
+
     /**
      * A MessageContext property or client Option indicating the JMS message type.
      */

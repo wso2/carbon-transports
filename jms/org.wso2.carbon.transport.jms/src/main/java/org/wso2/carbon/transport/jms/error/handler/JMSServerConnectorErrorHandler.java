@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.transport.jms.error.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.ServerConnectorErrorHandler;
@@ -27,6 +29,7 @@ import org.wso2.carbon.transport.jms.utils.JMSConstants;
  * Error handler for jms listener.
  */
 public class JMSServerConnectorErrorHandler implements ServerConnectorErrorHandler {
+    private Logger logger = LoggerFactory.getLogger(JMSServerConnectorErrorHandler.class);
     /**
      * {@inheritDoc}
      */
@@ -38,7 +41,13 @@ public class JMSServerConnectorErrorHandler implements ServerConnectorErrorHandl
                     .setProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS, JMSConstants.JMS_MESSAGE_DELIVERY_ERROR);
             carbonCallback.done(carbonMessage);
         } else {
-            throw e;
+            /*
+             * This code-block will be executed in auto-acknowledgement mode and dups-ok-acknowledgement mode. As in
+             * those acknowledgement modes, JMS provider will deliver the message and will forgot it. Even if there
+             * is a problem in the message delivery, the message will be lost. So in that case, we need to indicate
+             * that error to the user.
+             */
+            logger.error("Error while trying to deliver the jms message. ", e);
         }
     }
 

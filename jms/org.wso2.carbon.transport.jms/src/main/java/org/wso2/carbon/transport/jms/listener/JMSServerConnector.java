@@ -139,6 +139,9 @@ public class JMSServerConnector extends ServerConnector {
         jmsConnectionFactory.closeMessageConsumer(messageConsumer);
         jmsConnectionFactory.closeSession(session);
         jmsConnectionFactory.closeConnection(connection);
+        messageConsumer = null;
+        session = null;
+        connection = null;
     }
 
     /**
