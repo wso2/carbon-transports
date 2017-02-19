@@ -147,7 +147,14 @@ public class JMSUtils {
                 jmsCarbonMessage = mapCarbonMessage;
                 jmsCarbonMessage.setProperty(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.MAP_MESSAGE_TYPE);
             } else if (message instanceof ObjectMessage) {
-                jmsCarbonMessage = (SerializableCarbonMessage) ((ObjectMessage) message).getObject();
+                SerializableCarbonMessage serializableCarbonMessage = new SerializableCarbonMessage();
+
+                if (((ObjectMessage) message).getObject() instanceof SerializableCarbonMessage) {
+                    jmsCarbonMessage = (SerializableCarbonMessage) ((ObjectMessage) message).getObject();
+                } else {
+                    serializableCarbonMessage.setPayload(((ObjectMessage) message).getObject().toString());
+                    jmsCarbonMessage = serializableCarbonMessage;
+                }
                 jmsCarbonMessage.setProperty(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.OBJECT_MESSAGE_TYPE);
             } else {
                 jmsCarbonMessage = new TextCarbonMessage(((BytesMessage) message).readUTF());

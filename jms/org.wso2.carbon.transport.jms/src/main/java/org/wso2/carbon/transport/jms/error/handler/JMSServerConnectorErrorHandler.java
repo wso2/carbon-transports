@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.transport.jms.error.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.ServerConnectorErrorHandler;
@@ -27,6 +29,7 @@ import org.wso2.carbon.transport.jms.utils.JMSConstants;
  * Error handler for jms listener.
  */
 public class JMSServerConnectorErrorHandler implements ServerConnectorErrorHandler {
+    private Logger logger = LoggerFactory.getLogger(JMSServerConnectorErrorHandler.class);
     /**
      * {@inheritDoc}
      */
@@ -38,7 +41,7 @@ public class JMSServerConnectorErrorHandler implements ServerConnectorErrorHandl
                     .setProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS, JMSConstants.JMS_MESSAGE_DELIVERY_ERROR);
             carbonCallback.done(carbonMessage);
         } else {
-            throw e;
+            logger.error(e.getMessage(), e);
         }
     }
 
