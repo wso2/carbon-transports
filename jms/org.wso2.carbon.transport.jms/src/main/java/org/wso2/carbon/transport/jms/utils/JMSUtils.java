@@ -150,6 +150,7 @@ public class JMSUtils {
                 if (((ObjectMessage) message).getObject() instanceof SerializableCarbonMessage) {
                     jmsCarbonMessage = (SerializableCarbonMessage) ((ObjectMessage) message).getObject();
                 } else {
+                    // Currently we only support the object messages that has text content.
                     SerializableCarbonMessage serializableCarbonMessage = new SerializableCarbonMessage();
                     serializableCarbonMessage.setPayload(((ObjectMessage) message).getObject().toString());
                     jmsCarbonMessage = serializableCarbonMessage;
