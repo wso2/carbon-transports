@@ -147,11 +147,10 @@ public class JMSUtils {
                 jmsCarbonMessage = mapCarbonMessage;
                 jmsCarbonMessage.setProperty(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.MAP_MESSAGE_TYPE);
             } else if (message instanceof ObjectMessage) {
-                SerializableCarbonMessage serializableCarbonMessage = new SerializableCarbonMessage();
-
                 if (((ObjectMessage) message).getObject() instanceof SerializableCarbonMessage) {
                     jmsCarbonMessage = (SerializableCarbonMessage) ((ObjectMessage) message).getObject();
                 } else {
+                    SerializableCarbonMessage serializableCarbonMessage = new SerializableCarbonMessage();
                     serializableCarbonMessage.setPayload(((ObjectMessage) message).getObject().toString());
                     jmsCarbonMessage = serializableCarbonMessage;
                 }
