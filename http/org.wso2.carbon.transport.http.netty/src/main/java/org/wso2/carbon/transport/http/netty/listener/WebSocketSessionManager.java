@@ -17,10 +17,7 @@
  *
  */
 
-package org.wso2.carbon.connector.framework;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package org.wso2.carbon.transport.http.netty.listener;
 
 import java.util.List;
 import java.util.Map;
@@ -34,8 +31,6 @@ import javax.websocket.Session;
  */
 
 public class WebSocketSessionManager {
-
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketSessionManager.class);
 
     private static WebSocketSessionManager webSocketSessionManager = new WebSocketSessionManager();
 
