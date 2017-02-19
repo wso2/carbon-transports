@@ -41,7 +41,13 @@ public class JMSServerConnectorErrorHandler implements ServerConnectorErrorHandl
                     .setProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS, JMSConstants.JMS_MESSAGE_DELIVERY_ERROR);
             carbonCallback.done(carbonMessage);
         } else {
-            logger.error(e.getMessage(), e);
+            /*
+             * This code-block will be executed in auto-acknowledgement mode and dups-ok-acknowledgement mode. As in
+             * those acknowledgement modes, JMS provider will deliver the message and will forgot it. Even if there
+             * is a problem in the message delivery, the message will be lost. So in that case, we need to indicate
+             * that error to the user.
+             */
+            logger.error("Error while trying to deliver the jms message. ", e);
         }
     }
 
