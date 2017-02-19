@@ -52,25 +52,14 @@ public class FileServerConnectorCallback implements CarbonCallback {
      * This makes the relevant process to wait till there is a acknowledgement from the application layer.
      *
      * @param timeOutInterval Time-out interval in milliseconds for waiting for the acknowledgement
-     * @param deleteIfNotAck  If the message processor did not acknowledge, whether to delete the file or not.
-     * @param fileURI         The URI of the file which is being processed.
-     * @throws InterruptedException If this thread was interrupted while waiting for the acknowledgement.
-     * @throws FileServerConnectorException If deleteIfNotAcknowledged parameter is set to false,
-     *  and acknowledgement was not received.
+     * @throws InterruptedException Interrupted Exception.
      */
-    protected void waitTillDone(long timeOutInterval, boolean deleteIfNotAck, String fileURI)
-            throws InterruptedException, FileServerConnectorException {
+    protected void waitTillDone(long timeOutInterval) throws InterruptedException {
         boolean isCallbackReceived = latch.await(timeOutInterval, TimeUnit.MILLISECONDS);
 
         if (!isCallbackReceived) {
-            if (deleteIfNotAck) {
-                log.warn("The time for waiting for the acknowledgement exceeded " + timeOutInterval + "ms. Proceeding "
-                        + "to deleting the file: " + FileTransportUtils.maskURLPassword(fileURI));
-            } else {
-                throw new FileServerConnectorException("Message processor did not acknowledge. " +
-                        "Wait timed out  after  " + timeOutInterval + "ms. Aborting processing of file: " +
-                        FileTransportUtils.maskURLPassword(fileURI));
-            }
+            log.warn("The time for waiting the acknowledgement callback exceeded " + timeOutInterval + ". Proceeding "
+                    + "to the next polling cycle");
         }
     }
 }

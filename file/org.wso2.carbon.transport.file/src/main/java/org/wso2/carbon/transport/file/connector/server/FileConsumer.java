@@ -61,7 +61,6 @@ public class FileConsumer {
      * Time-out interval (in mill-seconds) to wait for the callback.
      */
     private long timeOutInterval = 30000;
-    private boolean deleteIfNotAck = false;
 
     public FileConsumer(String id, Map<String, String> fileProperties,
                         CarbonMessageProcessor messageProcessor)
@@ -196,16 +195,6 @@ public class FileConsumer {
                 log.error("Provided " + Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT + " is invalid. " +
                         "Using the default callback timeout, " +
                         timeOutInterval + " milliseconds", e);
-            }
-        }
-        String strDeleteIfNotAck = fileProperties.get(Constants.FILE_DELETE_IF_NOT_ACKNOWLEDGED);
-        if (strDeleteIfNotAck != null) {
-            try {
-                deleteIfNotAck = Boolean.parseBoolean(strDeleteIfNotAck);
-            } catch (RuntimeException re) {
-                log.warn(Constants.FILE_DELETE_IF_NOT_ACKNOWLEDGED + " parameter should be either " +
-                        "\"true\" or \"false\". Found: " + strDeleteIfNotAck +
-                        ". Assigning default value \"false\".", re);
             }
         }
     }
@@ -345,7 +334,7 @@ public class FileConsumer {
                     + FileTransportUtils.maskURLPassword(fileURI) + " to message processor. ", e);
         }
         try {
-            callback.waitTillDone(timeOutInterval, deleteIfNotAck, fileURI);
+            callback.waitTillDone(timeOutInterval);
         } catch (InterruptedException e) {
             throw new FileServerConnectorException("Interrupted while waiting for message " +
                     "processor to consume the file input stream. Aborting processing of file: " +
