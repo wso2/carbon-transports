@@ -48,7 +48,7 @@ public class WebSocketTestCases {
 
     Logger logger = LoggerFactory.getLogger(WebSocketTestCases.class);
     private List<HTTPServerConnector> serverConnectors;
-    private WebSocketClient mainClient = new WebSocketClient();
+    private WebSocketClient primaryClient = new WebSocketClient();
     private WebSocketClient secondaryClient = new WebSocketClient();
 
     @BeforeClass
@@ -62,7 +62,7 @@ public class WebSocketTestCases {
     @Test
     public void handshakeTest() throws URISyntaxException, SSLException {
         try {
-            assertTrue(mainClient.handhshake());
+            assertTrue(primaryClient.handhshake());
             logger.info("Handshake test completed.");
         } catch (InterruptedException e) {
             logger.error("Handshake interruption.");
@@ -72,77 +72,77 @@ public class WebSocketTestCases {
 
     @Test
     public void testText() throws URISyntaxException, InterruptedException, SSLException {
-        mainClient.handhshake();
+        primaryClient.handhshake();
         String text = "test";
-        mainClient.sendText(text);
+        primaryClient.sendText(text);
         Thread.sleep(3000);
-        String receivedText = mainClient.getReceivedText();
+        String receivedText = primaryClient.getReceivedText();
         Assert.assertEquals(receivedText, text, "Not received the same text.");
         logger.info("pushing and receiving text data from server completed.");
-        mainClient.shutDown();
+        primaryClient.shutDown();
     }
 
     @Test
     public void testBinary() throws InterruptedException, URISyntaxException, SSLException {
-        mainClient.handhshake();
+        primaryClient.handhshake();
         byte[] bytes = {1,2,3,4,5};
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
-        mainClient.sendBinary(buffer);
+        primaryClient.sendBinary(buffer);
         Thread.sleep(3000);
-        ByteBuffer receivedByteBuffer = mainClient.getReceivedByteBuffer();
+        ByteBuffer receivedByteBuffer = primaryClient.getReceivedByteBuffer();
         assertTrue(buffer.capacity() == receivedByteBuffer.capacity(),
                    "Buffer capacity is not the same.");
         Assert.assertEquals(receivedByteBuffer, buffer, "Buffers data are not equal.");
         logger.info("pushing and receiving binary data from server completed.");
-        mainClient.shutDown();
+        primaryClient.shutDown();
     }
 
     @Test
     public void testClientConnected() throws InterruptedException, SSLException, URISyntaxException {
-        mainClient.handhshake();
+        primaryClient.handhshake();
         Thread.sleep(2000);
         secondaryClient.handhshake();
         Thread.sleep(5000);
-        String receivedText = mainClient.getReceivedText();
+        String receivedText = primaryClient.getReceivedText();
         logger.info("Received text : " + receivedText);
         Assert.assertEquals(receivedText, WebSocketTestConstants.NEW_CLIENT_CONNECTED,
                             "New Client was not connected.");
         logger.info("New client successfully connected to the server.");
         secondaryClient.shutDown();
-        mainClient.shutDown();
+        primaryClient.shutDown();
     }
 
     @Test
     public void testClientCloseConnection() throws InterruptedException, URISyntaxException, SSLException {
-        mainClient.handhshake();
+        primaryClient.handhshake();
         Thread.sleep(2000);
         secondaryClient.handhshake();
         Thread.sleep(3000);
         secondaryClient.shutDown();
         Thread.sleep(3000);
-        String receivedText = mainClient.getReceivedText();
+        String receivedText = primaryClient.getReceivedText();
         logger.info("Received Text : " + receivedText);
         Assert.assertEquals(receivedText, WebSocketTestConstants.CLIENT_LEFT);
         logger.info("Client left the server successfully.");
-        mainClient.shutDown();
+        primaryClient.shutDown();
         secondaryClient.shutDown();
     }
 
     @Test
     public void testPongMessage() throws InterruptedException, SSLException, URISyntaxException {
-        mainClient.handhshake();
+        primaryClient.handhshake();
         byte[] bytes = {6,7,8,9,10,11};
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-        mainClient.sendPong(byteBuffer);
+        primaryClient.sendPong(byteBuffer);
         Thread.sleep(3000);
-        ByteBuffer receivedBuffer = mainClient.getReceivedByteBuffer();
+        ByteBuffer receivedBuffer = primaryClient.getReceivedByteBuffer();
         Assert.assertEquals(receivedBuffer, byteBuffer, "Didn't receive the correct pong.");
         logger.info("Receiving a pong message is completed.");
     }
 
     @AfterClass
     public void cleaUp() throws ServerConnectorException, InterruptedException {
-        mainClient.shutDown();
+        primaryClient.shutDown();
         secondaryClient.shutDown();
         serverConnectors.forEach(
                 serverConnector -> {
