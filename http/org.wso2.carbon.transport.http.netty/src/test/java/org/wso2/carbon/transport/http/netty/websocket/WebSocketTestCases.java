@@ -85,7 +85,7 @@ public class WebSocketTestCases {
     @Test
     public void testBinary() throws InterruptedException, URISyntaxException, SSLException {
         primaryClient.handhshake();
-        byte[] bytes = {1,2,3,4,5};
+        byte[] bytes = {1, 2, 3, 4, 5};
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         primaryClient.sendBinary(buffer);
         Thread.sleep(3000);
@@ -131,7 +131,7 @@ public class WebSocketTestCases {
     @Test
     public void testPongMessage() throws InterruptedException, SSLException, URISyntaxException {
         primaryClient.handhshake();
-        byte[] bytes = {6,7,8,9,10,11};
+        byte[] bytes = {6, 7, 8, 9, 10, 11};
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
         primaryClient.sendPong(byteBuffer);
         Thread.sleep(3000);

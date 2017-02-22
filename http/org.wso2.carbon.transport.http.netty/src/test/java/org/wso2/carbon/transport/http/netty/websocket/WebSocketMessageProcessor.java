@@ -73,7 +73,7 @@ public class WebSocketMessageProcessor implements CarbonMessageProcessor {
                                 getProperty(Constants.WEBSOCKET_SESSION);
                         session.getBasicRemote().sendText(textCarbonMessage.getText());
 
-                    } else if(carbonMessage instanceof BinaryCarbonMessage) {
+                    } else if (carbonMessage instanceof BinaryCarbonMessage) {
                         BinaryCarbonMessage binaryCarbonMessage = (BinaryCarbonMessage) carbonMessage;
                         Session session = (Session) binaryCarbonMessage.
                                 getProperty(Constants.WEBSOCKET_SESSION);
@@ -121,8 +121,7 @@ public class WebSocketMessageProcessor implements CarbonMessageProcessor {
                         Session session = (Session) controlCarbonMessage.
                                 getProperty(Constants.WEBSOCKET_SESSION);
                         session.getBasicRemote().sendPong(controlCarbonMessage.readBytes());
-                    }
-                    else {
+                    } else {
                         carbonMessage.setProperty(Constants.HOST, TestUtil.TEST_HOST);
                         carbonMessage.setProperty(Constants.PORT, TestUtil.TEST_SERVER_PORT);
                         clientConnector.send(carbonMessage, carbonCallback);
