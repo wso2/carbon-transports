@@ -71,17 +71,20 @@ public class WebSocketTestCases {
     }
 
     @Test
-    public void testText() throws URISyntaxException, InterruptedException {
+    public void testText() throws URISyntaxException, InterruptedException, SSLException {
+        mainClient.handhshake();
         String text = "test";
         mainClient.sendText(text);
         Thread.sleep(3000);
         String receivedText = mainClient.getReceivedText();
         Assert.assertEquals(receivedText, text, "Not received the same text.");
         logger.info("pushing and receiving text data from server completed.");
+        mainClient.shutDown();
     }
 
     @Test
-    public void testBinary() throws InterruptedException {
+    public void testBinary() throws InterruptedException, URISyntaxException, SSLException {
+        mainClient.handhshake();
         byte[] bytes = {1,2,3,4,5};
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         mainClient.sendBinary(buffer);
@@ -91,10 +94,13 @@ public class WebSocketTestCases {
                    "Buffer capacity is not the same.");
         Assert.assertEquals(receivedByteBuffer, buffer, "Buffers data are not equal.");
         logger.info("pushing and receiving binary data from server completed.");
+        mainClient.shutDown();
     }
 
     @Test
-    public void test1ClientConnected() throws InterruptedException, SSLException, URISyntaxException {
+    public void testClientConnected() throws InterruptedException, SSLException, URISyntaxException {
+        mainClient.handhshake();
+        Thread.sleep(2000);
         secondaryClient.handhshake();
         Thread.sleep(5000);
         String receivedText = mainClient.getReceivedText();
@@ -102,16 +108,36 @@ public class WebSocketTestCases {
         Assert.assertEquals(receivedText, WebSocketTestConstants.NEW_CLIENT_CONNECTED,
                             "New Client was not connected.");
         logger.info("New client successfully connected to the server.");
+        secondaryClient.shutDown();
+        mainClient.shutDown();
     }
 
     @Test
-    public void test2ClientCloseConnection() throws InterruptedException {
+    public void testClientCloseConnection() throws InterruptedException, URISyntaxException, SSLException {
+        mainClient.handhshake();
+        Thread.sleep(2000);
+        secondaryClient.handhshake();
+        Thread.sleep(3000);
         secondaryClient.shutDown();
-        Thread.sleep(5000);
+        Thread.sleep(3000);
         String receivedText = mainClient.getReceivedText();
         logger.info("Received Text : " + receivedText);
         Assert.assertEquals(receivedText, WebSocketTestConstants.CLIENT_LEFT);
         logger.info("Client left the server successfully.");
+        mainClient.shutDown();
+        secondaryClient.shutDown();
+    }
+
+    @Test
+    public void testPongMessage() throws InterruptedException, SSLException, URISyntaxException {
+        mainClient.handhshake();
+        byte[] bytes = {6,7,8,9,10,11};
+        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        mainClient.sendPong(byteBuffer);
+        Thread.sleep(3000);
+        ByteBuffer receivedBuffer = mainClient.getReceivedByteBuffer();
+        Assert.assertEquals(receivedBuffer, byteBuffer, "Didn't receive the correct pong.");
+        logger.info("Receiving a pong message is completed.");
     }
 
     @AfterClass

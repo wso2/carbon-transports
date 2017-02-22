@@ -26,6 +26,7 @@ import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
+import org.wso2.carbon.messaging.ControlCarbonMessage;
 import org.wso2.carbon.messaging.StatusCarbonMessage;
 import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.TransportSender;
@@ -115,7 +116,13 @@ public class WebSocketMessageProcessor implements CarbonMessageProcessor {
                             session.close();
                         }
 
-                    } else {
+                    } else if (carbonMessage instanceof ControlCarbonMessage) {
+                        ControlCarbonMessage controlCarbonMessage = (ControlCarbonMessage) carbonMessage;
+                        Session session = (Session) controlCarbonMessage.
+                                getProperty(Constants.WEBSOCKET_SESSION);
+                        session.getBasicRemote().sendPong(controlCarbonMessage.readBytes());
+                    }
+                    else {
                         carbonMessage.setProperty(Constants.HOST, TestUtil.TEST_HOST);
                         carbonMessage.setProperty(Constants.PORT, TestUtil.TEST_SERVER_PORT);
                         clientConnector.send(carbonMessage, carbonCallback);

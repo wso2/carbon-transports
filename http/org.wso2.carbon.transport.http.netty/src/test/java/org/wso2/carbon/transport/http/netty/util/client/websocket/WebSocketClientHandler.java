@@ -98,6 +98,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             logger.info("WebSocket Client received  binary message: " + receivedByteBuffer.toString());
         } else if (frame instanceof PongWebSocketFrame) {
             logger.info("WebSocket Client received pong");
+            PongWebSocketFrame pongFrame = (PongWebSocketFrame) frame;
+            receivedByteBuffer = pongFrame.content().nioBuffer();
         } else if (frame instanceof CloseWebSocketFrame) {
             logger.info("WebSocket Client received closing");
             ch.close();
