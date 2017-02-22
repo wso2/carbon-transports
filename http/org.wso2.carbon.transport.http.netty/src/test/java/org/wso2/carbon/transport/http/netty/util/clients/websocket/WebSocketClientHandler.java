@@ -17,7 +17,7 @@
  *
  */
 
-package org.wso2.carbon.transport.http.netty.util.client.websocket;
+package org.wso2.carbon.transport.http.netty.util.clients.websocket;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;

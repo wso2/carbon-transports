@@ -33,7 +33,7 @@ import org.wso2.carbon.messaging.TransportSender;
 import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 import org.wso2.carbon.transport.http.netty.common.Constants;
 import org.wso2.carbon.transport.http.netty.util.TestUtil;
-import org.wso2.carbon.transport.http.netty.util.client.websocket.WebSocketTestConstants;
+import org.wso2.carbon.transport.http.netty.util.clients.websocket.WebSocketTestConstants;
 
 import java.io.IOException;
 import java.net.ProtocolException;

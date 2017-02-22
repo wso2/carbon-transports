@@ -15,7 +15,7 @@
 * specific language governing permissions and limitations
 * under the License.
 */
-package org.wso2.carbon.transport.http.netty.util.client.http2;
+package org.wso2.carbon.transport.http.netty.util.clients.http2;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;

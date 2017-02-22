@@ -32,7 +32,7 @@ import org.wso2.carbon.transport.http.netty.config.TransportsConfiguration;
 import org.wso2.carbon.transport.http.netty.config.YAMLTransportConfigurationBuilder;
 import org.wso2.carbon.transport.http.netty.listener.HTTPServerConnector;
 import org.wso2.carbon.transport.http.netty.util.TestUtil;
-import org.wso2.carbon.transport.http.netty.util.client.http2.HTTP2Client;
+import org.wso2.carbon.transport.http.netty.util.clients.http2.HTTP2Client;
 import org.wso2.carbon.transport.http.netty.util.server.HTTPServer;
 
 import java.util.List;

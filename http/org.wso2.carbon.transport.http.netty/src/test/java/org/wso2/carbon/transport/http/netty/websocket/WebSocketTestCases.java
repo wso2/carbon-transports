@@ -30,8 +30,8 @@ import org.wso2.carbon.transport.http.netty.config.TransportsConfiguration;
 import org.wso2.carbon.transport.http.netty.config.YAMLTransportConfigurationBuilder;
 import org.wso2.carbon.transport.http.netty.listener.HTTPServerConnector;
 import org.wso2.carbon.transport.http.netty.util.TestUtil;
-import org.wso2.carbon.transport.http.netty.util.client.websocket.WebSocketClient;
-import org.wso2.carbon.transport.http.netty.util.client.websocket.WebSocketTestConstants;
+import org.wso2.carbon.transport.http.netty.util.clients.websocket.WebSocketClient;
+import org.wso2.carbon.transport.http.netty.util.clients.websocket.WebSocketTestConstants;
 
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
