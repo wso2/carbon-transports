@@ -19,22 +19,10 @@
 
 package org.wso2.carbon.transport.http.netty.util.client.websocket;
 
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-
 /**
- * Initializer for WebSocket client
+ * WebSocket constants for testing purposes.
  */
-public class WebSocketClientInitializer extends ChannelInitializer<SocketChannel> {
-
-    @Override
-    protected void initChannel(SocketChannel socketChannel) throws Exception {
-        ChannelPipeline pipeline = socketChannel.pipeline();
-        pipeline.addLast(new HttpClientCodec());
-        pipeline.addLast(new HttpObjectAggregator(8192));
-        pipeline.addLast(new WebSocketClientHandler());
-    }
+public class WebSocketTestConstants {
+    public static final String NEW_CLIENT_CONNECTED = "NEW_CLIENT_CONNECTED";
+    public static final String CLIENT_LEFT = "CLIENT_LEFT";
 }

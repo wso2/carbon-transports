@@ -26,16 +26,18 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
-import org.wso2.carbon.transport.http.netty.common.Constants;
 import org.wso2.carbon.transport.http.netty.config.TransportsConfiguration;
 import org.wso2.carbon.transport.http.netty.config.YAMLTransportConfigurationBuilder;
 import org.wso2.carbon.transport.http.netty.listener.HTTPServerConnector;
 import org.wso2.carbon.transport.http.netty.util.TestUtil;
 import org.wso2.carbon.transport.http.netty.util.client.websocket.WebSocketClient;
-import org.wso2.carbon.transport.http.netty.util.server.HTTPServer;
+import org.wso2.carbon.transport.http.netty.util.client.websocket.WebSocketTestConstants;
 
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.util.List;
+
+import javax.net.ssl.SSLException;
 
 import static org.testng.Assert.assertTrue;
 
@@ -46,22 +48,21 @@ public class WebSocketTestCases {
 
     Logger logger = LoggerFactory.getLogger(WebSocketTestCases.class);
     private List<HTTPServerConnector> serverConnectors;
-    private HTTPServer httpServer;
-    private WebSocketClient client = new WebSocketClient();
-    private static final String testValue = "Test Message";
+    private WebSocketClient mainClient = new WebSocketClient();
+    private WebSocketClient secondaryClient = new WebSocketClient();
 
     @BeforeClass
     public void setup() {
+        logger.info("\n-------WebSocket Test Cases-------");
         TransportsConfiguration configuration = YAMLTransportConfigurationBuilder
                 .build("src/test/resources/simple-test-config/netty-transports.yml");
         serverConnectors = TestUtil.startConnectors(configuration, new WebSocketMessageProcessor());
-        httpServer = TestUtil.startHTTPServer(TestUtil.TEST_SERVER_PORT, testValue, Constants.TEXT_PLAIN);
     }
 
     @Test
-    public void testHandshake() throws URISyntaxException {
+    public void handshakeTest() throws URISyntaxException, SSLException {
         try {
-            assertTrue(client.handhshake(TestUtil.TEST_HOST, TestUtil.TEST_SERVER_PORT));
+            assertTrue(mainClient.handhshake());
             logger.info("Handshake test completed.");
         } catch (InterruptedException e) {
             logger.error("Handshake interruption.");
@@ -70,14 +71,57 @@ public class WebSocketTestCases {
     }
 
     @Test
-    public void testText() throws URISyntaxException {
+    public void testText() throws URISyntaxException, InterruptedException {
         String text = "test";
-        Assert.assertTrue(client.sendText(text));
-        logger.info("push text to server completed.");
+        mainClient.sendText(text);
+        Thread.sleep(3000);
+        String receivedText = mainClient.getReceivedText();
+        Assert.assertEquals(receivedText, text, "Not received the same text.");
+        logger.info("pushing and receiving text data from server completed.");
+    }
+
+    @Test
+    public void testBinary() throws InterruptedException {
+        byte[] bytes = {1,2,3,4,5};
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        mainClient.sendBinary(buffer);
+        Thread.sleep(3000);
+        ByteBuffer receivedByteBuffer = mainClient.getReceivedByteBuffer();
+        assertTrue(buffer.capacity() == receivedByteBuffer.capacity(),
+                   "Buffer capacity is not the same.");
+        Assert.assertEquals(receivedByteBuffer, buffer, "Buffers data are not equal.");
+        logger.info("pushing and receiving binary data from server completed.");
+    }
+
+    @Test
+    public void test1ClientConnected() throws InterruptedException, SSLException, URISyntaxException {
+        secondaryClient.handhshake();
+        Thread.sleep(5000);
+        String receivedText = mainClient.getReceivedText();
+        logger.info("Received text : " + receivedText);
+        Assert.assertEquals(receivedText, WebSocketTestConstants.NEW_CLIENT_CONNECTED,
+                            "New Client was not connected.");
+        logger.info("New client successfully connected to the server.");
+    }
+
+    @Test
+    public void test2ClientCloseConnection() throws InterruptedException {
+        secondaryClient.shutDown();
+        Thread.sleep(5000);
+        String receivedText = mainClient.getReceivedText();
+        logger.info("Received Text : " + receivedText);
+        Assert.assertEquals(receivedText, WebSocketTestConstants.CLIENT_LEFT);
+        logger.info("Client left the server successfully.");
     }
 
     @AfterClass
-    public void cleaUp() throws ServerConnectorException {
-        TestUtil.cleanUp(serverConnectors, httpServer);
+    public void cleaUp() throws ServerConnectorException, InterruptedException {
+        mainClient.shutDown();
+        secondaryClient.shutDown();
+        serverConnectors.forEach(
+                serverConnector -> {
+                    serverConnector.stop();
+                }
+        );
     }
 }
