@@ -46,6 +46,7 @@ public final class Constants {
     public static final String SCHEME = "VFS_SCHEME";
     public static final String SFTP_PREFIX = "sftp";
     public static final String SCHEME_SFTP = "sftp";
+    public static final String SCHEME_FTP = "ftp";
 
     public static final String FILE_TYPE = "filetype";
     public static final String BINARY_TYPE = "BINARY";

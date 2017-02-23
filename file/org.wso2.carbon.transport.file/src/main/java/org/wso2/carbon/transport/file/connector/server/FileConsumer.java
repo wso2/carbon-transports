@@ -84,7 +84,7 @@ public class FileConsumer {
         Map<String, String> options = parseSchemeFileOptions(fileURI);
         fso = FileTransportUtils.attachFileSystemOptions(options, fsManager);
 
-        if (options != null) {
+        if (options != null && Constants.SCHEME_FTP.equals(options.get(Constants.SCHEME))) {
             FtpFileSystemConfigBuilder.getInstance().setPassiveMode(fso, true);
         }
 
