@@ -520,7 +520,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                 return session.createProducer(destination);
             } else {
                 if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
-                    return ((QueueSession) session).createProducer((Queue) destination);
+                    return ((QueueSession) session).createSender((Queue) destination);
                 } else {
                     return ((TopicSession) session).createPublisher((Topic) destination);
                 }
@@ -571,9 +571,9 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
              */
             try {
                 if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
-                    destination = (Queue) session.createQueue(destinationName);
+                    destination = session.createQueue(destinationName);
                 } else if (this.destinationType.equals(JMSConstants.JMSDestinationType.TOPIC)) {
-                    destination = (Topic) session.createTopic(destinationName);
+                    destination = session.createTopic(destinationName);
                 }
                 if (logger.isDebugEnabled()) {
                     logger.debug("Created '" + destinationName + "' on connection factory for '"
