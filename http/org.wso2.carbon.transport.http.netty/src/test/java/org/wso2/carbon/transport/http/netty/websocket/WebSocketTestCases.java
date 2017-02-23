@@ -21,7 +21,6 @@ package org.wso2.carbon.transport.http.netty.websocket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -39,7 +38,8 @@ import java.util.List;
 
 import javax.net.ssl.SSLException;
 
-import static org.testng.Assert.assertTrue;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Test class for WebSocket Upgrade
@@ -77,7 +77,7 @@ public class WebSocketTestCases {
         primaryClient.sendText(textSent);
         Thread.sleep(3000);
         String textReceived = primaryClient.getTextReceived();
-        Assert.assertEquals(textReceived, textSent, "Not received the same text.");
+        assertEquals("Not received the same text.", textReceived, textSent);
         logger.info("pushing and receiving text data from server completed.");
         primaryClient.shutDown();
     }
@@ -90,9 +90,9 @@ public class WebSocketTestCases {
         primaryClient.sendBinary(bufferSent);
         Thread.sleep(3000);
         ByteBuffer bufferReceived = primaryClient.getBufferReceived();
-        assertTrue(bufferSent.capacity() == bufferReceived.capacity(),
-                   "Buffer capacity is not the same.");
-        Assert.assertEquals(bufferReceived, bufferSent, "Buffers data are not equal.");
+        assertTrue("Buffer capacity is not the same.",
+                   bufferSent.capacity() == bufferReceived.capacity());
+        assertEquals("Buffers data are not equal.", bufferReceived, bufferSent);
         logger.info("pushing and receiving binary data from server completed.");
         primaryClient.shutDown();
     }
@@ -105,8 +105,8 @@ public class WebSocketTestCases {
         Thread.sleep(5000);
         String textReceived = primaryClient.getTextReceived();
         logger.info("Received text : " + textReceived);
-        Assert.assertEquals(textReceived, WebSocketTestConstants.NEW_CLIENT_CONNECTED,
-                            "New Client was not connected.");
+        assertEquals("New Client was not connected.",
+                     textReceived, WebSocketTestConstants.NEW_CLIENT_CONNECTED);
         logger.info("New client successfully connected to the server.");
         secondaryClient.shutDown();
         primaryClient.shutDown();
@@ -122,7 +122,7 @@ public class WebSocketTestCases {
         Thread.sleep(3000);
         String textReceived = primaryClient.getTextReceived();
         logger.info("Received Text : " + textReceived);
-        Assert.assertEquals(textReceived, WebSocketTestConstants.CLIENT_LEFT);
+        assertEquals("Connection close is unsuccessful.", textReceived, WebSocketTestConstants.CLIENT_LEFT);
         logger.info("Client left the server successfully.");
         primaryClient.shutDown();
         secondaryClient.shutDown();
@@ -136,7 +136,7 @@ public class WebSocketTestCases {
         primaryClient.sendPong(bufferSent);
         Thread.sleep(3000);
         ByteBuffer bufferReceived = primaryClient.getBufferReceived();
-        Assert.assertEquals(bufferReceived, bufferSent, "Didn't receive the correct pong.");
+        assertEquals("Didn't receive the correct pong.", bufferReceived, bufferSent);
         logger.info("Receiving a pong message is completed.");
     }
 
