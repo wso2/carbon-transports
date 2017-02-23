@@ -166,7 +166,6 @@ public class WebSocketClient {
         channel.writeAndFlush(new BinaryWebSocketFrame(Unpooled.wrappedBuffer(buf)));
     }
 
-
     /**
      * Send a pong message to the server.
      * @param buf content of the pong message to be sent.
@@ -182,15 +181,15 @@ public class WebSocketClient {
     /**
      * @return the text received from the server.
      */
-    public String getReceivedText() {
-        return handler.getReceivedText();
+    public String getTextReceived() {
+        return handler.getTextReceived();
     }
 
     /**
      * @return the binary data received from the server.
      */
-    public ByteBuffer getReceivedByteBuffer() {
-        return handler.getReceivedByteBuffer();
+    public ByteBuffer getBufferReceived() {
+        return handler.getBufferReceived();
     }
 
     /**

@@ -73,11 +73,11 @@ public class WebSocketTestCases {
     @Test
     public void testText() throws URISyntaxException, InterruptedException, SSLException {
         primaryClient.handhshake();
-        String text = "test";
-        primaryClient.sendText(text);
+        String textSent = "test";
+        primaryClient.sendText(textSent);
         Thread.sleep(3000);
-        String receivedText = primaryClient.getReceivedText();
-        Assert.assertEquals(receivedText, text, "Not received the same text.");
+        String textReceived = primaryClient.getTextReceived();
+        Assert.assertEquals(textReceived, textSent, "Not received the same text.");
         logger.info("pushing and receiving text data from server completed.");
         primaryClient.shutDown();
     }
@@ -86,13 +86,13 @@ public class WebSocketTestCases {
     public void testBinary() throws InterruptedException, URISyntaxException, SSLException {
         primaryClient.handhshake();
         byte[] bytes = {1, 2, 3, 4, 5};
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
-        primaryClient.sendBinary(buffer);
+        ByteBuffer bufferSent = ByteBuffer.wrap(bytes);
+        primaryClient.sendBinary(bufferSent);
         Thread.sleep(3000);
-        ByteBuffer receivedByteBuffer = primaryClient.getReceivedByteBuffer();
-        assertTrue(buffer.capacity() == receivedByteBuffer.capacity(),
+        ByteBuffer bufferReceived = primaryClient.getBufferReceived();
+        assertTrue(bufferSent.capacity() == bufferReceived.capacity(),
                    "Buffer capacity is not the same.");
-        Assert.assertEquals(receivedByteBuffer, buffer, "Buffers data are not equal.");
+        Assert.assertEquals(bufferReceived, bufferSent, "Buffers data are not equal.");
         logger.info("pushing and receiving binary data from server completed.");
         primaryClient.shutDown();
     }
@@ -103,9 +103,9 @@ public class WebSocketTestCases {
         Thread.sleep(2000);
         secondaryClient.handhshake();
         Thread.sleep(5000);
-        String receivedText = primaryClient.getReceivedText();
-        logger.info("Received text : " + receivedText);
-        Assert.assertEquals(receivedText, WebSocketTestConstants.NEW_CLIENT_CONNECTED,
+        String textReceived = primaryClient.getTextReceived();
+        logger.info("Received text : " + textReceived);
+        Assert.assertEquals(textReceived, WebSocketTestConstants.NEW_CLIENT_CONNECTED,
                             "New Client was not connected.");
         logger.info("New client successfully connected to the server.");
         secondaryClient.shutDown();
@@ -120,9 +120,9 @@ public class WebSocketTestCases {
         Thread.sleep(3000);
         secondaryClient.shutDown();
         Thread.sleep(3000);
-        String receivedText = primaryClient.getReceivedText();
-        logger.info("Received Text : " + receivedText);
-        Assert.assertEquals(receivedText, WebSocketTestConstants.CLIENT_LEFT);
+        String textReceived = primaryClient.getTextReceived();
+        logger.info("Received Text : " + textReceived);
+        Assert.assertEquals(textReceived, WebSocketTestConstants.CLIENT_LEFT);
         logger.info("Client left the server successfully.");
         primaryClient.shutDown();
         secondaryClient.shutDown();
@@ -132,11 +132,11 @@ public class WebSocketTestCases {
     public void testPongMessage() throws InterruptedException, SSLException, URISyntaxException {
         primaryClient.handhshake();
         byte[] bytes = {6, 7, 8, 9, 10, 11};
-        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-        primaryClient.sendPong(byteBuffer);
+        ByteBuffer bufferSent = ByteBuffer.wrap(bytes);
+        primaryClient.sendPong(bufferSent);
         Thread.sleep(3000);
-        ByteBuffer receivedBuffer = primaryClient.getReceivedByteBuffer();
-        Assert.assertEquals(receivedBuffer, byteBuffer, "Didn't receive the correct pong.");
+        ByteBuffer bufferReceived = primaryClient.getBufferReceived();
+        Assert.assertEquals(bufferReceived, bufferSent, "Didn't receive the correct pong.");
         logger.info("Receiving a pong message is completed.");
     }
 

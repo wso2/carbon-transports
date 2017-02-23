@@ -113,7 +113,6 @@ public class WebSocketMessageProcessor implements CarbonMessageProcessor {
 
                                     }
                             );
-                            session.close();
                         }
 
                     } else if (carbonMessage instanceof ControlCarbonMessage) {

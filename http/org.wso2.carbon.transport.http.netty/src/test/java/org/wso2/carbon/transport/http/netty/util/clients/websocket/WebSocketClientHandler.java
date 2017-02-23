@@ -44,8 +44,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
 
-    private String receivedText = "";
-    private ByteBuffer receivedByteBuffer = null;
+    private String textReceived = "";
+    private ByteBuffer bufferReceived = null;
 
     public WebSocketClientHandler(WebSocketClientHandshaker handshaker) {
         this.handshaker = handshaker;
@@ -91,15 +91,15 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (frame instanceof TextWebSocketFrame) {
             TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
             logger.info("WebSocket Client received text message: " + textFrame.text());
-            receivedText = textFrame.text();
+            textReceived = textFrame.text();
         } else if (frame instanceof BinaryWebSocketFrame) {
             BinaryWebSocketFrame binaryFrame = (BinaryWebSocketFrame) frame;
-            receivedByteBuffer = binaryFrame.content().nioBuffer();
-            logger.info("WebSocket Client received  binary message: " + receivedByteBuffer.toString());
+            bufferReceived = binaryFrame.content().nioBuffer();
+            logger.info("WebSocket Client received  binary message: " + bufferReceived.toString());
         } else if (frame instanceof PongWebSocketFrame) {
             logger.info("WebSocket Client received pong");
             PongWebSocketFrame pongFrame = (PongWebSocketFrame) frame;
-            receivedByteBuffer = pongFrame.content().nioBuffer();
+            bufferReceived = pongFrame.content().nioBuffer();
         } else if (frame instanceof CloseWebSocketFrame) {
             logger.info("WebSocket Client received closing");
             ch.close();
@@ -109,15 +109,15 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     /**
      * @return the text received from the server.
      */
-    public String getReceivedText() {
-        return receivedText;
+    public String getTextReceived() {
+        return textReceived;
     }
 
     /**
      * @return the binary data received from the server.
      */
-    public ByteBuffer getReceivedByteBuffer() {
-        return receivedByteBuffer;
+    public ByteBuffer getBufferReceived() {
+        return bufferReceived;
     }
 
     @Override
