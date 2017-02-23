@@ -81,8 +81,13 @@ public class FileConsumer {
             throw new ServerConnectorException("Could not initialize File System Manager from " +
                     "the configuration: providers.xml", e);
         }
-        fso = FileTransportUtils.attachFileSystemOptions(parseSchemeFileOptions(fileURI), fsManager);
-        FtpFileSystemConfigBuilder.getInstance().setPassiveMode(fso, true);
+        Map<String, String> options = parseSchemeFileOptions(fileURI);
+        fso = FileTransportUtils.attachFileSystemOptions(options, fsManager);
+
+        if (options != null) {
+            FtpFileSystemConfigBuilder.getInstance().setPassiveMode(fso, true);
+        }
+
         try {
             fileObject = fsManager.resolveFile(fileURI, fso);
         } catch (FileSystemException e) {
