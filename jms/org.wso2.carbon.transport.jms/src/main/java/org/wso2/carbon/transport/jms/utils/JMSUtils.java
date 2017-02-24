@@ -129,7 +129,8 @@ public class JMSUtils {
                 } catch (MessageFormatException e) {
                     /*
                      * This can happen when the object message is a blank message. In that case, we need to create a
-                     * blank message.
+                     * blank message. JMS API does not provide a way to find out whether it is blank message, other
+                     * than by calling the getObject method.
                      */
                     jmsCarbonMessage = new SerializableCarbonMessage();
                 }
