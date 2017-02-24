@@ -62,7 +62,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     /**
      * The {@link String} instance representing the connection factory JNDI name.
      */
-    String connectionFactoryString;
+    private String connectionFactoryString;
     /**
      * Represents whether to listen queue or topic.
      */
@@ -264,9 +264,9 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         try {
 
             if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) {
-                if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                     connection = ((QueueConnectionFactory) (this.connectionFactory)).createQueueConnection();
-                } else if (this.destinationType.equals(JMSConstants.JMSDestinationType.TOPIC)) {
+                } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
                     connection = ((TopicConnectionFactory) (this.connectionFactory)).createTopicConnection();
                     if (isDurable) {
                         connection.setClientID(clientId);
@@ -283,7 +283,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                 }
                 if (null != qConFac) {
                     connection = qConFac.createQueueConnection();
-                } else if (null != tConFac) {
+                } else {
                     connection = tConFac.createTopicConnection();
                 }
                 if (isDurable && !isSharedSubscription) {
@@ -338,7 +338,12 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                     connection = tConFac.createTopicConnection(userName, password);
                 }
                 if (isDurable && !isSharedSubscription) {
-                    connection.setClientID(clientId);
+                    if (connection != null) {
+                        connection.setClientID(clientId);
+                    } else {
+                        throw new JMSException("Connection is null. Cannot set client ID " + clientId
+                                               + "for durable subscription");
+                    }
                 }
                 return connection;
             }
@@ -437,18 +442,6 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     }
 
     /**
-     * Get a message consumer for particular session and destination.
-     *
-     * @param session     JMS Session to create the consumer
-     * @param destination JMS destination which the consumer should listen to
-     * @return Message Consumer, who is listening in particular destination with the given session
-     * @throws JMSConnectorException Thrown when creating jms message consumer.
-     */
-    public MessageConsumer getMessageConsumer(Session session, Destination destination) throws JMSConnectorException {
-        return createMessageConsumer(session, destination);
-    }
-
-    /**
      * Create a message consumer for particular session and destination.
      *
      * @param session     JMS Session to create the consumer
@@ -478,7 +471,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                     return ((QueueSession) session).createReceiver((Queue) destination, messageSelector);
                 } else {
                     if (isDurable) {
-                        return ((TopicSession) session)
+                        return session
                                 .createDurableSubscriber((Topic) destination, subscriptionName, messageSelector,
                                         noPubSubLocal);
                     } else {
