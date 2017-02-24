@@ -164,6 +164,18 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
         return session;
     }
 
+    @Override
+    public MessageConsumer getMessageConsumer(Session session, Destination destination)
+            throws JMSConnectorException {
+        MessageConsumer messageConsumer;
+        if (cachedMessageConsumer == null) {
+            messageConsumer = createMessageConsumer(session, destination);
+        } else {
+            messageConsumer = cachedMessageConsumer;
+        }
+        return messageConsumer;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -203,6 +215,12 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
             cachedMessageProducer = messageProducer;
         }
         return messageProducer;
+    }
+
+    public void closeConnection() throws JMSException {
+        if (cachedConnection != null) {
+            cachedConnection.close();
+        }
     }
 
     /**

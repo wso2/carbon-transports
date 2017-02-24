@@ -442,6 +442,18 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     }
 
     /**
+     * Get a message consumer for particular session and destination.
+     *
+     * @param session     JMS Session to create the consumer
+     * @param destination JMS destination which the consumer should listen to
+     * @return Message Consumer, who is listening in particular destination with the given session
+     * @throws JMSConnectorException Thrown when creating jms message consumer.
+     */
+    public MessageConsumer getMessageConsumer(Session session, Destination destination) throws JMSConnectorException {
+        return createMessageConsumer(session, destination);
+    }
+
+    /**
      * Create a message consumer for particular session and destination.
      *
      * @param session     JMS Session to create the consumer
