@@ -35,9 +35,9 @@ import java.util.Map;
 import javax.jms.JMSException;
 
 /**
- * Test case for queue topic listening in client ack mode.
+ * Test case for queue topic listening in session transacted mode.
  */
-public class QueueTopicClientAckListeningTestCase {
+public class QueueTopicSessionTransactedTestCase {
     private JMSServer jmsServer;
     private TestMessageProcessor queueTestMessageProcessor;
     private TestMessageProcessor topicTestMessageProcessor;
@@ -55,12 +55,12 @@ public class QueueTopicClientAckListeningTestCase {
      */
     @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS listener and message processor")
     public void setUp() throws ServerConnectorException {
-        queueListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.QUEUE_NAME_2,
+        queueListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.QUEUE_NAME_3,
                 JMSTestConstants.QUEUE_CONNECTION_FACTORY, JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants
-                        .CLIENT_ACKNOWLEDGE_MODE);
-        topicListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.TOPIC_NAME_1,
+                        .SESSION_TRANSACTED_MODE);
+        topicListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.TOPIC_NAME_2,
                 JMSTestConstants.TOPIC_CONNECTION_FACTORY, JMSConstants.DESTINATION_TYPE_TOPIC, JMSConstants
-                        .CLIENT_ACKNOWLEDGE_MODE);
+                        .SESSION_TRANSACTED_MODE);
         jmsServer = new JMSServer();
         jmsServer.startServer();
 
@@ -70,44 +70,44 @@ public class QueueTopicClientAckListeningTestCase {
         jmsQueueTransportListener.setMessageProcessor(queueTestMessageProcessor);
 
         // Create a topic transport listener
-        jmsTopicTransportListener = new JMSServerConnector("2");
+        jmsTopicTransportListener = new JMSServerConnector("3");
         topicTestMessageProcessor = new TestMessageProcessor();
         jmsTopicTransportListener.setMessageProcessor(topicTestMessageProcessor);
     }
 
     /**
-     * JMS Server connector will start listening to a queue in client ack mode and there will be a publisher publishing
-     * to the queue. For some messages call acknowledge, reject some messages so that session recover can be called.
-     * After publishing the messages to queue, check whether the number of received messages are greater than the
-     * sent messages, since the jms provider need to re-deliver the messages when session recover is called.
+     * JMS Server connector will start listening to a queue in session transacted mode and there will be a publisher
+     * publishing to the queue. For some messages call acknowledge, reject some messages so that session recover can
+     * be called. After publishing the messages to queue, check whether the number of received messages are greater
+     * than the sent messages, since the jms provider need to re-deliver the messages when session rollback is called.
      */
     @Test(groups = "jmsListening", description = "Testing whether queue listening is working correctly without any "
             + "exceptions in client ack mode")
     public void queueListeningTestCase() throws ServerConnectorException, InterruptedException, JMSException {
         jmsQueueTransportListener.start(queueListeningParameters);
-        logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME_2);
-        jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME_2);
+        logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME_3);
+        jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME_3);
         Assert.assertTrue(queueTestMessageProcessor.getCount() > 10,
-                "Expected message count is not received when " + "listening to queue "
-                        + JMSTestConstants.QUEUE_NAME_2);
+                "Expected message count is not received when " + "listening to queue " +
+                        JMSTestConstants.QUEUE_NAME_3);
         jmsQueueTransportListener.stop();
     }
 
     /**
-     * JMS Server connector will start listening to a topic in client ack mode and there will be a publisher publishing
-     * to the topic. For some messages call acknowledge, reject some messages so that session recover can be called.
-     * After publishing the messages to topic, check whether the number of received messages are greater than the
-     * sent messages, since the jms provider need to re-deliver the messages when session recover is called.
+     * JMS Server connector will start listening to a topic in session transacted mode  and there will be a publisher
+     * publishing to the topic. For some messages call session.commit and for some messages, call session.rollback.
+     * After publishing the messages to topic, check whether the number of received messages are greater
+     * than the sent messages, since the jms provider need to re-deliver the messages when session rollback is called.
      */
     @Test(groups = "jmsListening", description = "Testing whether topic listening is working correctly without any "
             + "exceptions in client ack mode")
     public void topicListeningTestCase() throws ServerConnectorException, InterruptedException, JMSException {
         jmsTopicTransportListener.start(topicListeningParameters);
-        logger.info("JMS Transport Listener is starting to listen to the topic " + JMSTestConstants.TOPIC_NAME_1);
-        jmsServer.publishMessagesToTopic(JMSTestConstants.TOPIC_NAME_1);
+        logger.info("JMS Transport Listener is starting to listen to the topic " + JMSTestConstants.TOPIC_NAME_2);
+        jmsServer.publishMessagesToTopic(JMSTestConstants.TOPIC_NAME_2);
         Assert.assertTrue(topicTestMessageProcessor.getCount() > 10,
-                "Expected message count is not received when " + "listening to topic "
-                        + JMSTestConstants.TOPIC_NAME_1);
+                "Expected message count is not received when " + "listening to topic " +
+                        JMSTestConstants.TOPIC_NAME_2);
         jmsTopicTransportListener.stop();
     }
 

@@ -28,7 +28,9 @@ public class JMSTestConstants {
     public static final String QUEUE_NAME = "testqueue";
     public static final String QUEUE_NAME_1 = "testqueue1";
     public static final String QUEUE_NAME_2 = "testqueue2";
+    public static final String QUEUE_NAME_3 = "testqueue3";
     public static final String TOPIC_NAME = "testtopic";
     public static final String TOPIC_NAME_1 = "testtopic1";
+    public static final String TOPIC_NAME_2 = "testtopic2";
     public static final String ACTIVEMQ_FACTORY_INITIAL = "org.apache.activemq.jndi.ActiveMQInitialContextFactory";
 }

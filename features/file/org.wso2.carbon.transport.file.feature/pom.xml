@@ -25,7 +25,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.transport.file.feature</artifactId>
-    <name>WSO2 Carbon Transport File feature</name>
+    <name>WSO2 Carbon Transport File Feature</name>
     <packaging>carbon-feature</packaging>
 
     <dependencies>

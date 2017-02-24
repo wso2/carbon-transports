@@ -32,6 +32,7 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
 import javax.jms.Message;
+import javax.jms.MessageFormatException;
 import javax.jms.ObjectMessage;
 import javax.jms.TextMessage;
 import javax.naming.Context;
@@ -147,13 +148,21 @@ public class JMSUtils {
                 jmsCarbonMessage = mapCarbonMessage;
                 jmsCarbonMessage.setProperty(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.MAP_MESSAGE_TYPE);
             } else if (message instanceof ObjectMessage) {
-                if (((ObjectMessage) message).getObject() instanceof SerializableCarbonMessage) {
-                    jmsCarbonMessage = (SerializableCarbonMessage) ((ObjectMessage) message).getObject();
-                } else {
-                    // Currently we only support object messages that has text content.
-                    SerializableCarbonMessage serializableCarbonMessage = new SerializableCarbonMessage();
-                    serializableCarbonMessage.setPayload(((ObjectMessage) message).getObject().toString());
-                    jmsCarbonMessage = serializableCarbonMessage;
+                try {
+                    if (((ObjectMessage) message).getObject() instanceof SerializableCarbonMessage) {
+                        jmsCarbonMessage = (SerializableCarbonMessage) ((ObjectMessage) message).getObject();
+                    } else {
+                        // Currently we only support object messages that has text content.
+                        SerializableCarbonMessage serializableCarbonMessage = new SerializableCarbonMessage();
+                        serializableCarbonMessage.setPayload(((ObjectMessage) message).getObject().toString());
+                        jmsCarbonMessage = serializableCarbonMessage;
+                    }
+                } catch (MessageFormatException e) {
+                    /*
+                     * This can happen when the object message is a blank message. In that case, we need to create a
+                     * blank message.
+                     */
+                    jmsCarbonMessage = new SerializableCarbonMessage();
                 }
                 jmsCarbonMessage.setProperty(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.OBJECT_MESSAGE_TYPE);
             } else {
