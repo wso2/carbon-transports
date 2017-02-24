@@ -338,11 +338,11 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                     connection = tConFac.createTopicConnection(userName, password);
                 }
                 if (isDurable && !isSharedSubscription) {
-                    if (connection != null) {
-                        connection.setClientID(clientId);
-                    } else {
+                    if (connection == null) {
                         throw new JMSException("Connection is null. Cannot set client ID " + clientId
                                                + "for durable subscription");
+                    } else {
+                        connection.setClientID(clientId);
                     }
                 }
                 return connection;
