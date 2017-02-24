@@ -37,6 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 
+/**
+ * WebSocket Client Handler for Testing.
+ */
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSocketClient.class);
