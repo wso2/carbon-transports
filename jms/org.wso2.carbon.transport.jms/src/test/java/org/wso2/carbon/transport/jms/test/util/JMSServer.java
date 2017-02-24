@@ -26,7 +26,6 @@ import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
@@ -112,17 +111,14 @@ public class JMSServer {
         QueueSession queueSession = queueConn.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
         Destination destination = queueSession.createQueue(JMSTestConstants.QUEUE_NAME_1);
         MessageConsumer queueReceiver = queueSession.createConsumer(destination);
-        MessageListener listener = new MessageListener() {
-            @Override
-            public void onMessage(Message message) {
-                try {
-                    if (message instanceof TextMessage) {
-                        TextMessage textMessage = (TextMessage) message;
-                        logger.info("Message text received : " + (textMessage.getText()));
-                    }
-                } catch (JMSException e) {
-                    logger.info("JMS exception occurred.");
+        MessageListener listener = message -> {
+            try {
+                if (message instanceof TextMessage) {
+                    TextMessage textMessage = (TextMessage) message;
+                    logger.info("Message text received : " + (textMessage.getText()));
                 }
+            } catch (JMSException e) {
+                logger.info("JMS exception occurred.");
             }
         };
         queueReceiver.setMessageListener(listener);
