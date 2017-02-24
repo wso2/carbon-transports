@@ -207,13 +207,7 @@ public class FileConsumer {
         }
         String strDeleteIfNotAck = fileProperties.get(Constants.FILE_DELETE_IF_NOT_ACKNOWLEDGED);
         if (strDeleteIfNotAck != null) {
-            try {
-                deleteIfNotAck = Boolean.parseBoolean(strDeleteIfNotAck);
-            } catch (RuntimeException re) {
-                log.warn(Constants.FILE_DELETE_IF_NOT_ACKNOWLEDGED + " parameter should be either " +
-                        "\"true\" or \"false\". Found: " + strDeleteIfNotAck +
-                        ". Assigning default value \"false\".", re);
-            }
+            deleteIfNotAck = Boolean.parseBoolean(strDeleteIfNotAck);
         }
     }
 
@@ -249,59 +243,56 @@ public class FileConsumer {
     private void directoryHandler(FileObject[] children) throws FileServerConnectorException {
         // Sort the files
         String strSortParam = fileProperties.get(Constants.FILE_SORT_PARAM);
+
         if (strSortParam != null && !"NONE".equals(strSortParam)) {
-            if (!(Constants.FILE_SORT_VALUE_NAME.equals(strSortParam) ||
-                    Constants.FILE_SORT_VALUE_SIZE.equals(strSortParam) ||
-                    Constants.FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP.equals(strSortParam))) {
-                log.warn("Invalid value given for " + Constants.FILE_SORT_PARAM + " parameter. "
-                        + " Expected one of the values: " + Constants.FILE_SORT_VALUE_NAME + ", "
-                        + Constants.FILE_SORT_VALUE_SIZE + " or "
-                        + Constants.FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP + ". Found: " + strSortParam);
-            } else {
-                log.debug("Starting to sort the files in folder: " + FileTransportUtils.maskURLPassword(fileURI));
-                String strSortOrder = fileProperties.get(Constants.FILE_SORT_ORDER);
-                boolean bSortOrderAscending = true;
-                if (strSortOrder != null) {
-                    try {
-                        bSortOrderAscending = Boolean.parseBoolean(strSortOrder);
-                    } catch (RuntimeException re) {
-                        log.warn(Constants.FILE_SORT_ORDER + " parameter should be either " +
-                                "\"true\" or \"false\". Found: " + strSortOrder +
-                                ". Assigning default value \"true\".", re);
+            log.debug("Starting to sort the files in folder: " + FileTransportUtils.maskURLPassword(fileURI));
+
+            String strSortOrder = fileProperties.get(Constants.FILE_SORT_ORDER);
+            boolean bSortOrderAscending = true;
+
+            if (strSortOrder != null) {
+                bSortOrderAscending = Boolean.parseBoolean(strSortOrder);
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Sorting the files by : " + strSortOrder + ". (" +
+                        bSortOrderAscending + ")");
+            }
+            switch (strSortParam) {
+                case Constants.FILE_SORT_VALUE_NAME:
+                    if (bSortOrderAscending) {
+                        Arrays.sort(children, new FileNameAscComparator());
+                    } else {
+                        Arrays.sort(children, new FileNameDesComparator());
                     }
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("Sorting the files by : " + strSortOrder + ". (" +
-                            bSortOrderAscending + ")");
-                }
-                if (strSortParam.equals(Constants.FILE_SORT_VALUE_NAME) && bSortOrderAscending) {
-                    Arrays.sort(children, new FileNameAscComparator());
-                } else if (strSortParam.equals(Constants.FILE_SORT_VALUE_NAME)
-                        && !bSortOrderAscending) {
-                    Arrays.sort(children, new FileNameDesComparator());
-                } else if (strSortParam.equals(Constants.FILE_SORT_VALUE_SIZE)
-                        && bSortOrderAscending) {
-                    Arrays.sort(children, new FileSizeAscComparator());
-                } else if (strSortParam.equals(Constants.FILE_SORT_VALUE_SIZE)
-                        && !bSortOrderAscending) {
-                    Arrays.sort(children, new FileSizeDesComparator());
-                } else if (strSortParam.equals(Constants.FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP)
-                        && bSortOrderAscending) {
-                    Arrays.sort(children, new FileLastmodifiedtimestampAscComparator());
-                } else if (strSortParam.equals(Constants.FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP)
-                        && !bSortOrderAscending) {
-                    Arrays.sort(children, new FileLastmodifiedtimestampDesComparator());
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("End sorting the files.");
-                }
+                    break;
+                case Constants.FILE_SORT_VALUE_SIZE:
+                    if (bSortOrderAscending) {
+                        Arrays.sort(children, new FileSizeAscComparator());
+                    } else {
+                        Arrays.sort(children, new FileSizeDesComparator());
+                    }
+                    break;
+                case Constants.FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP:
+                    if (bSortOrderAscending) {
+                        Arrays.sort(children, new FileLastmodifiedtimestampAscComparator());
+                    } else {
+                        Arrays.sort(children, new FileLastmodifiedtimestampDesComparator());
+                    }
+                    break;
+                default:
+                    log.warn("Invalid value given for " + Constants.FILE_SORT_PARAM + " parameter. "
+                            + " Expected one of the values: " + Constants.FILE_SORT_VALUE_NAME + ", "
+                            + Constants.FILE_SORT_VALUE_SIZE + " or "
+                            + Constants.FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP + ". Found: " + strSortParam);
+                    break;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("End sorting the files.");
             }
         }
-
         for (FileObject child : children) {
             processFile(child);
             deleteFile(child);
-
             //close the file system after processing
             try {
                 child.close();
