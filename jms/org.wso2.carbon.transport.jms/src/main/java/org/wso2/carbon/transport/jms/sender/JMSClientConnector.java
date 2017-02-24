@@ -176,7 +176,7 @@ public class JMSClientConnector implements ClientConnector {
         this.session = session;
 
         Destination destination = this.jmsConnectionFactory.getDestination(session);
-        this.messageProducer = this.jmsConnectionFactory.createMessageProducer(session, destination);
+        this.messageProducer = this.jmsConnectionFactory.getMessageProducer(session, destination);
     }
 
     @Override
