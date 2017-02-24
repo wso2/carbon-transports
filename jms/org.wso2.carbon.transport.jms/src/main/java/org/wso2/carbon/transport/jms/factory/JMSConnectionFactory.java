@@ -339,11 +339,10 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                 }
                 if (isDurable && !isSharedSubscription) {
                     if (connection == null) {
-                        throw new JMSException("Connection is null. Cannot set client ID " + clientId
-                                               + "for durable subscription");
-                    } else {
-                        connection.setClientID(clientId);
+                        throw new JMSException(
+                                "Connection is null. Cannot set client ID " + clientId + "for durable subscription");
                     }
+                    connection.setClientID(clientId);
                 }
                 return connection;
             }
