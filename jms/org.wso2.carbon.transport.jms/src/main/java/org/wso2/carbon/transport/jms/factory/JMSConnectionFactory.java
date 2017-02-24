@@ -313,10 +313,10 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         Connection connection = null;
         try {
             if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) {
-                if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                     connection = ((QueueConnectionFactory) (this.connectionFactory))
                             .createQueueConnection(userName, password);
-                } else if (this.destinationType.equals(JMSConstants.JMSDestinationType.TOPIC)) {
+                } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
                     connection = ((TopicConnectionFactory) (this.connectionFactory))
                             .createTopicConnection(userName, password);
                     if (isDurable) {
