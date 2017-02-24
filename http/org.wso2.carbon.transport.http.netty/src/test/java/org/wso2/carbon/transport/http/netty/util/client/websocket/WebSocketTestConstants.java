@@ -17,7 +17,7 @@
  *
  */
 
-package org.wso2.carbon.transport.http.netty.util.clients.websocket;
+package org.wso2.carbon.transport.http.netty.util.client.websocket;
 
 /**
  * WebSocket constants for testing purposes.

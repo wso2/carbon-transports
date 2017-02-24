@@ -29,8 +29,8 @@ import org.wso2.carbon.transport.http.netty.config.TransportsConfiguration;
 import org.wso2.carbon.transport.http.netty.config.YAMLTransportConfigurationBuilder;
 import org.wso2.carbon.transport.http.netty.listener.HTTPServerConnector;
 import org.wso2.carbon.transport.http.netty.util.TestUtil;
-import org.wso2.carbon.transport.http.netty.util.clients.websocket.WebSocketClient;
-import org.wso2.carbon.transport.http.netty.util.clients.websocket.WebSocketTestConstants;
+import org.wso2.carbon.transport.http.netty.util.client.websocket.WebSocketClient;
+import org.wso2.carbon.transport.http.netty.util.client.websocket.WebSocketTestConstants;
 
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
@@ -97,6 +97,11 @@ public class WebSocketTestCases {
         primaryClient.shutDown();
     }
 
+    /*
+    Primary client is the one who is checking the connections of the Server.
+    When secondary server is connecting to the endpoint, message will be sent to the primary
+    client indicating the state of the secondary client.
+     */
     @Test
     public void testClientConnected() throws InterruptedException, SSLException, URISyntaxException {
         primaryClient.handhshake();
@@ -112,6 +117,11 @@ public class WebSocketTestCases {
         primaryClient.shutDown();
     }
 
+    /*
+    Primary client is the one who is checking the connections of the Server.
+    When secondary server is closing the connection, message will be sent to the primary
+    client indicating the state of the secondary client.
+     */
     @Test
     public void testClientCloseConnection() throws InterruptedException, URISyntaxException, SSLException {
         primaryClient.handhshake();
