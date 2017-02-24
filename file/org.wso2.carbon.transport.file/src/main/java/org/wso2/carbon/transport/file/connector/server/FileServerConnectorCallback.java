@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
+import org.wso2.carbon.transport.file.connector.server.exception.FileServerConnectorException;
+import org.wso2.carbon.transport.file.connector.server.util.FileTransportUtils;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -50,14 +52,25 @@ public class FileServerConnectorCallback implements CarbonCallback {
      * This makes the relevant process to wait till there is a acknowledgement from the application layer.
      *
      * @param timeOutInterval Time-out interval in milliseconds for waiting for the acknowledgement
-     * @throws InterruptedException Interrupted Exception.
+     * @param deleteIfNotAck  If the message processor did not acknowledge, whether to delete the file or not.
+     * @param fileURI         The URI of the file which is being processed.
+     * @throws InterruptedException If this thread was interrupted while waiting for the acknowledgement.
+     * @throws FileServerConnectorException If deleteIfNotAcknowledged parameter is set to false,
+     *  and acknowledgement was not received.
      */
-    protected void waitTillDone(long timeOutInterval) throws InterruptedException {
+    protected void waitTillDone(long timeOutInterval, boolean deleteIfNotAck, String fileURI)
+            throws InterruptedException, FileServerConnectorException {
         boolean isCallbackReceived = latch.await(timeOutInterval, TimeUnit.MILLISECONDS);
 
         if (!isCallbackReceived) {
-            log.warn("The time for waiting the acknowledgement callback exceeded " + timeOutInterval + ". Proceeding "
-                    + "to the next polling cycle");
+            if (deleteIfNotAck) {
+                log.warn("The time for waiting for the acknowledgement exceeded " + timeOutInterval + "ms. Proceeding "
+                        + "to deleting the file: " + FileTransportUtils.maskURLPassword(fileURI));
+            } else {
+                throw new FileServerConnectorException("Message processor did not acknowledge. " +
+                        "Wait timed out  after  " + timeOutInterval + "ms. Aborting processing of file: " +
+                        FileTransportUtils.maskURLPassword(fileURI));
+            }
         }
     }
 }

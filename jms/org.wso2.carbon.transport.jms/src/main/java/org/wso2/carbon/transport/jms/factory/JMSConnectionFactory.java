@@ -62,7 +62,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     /**
      * The {@link String} instance representing the connection factory JNDI name.
      */
-    String connectionFactoryString;
+    private String connectionFactoryString;
     /**
      * Represents whether to listen queue or topic.
      */
@@ -217,9 +217,9 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
             return this.connectionFactory;
         }
         try {
-            if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
+            if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                 this.connectionFactory = (QueueConnectionFactory) ctx.lookup(this.connectionFactoryString);
-            } else if (this.destinationType.equals(JMSConstants.JMSDestinationType.TOPIC)) {
+            } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
                 this.connectionFactory = (TopicConnectionFactory) ctx.lookup(this.connectionFactoryString);
             }
         } catch (NamingException e) {
@@ -264,9 +264,9 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         try {
 
             if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) {
-                if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                     connection = ((QueueConnectionFactory) (this.connectionFactory)).createQueueConnection();
-                } else if (this.destinationType.equals(JMSConstants.JMSDestinationType.TOPIC)) {
+                } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
                     connection = ((TopicConnectionFactory) (this.connectionFactory)).createTopicConnection();
                     if (isDurable) {
                         connection.setClientID(clientId);
@@ -276,14 +276,14 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
             } else {
                 QueueConnectionFactory qConFac = null;
                 TopicConnectionFactory tConFac = null;
-                if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                     qConFac = (QueueConnectionFactory) this.connectionFactory;
                 } else {
                     tConFac = (TopicConnectionFactory) this.connectionFactory;
                 }
                 if (null != qConFac) {
                     connection = qConFac.createQueueConnection();
-                } else if (null != tConFac) {
+                } else {
                     connection = tConFac.createTopicConnection();
                 }
                 if (isDurable && !isSharedSubscription) {
@@ -313,10 +313,10 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
         Connection connection = null;
         try {
             if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) {
-                if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                     connection = ((QueueConnectionFactory) (this.connectionFactory))
                             .createQueueConnection(userName, password);
-                } else if (this.destinationType.equals(JMSConstants.JMSDestinationType.TOPIC)) {
+                } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
                     connection = ((TopicConnectionFactory) (this.connectionFactory))
                             .createTopicConnection(userName, password);
                     if (isDurable) {
@@ -327,7 +327,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
             } else {
                 QueueConnectionFactory qConFac = null;
                 TopicConnectionFactory tConFac = null;
-                if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                     qConFac = (QueueConnectionFactory) this.connectionFactory;
                 } else {
                     tConFac = (TopicConnectionFactory) this.connectionFactory;
@@ -338,6 +338,10 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                     connection = tConFac.createTopicConnection(userName, password);
                 }
                 if (isDurable && !isSharedSubscription) {
+                    if (connection == null) {
+                        throw new JMSException(
+                                "Connection is null. Cannot set client ID " + clientId + "for durable subscription");
+                    }
                     connection.setClientID(clientId);
                 }
                 return connection;
@@ -474,11 +478,11 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                     return session.createConsumer(destination, messageSelector);
                 }
             } else {
-                if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                     return ((QueueSession) session).createReceiver((Queue) destination, messageSelector);
                 } else {
                     if (isDurable) {
-                        return ((TopicSession) session)
+                        return session
                                 .createDurableSubscriber((Topic) destination, subscriptionName, messageSelector,
                                         noPubSubLocal);
                     } else {
@@ -519,8 +523,8 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                     .equals(jmsSpec))) {
                 return session.createProducer(destination);
             } else {
-                if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
-                    return ((QueueSession) session).createProducer((Queue) destination);
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
+                    return ((QueueSession) session).createSender((Queue) destination);
                 } else {
                     return ((TopicSession) session).createPublisher((Topic) destination);
                 }
@@ -554,9 +558,9 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     private Destination createDestination(Session session, String destinationName) throws JMSConnectorException {
         Destination destination = null;
         try {
-            if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
+            if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                 destination = JMSUtils.lookupDestination(ctx, destinationName, JMSConstants.DESTINATION_TYPE_QUEUE);
-            } else if (this.destinationType.equals(JMSConstants.JMSDestinationType.TOPIC)) {
+            } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
                 destination = JMSUtils.lookupDestination(ctx, destinationName, JMSConstants.DESTINATION_TYPE_TOPIC);
             }
         } catch (NameNotFoundException e) {
@@ -570,10 +574,10 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
               If the destination is not found already, create the destination
              */
             try {
-                if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
-                    destination = (Queue) session.createQueue(destinationName);
-                } else if (this.destinationType.equals(JMSConstants.JMSDestinationType.TOPIC)) {
-                    destination = (Topic) session.createTopic(destinationName);
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
+                    destination = session.createQueue(destinationName);
+                } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
+                    destination = session.createTopic(destinationName);
                 }
                 if (logger.isDebugEnabled()) {
                     logger.debug("Created '" + destinationName + "' on connection factory for '"
@@ -614,7 +618,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
             if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec) || JMSConstants.JMS_SPEC_VERSION_2_0
                     .equals(jmsSpec)) {
                 return connection.createSession(transactedSession, sessionAckMode);
-            } else if (this.destinationType.equals(JMSConstants.JMSDestinationType.QUEUE)) {
+            } else if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                 return ((QueueConnection) (connection))
                         .createQueueSession(transactedSession, sessionAckMode);
             } else {

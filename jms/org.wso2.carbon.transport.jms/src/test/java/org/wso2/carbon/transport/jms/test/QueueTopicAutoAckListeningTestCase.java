@@ -27,10 +27,10 @@ import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.jms.listener.JMSServerConnector;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
+import org.wso2.carbon.transport.jms.test.util.JMSTestUtils;
 import org.wso2.carbon.transport.jms.test.util.TestMessageProcessor;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
-import java.util.HashMap;
 import java.util.Map;
 import javax.jms.JMSException;
 
@@ -49,25 +49,13 @@ public class QueueTopicAutoAckListeningTestCase {
 
     @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS listener and message processor")
     public void setUp() throws ServerConnectorException {
-        queueListeningParameters = new HashMap<>();
-        queueListeningParameters.put(JMSConstants.DESTINATION_PARAM_NAME, JMSTestConstants.QUEUE_NAME);
-        queueListeningParameters
-                .put(JMSConstants.CONNECTION_FACTORY_JNDI_PARAM_NAME, JMSTestConstants.QUEUE_CONNECTION_FACTORY);
-        queueListeningParameters
-                .put(JMSConstants.NAMING_FACTORY_INITIAL_PARAM_NAME, JMSTestConstants.ACTIVEMQ_FACTORY_INITIAL);
-        queueListeningParameters.put(JMSConstants.PROVIDER_URL_PARAM_NAME, JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
-        queueListeningParameters
-                .put(JMSConstants.CONNECTION_FACTORY_TYPE_PARAM_NAME, JMSConstants.DESTINATION_TYPE_QUEUE);
+        queueListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.QUEUE_NAME,
+                JMSTestConstants.QUEUE_CONNECTION_FACTORY, JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants
+                        .AUTO_ACKNOWLEDGE_MODE);
 
-        topicListeningParameters = new HashMap<>();
-        topicListeningParameters.put(JMSConstants.DESTINATION_PARAM_NAME, JMSTestConstants.TOPIC_NAME);
-        topicListeningParameters
-                .put(JMSConstants.CONNECTION_FACTORY_JNDI_PARAM_NAME, JMSTestConstants.TOPIC_CONNECTION_FACTORY);
-        topicListeningParameters
-                .put(JMSConstants.NAMING_FACTORY_INITIAL_PARAM_NAME, JMSTestConstants.ACTIVEMQ_FACTORY_INITIAL);
-        topicListeningParameters.put(JMSConstants.PROVIDER_URL_PARAM_NAME, JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
-        topicListeningParameters
-                .put(JMSConstants.CONNECTION_FACTORY_TYPE_PARAM_NAME, JMSConstants.DESTINATION_TYPE_TOPIC);
+        topicListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.TOPIC_NAME,
+                JMSTestConstants.TOPIC_CONNECTION_FACTORY, JMSConstants.DESTINATION_TYPE_TOPIC, JMSConstants
+                        .AUTO_ACKNOWLEDGE_MODE);
         jmsServer = new JMSServer();
         jmsServer.startServer();
 
