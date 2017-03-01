@@ -42,6 +42,7 @@ public class WebSocketSessionImpl extends WebSocketSessionAdapter {
     private final boolean isSecure;
     private final String requestedUri;
     private final String sessionId;
+    private boolean isOpen;
 
     public WebSocketSessionImpl(ChannelHandlerContext ctx, boolean isSecure,
                                 String requestedUri, String sessionId) {
@@ -49,6 +50,7 @@ public class WebSocketSessionImpl extends WebSocketSessionAdapter {
         this.isSecure = isSecure;
         this.requestedUri = requestedUri;
         this.sessionId = sessionId;
+        this.isOpen = true;
     }
 
     @Override
@@ -86,5 +88,18 @@ public class WebSocketSessionImpl extends WebSocketSessionAdapter {
     @Override
     public boolean isSecure() {
         return isSecure;
+    }
+
+    @Override
+    public boolean isOpen() {
+        return isOpen;
+    }
+
+    /**
+     * Set the value of isOpen.
+     * @param isOpen true if connection is open.
+     */
+    public void setIsOpen(boolean isOpen) {
+        this.isOpen = isOpen;
     }
 }

@@ -89,6 +89,7 @@ public class WebSocketSourceHandler extends SourceHandler {
             TextWebSocketFrame textWebSocketFrame = (TextWebSocketFrame) msg;
             String text = textWebSocketFrame.text();
             cMsg = new TextCarbonMessage(text);
+            setupCarbonMessage(ctx);
 
         } else if (msg instanceof BinaryWebSocketFrame) {
             BinaryWebSocketFrame binaryWebSocketFrame = (BinaryWebSocketFrame) msg;
@@ -96,14 +97,19 @@ public class WebSocketSourceHandler extends SourceHandler {
             ByteBuf byteBuf = binaryWebSocketFrame.content();
             ByteBuffer byteBuffer = byteBuf.nioBuffer();
             cMsg = new BinaryCarbonMessage(byteBuffer, finalFragment);
+            setupCarbonMessage(ctx);
 
         } else if (msg instanceof CloseWebSocketFrame) {
             CloseWebSocketFrame closeWebSocketFrame = (CloseWebSocketFrame) msg;
             String reasonText = closeWebSocketFrame.reasonText();
             int statusCode = closeWebSocketFrame.statusCode();
             ctx.channel().close();
-            WebSocketSessionManager.getInstance().removeSession(uri, channelId);
+            WebSocketSessionImpl session =
+                    (WebSocketSessionImpl) WebSocketSessionManager.getInstance().removeSession(uri, channelId);
+            session.setIsOpen(false);
             cMsg = new StatusCarbonMessage(org.wso2.carbon.messaging.Constants.STATUS_CLOSE, statusCode, reasonText);
+            setupCarbonMessage(ctx);
+            cMsg.setProperty(Constants.WEBSOCKET_SESSION, session);
 
         } else if (msg instanceof PongWebSocketFrame) {
             //Control message for WebSocket is Pong Message
@@ -112,9 +118,9 @@ public class WebSocketSourceHandler extends SourceHandler {
             ByteBuf byteBuf = pongWebSocketFrame.content();
             ByteBuffer byteBuffer = byteBuf.nioBuffer();
             cMsg = new ControlCarbonMessage(byteBuffer, finalFragment);
+            setupCarbonMessage(ctx);
 
         }
-        setupCarbonMessage(ctx);
         publishToMessageProcessor(cMsg);
     }
 
