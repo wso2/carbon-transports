@@ -65,12 +65,12 @@ public class QueueTopicSessionTransactedTestCase {
         jmsServer.startServer();
 
         // Create a queue transport listener
-        jmsQueueTransportListener = new JMSServerConnector("1");
+        jmsQueueTransportListener = new JMSServerConnector("1", queueListeningParameters);
         queueTestMessageProcessor = new TestMessageProcessor();
         jmsQueueTransportListener.setMessageProcessor(queueTestMessageProcessor);
 
         // Create a topic transport listener
-        jmsTopicTransportListener = new JMSServerConnector("3");
+        jmsTopicTransportListener = new JMSServerConnector("3", topicListeningParameters);
         topicTestMessageProcessor = new TestMessageProcessor();
         jmsTopicTransportListener.setMessageProcessor(topicTestMessageProcessor);
     }
@@ -84,7 +84,7 @@ public class QueueTopicSessionTransactedTestCase {
     @Test(groups = "jmsListening", description = "Testing whether queue listening is working correctly without any "
             + "exceptions in client ack mode")
     public void queueListeningTestCase() throws ServerConnectorException, InterruptedException, JMSException {
-        jmsQueueTransportListener.start(queueListeningParameters);
+        jmsQueueTransportListener.start();
         logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME_3);
         jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME_3);
         Assert.assertTrue(queueTestMessageProcessor.getCount() > 10,
@@ -102,7 +102,7 @@ public class QueueTopicSessionTransactedTestCase {
     @Test(groups = "jmsListening", description = "Testing whether topic listening is working correctly without any "
             + "exceptions in client ack mode")
     public void topicListeningTestCase() throws ServerConnectorException, InterruptedException, JMSException {
-        jmsTopicTransportListener.start(topicListeningParameters);
+        jmsTopicTransportListener.start();
         logger.info("JMS Transport Listener is starting to listen to the topic " + JMSTestConstants.TOPIC_NAME_2);
         jmsServer.publishMessagesToTopic(JMSTestConstants.TOPIC_NAME_2);
         Assert.assertTrue(topicTestMessageProcessor.getCount() > 10,

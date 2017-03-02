@@ -38,8 +38,8 @@ public class FileServerConnector extends PollingServerConnector {
     private CarbonMessageProcessor messageProcessor;
     private FileConsumer consumer;
 
-    public FileServerConnector(String id) {
-        super(id);
+    public FileServerConnector(String id, Map<String, String> properties) {
+        super(id, properties);
         interval = FILE_CONNECTOR_DEFAULT_INTERVAL; //this might be overridden in super.start()
     }
 
@@ -60,13 +60,12 @@ public class FileServerConnector extends PollingServerConnector {
 
 
     @Override
-    public void start(Map<String, String> parameters) throws ServerConnectorException {
+    public void start() throws ServerConnectorException {
         try {
-            consumer = new FileConsumer(id, parameters, messageProcessor);
-            super.start(parameters);
+            consumer = new FileConsumer(id, getProperties(), messageProcessor);
+            super.start();
         } catch (RuntimeException e) {
-            throw new ServerConnectorException("Failed to start File server connector for Service: " +
-                    "" + id, e);
+            throw new ServerConnectorException("Failed to start File server connector for Service: " + "" + id, e);
         }
     }
 
@@ -75,8 +74,7 @@ public class FileServerConnector extends PollingServerConnector {
         try {
             consumer.consume();
         } catch (FileServerConnectorException e) {
-            log.error("Error executing the polling cycle of File " +
-                    "server connector for service: " + id, e);
+            log.error("Error executing the polling cycle of File " + "server connector for service: " + id, e);
         } 
     }
 }
