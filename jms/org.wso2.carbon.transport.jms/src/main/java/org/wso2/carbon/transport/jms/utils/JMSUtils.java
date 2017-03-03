@@ -25,18 +25,16 @@ import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 
 import java.util.Enumeration;
-import java.util.Properties;
 
 import javax.jms.BytesMessage;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
 import javax.jms.Message;
+import javax.jms.MessageFormatException;
 import javax.jms.ObjectMessage;
 import javax.jms.TextMessage;
 import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 import javax.naming.Reference;
 
@@ -58,35 +56,7 @@ public class JMSUtils {
         if (null == destinationName) {
             return null;
         }
-        try {
             return JMSUtils.lookup(context, Destination.class, destinationName);
-        } catch (NameNotFoundException e) {
-            Properties initialContextProperties = new Properties();
-            initialContextProperties.put(JMSConstants.NAMING_FACTORY_INITIAL,
-                    context.getEnvironment().get(JMSConstants.NAMING_FACTORY_INITIAL));
-            initialContextProperties
-                    .put(JMSConstants.PROVIDER_URL, context.getEnvironment().get(JMSConstants.PROVIDER_URL));
-            if (null != context.getEnvironment().get(JMSConstants.CONNECTION_STRING)) {
-                initialContextProperties.put(JMSConstants.CONNECTION_STRING,
-                        context.getEnvironment().get(JMSConstants.CONNECTION_STRING));
-            }
-            if (JMSConstants.DESTINATION_TYPE_TOPIC.equalsIgnoreCase(destinationType)) {
-                initialContextProperties.put(JMSConstants.TOPIC_PREFIX + destinationName, destinationName);
-            } else if (JMSConstants.DESTINATION_TYPE_QUEUE.equalsIgnoreCase(destinationType)
-                    || JMSConstants.DESTINATION_TYPE_GENERIC.equalsIgnoreCase(destinationType)) {
-                initialContextProperties.put(JMSConstants.QUEUE_PREFIX + destinationName, destinationName);
-            }
-            InitialContext initialContext = new InitialContext(initialContextProperties);
-            try {
-                return JMSUtils.lookup(initialContext, Destination.class, destinationName);
-            } catch (NamingException e1) {
-                return JMSUtils.lookup(context, Destination.class,
-                        (JMSConstants.DESTINATION_TYPE_TOPIC.equalsIgnoreCase(destinationType) ?
-                                "dynamicTopics/" :
-                                "dynamicQueues/") + destinationName);
-            }
-
-        }
     }
 
     /**
@@ -147,13 +117,22 @@ public class JMSUtils {
                 jmsCarbonMessage = mapCarbonMessage;
                 jmsCarbonMessage.setProperty(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.MAP_MESSAGE_TYPE);
             } else if (message instanceof ObjectMessage) {
-                if (((ObjectMessage) message).getObject() instanceof SerializableCarbonMessage) {
-                    jmsCarbonMessage = (SerializableCarbonMessage) ((ObjectMessage) message).getObject();
-                } else {
-                    // Currently we only support object messages that has text content.
-                    SerializableCarbonMessage serializableCarbonMessage = new SerializableCarbonMessage();
-                    serializableCarbonMessage.setPayload(((ObjectMessage) message).getObject().toString());
-                    jmsCarbonMessage = serializableCarbonMessage;
+                try {
+                    if (((ObjectMessage) message).getObject() instanceof SerializableCarbonMessage) {
+                        jmsCarbonMessage = (SerializableCarbonMessage) ((ObjectMessage) message).getObject();
+                    } else {
+                        // Currently we only support object messages that has text content.
+                        SerializableCarbonMessage serializableCarbonMessage = new SerializableCarbonMessage();
+                        serializableCarbonMessage.setPayload(((ObjectMessage) message).getObject().toString());
+                        jmsCarbonMessage = serializableCarbonMessage;
+                    }
+                } catch (MessageFormatException e) {
+                    /*
+                     * This can happen when the object message is a blank message. In that case, we need to create a
+                     * blank message. JMS API does not provide a way to find out whether it is blank message, other
+                     * than by calling the getObject method.
+                     */
+                    jmsCarbonMessage = new SerializableCarbonMessage();
                 }
                 jmsCarbonMessage.setProperty(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.OBJECT_MESSAGE_TYPE);
             } else {

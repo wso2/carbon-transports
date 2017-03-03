@@ -20,13 +20,13 @@
     <parent>
         <artifactId>org.wso2.carbon.transport.feature.parent</artifactId>
         <groupId>org.wso2.carbon.transport</groupId>
-        <version>4.2.6-SNAPSHOT</version>
+        <version>4.2.7-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>org.wso2.carbon.transport.file.feature.parent</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2 Carbon Transport File feature Parent</name>
+    <name>WSO2 Carbon Transport File Feature Parent</name>
     <modules>
         <module>org.wso2.carbon.transport.file.feature</module>
     </modules>

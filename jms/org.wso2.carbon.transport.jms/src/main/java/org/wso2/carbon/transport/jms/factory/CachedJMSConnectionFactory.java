@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.transport.jms.factory;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
@@ -38,7 +36,6 @@ import javax.jms.Session;
  * if needed to cache connections.
  */
 public class CachedJMSConnectionFactory extends JMSConnectionFactory {
-    private static final Logger logger = LoggerFactory.getLogger(CachedJMSConnectionFactory.class);
 
     /**
      * Indicates cache level given by the user.
