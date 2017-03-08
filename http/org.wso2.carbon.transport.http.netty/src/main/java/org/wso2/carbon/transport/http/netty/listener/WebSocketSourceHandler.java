@@ -150,9 +150,6 @@ public class WebSocketSourceHandler extends SourceHandler {
         }
     }
 
-    /*
-    This method runs when initiating a connection.
-     */
     private void sendOnOpenMessage(ChannelHandlerContext ctx, boolean isSecured, String uri) {
         cMsg = new StatusCarbonMessage(org.wso2.carbon.messaging.Constants.STATUS_OPEN, 0, null);
         Session session = new WebSocketSessionImpl(ctx, isSecured, uri, channelId);
@@ -186,7 +183,7 @@ public class WebSocketSourceHandler extends SourceHandler {
         cMsg.setProperty(Constants.REMOTE_HOST, ((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
         cMsg.setProperty(Constants.REMOTE_PORT, ((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
         cMsg.setProperty(Constants.CHANNEL_ID, channelId);
-        cMsg.setProperty(Constants.PROTOCOL, Constants.WEBSOCKET_PROTOCOL);
+        cMsg.setProperty(Constants.PROTOCOL, Constants.WEBSOCKET_PROTOCOL_NAME);
         Session session = WebSocketSessionManager.getInstance().getSession(uri, channelId);
         cMsg.setProperty(Constants.WEBSOCKET_SESSION, session);
     }

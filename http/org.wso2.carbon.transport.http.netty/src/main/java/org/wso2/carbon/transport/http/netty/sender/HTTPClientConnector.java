@@ -157,7 +157,7 @@ public class HTTPClientConnector implements ClientConnector {
     @Override
     public String getProtocol() {
         //hardcoded because there is always one sender with set of configurations
-        return Constants.PROTOCOL_NAME;
+        return Constants.HTTP_PROTOCOL_NAME;
     }
 
     public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {

@@ -157,9 +157,6 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     }
 
-    /*
-    This handles the WebSocket Handshake.
-     */
     private void handleWebSocketHandshake(HttpRequest httpRequest) throws ProtocolException {
         try {
             WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
@@ -297,7 +294,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         cMsg.setProperty(org.wso2.carbon.messaging.Constants.LISTENER_PORT,
                 ((InetSocketAddress) ctx.channel().localAddress()).getPort());
         cMsg.setProperty(org.wso2.carbon.messaging.Constants.LISTENER_INTERFACE_ID, listenerConfiguration.getId());
-        cMsg.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_NAME);
+        cMsg.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.HTTP_PROTOCOL_NAME);
         if (listenerConfiguration.getSslConfig() != null) {
             isSecuredConnection = true;
         }

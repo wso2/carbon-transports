@@ -53,7 +53,7 @@ public class WebSocketTestCases {
 
     @BeforeClass
     public void setup() {
-        logger.info("\n-------WebSocket Test Cases-------");
+        logger.info(System.lineSeparator() + "-------WebSocket Test Cases-------");
         TransportsConfiguration configuration = YAMLTransportConfigurationBuilder
                 .build("src/test/resources/simple-test-config/netty-transports.yml");
         serverConnectors = TestUtil.startConnectors(configuration, new WebSocketMessageProcessor());

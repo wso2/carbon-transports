@@ -50,6 +50,6 @@ public class WebSocketServerConnectorErrorHandler implements ServerConnectorErro
 
     @Override
     public String getProtocol() {
-        return Constants.WEBSOCKET_PROTOCOL;
+        return Constants.WEBSOCKET_PROTOCOL_NAME;
     }
 }
