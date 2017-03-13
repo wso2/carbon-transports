@@ -18,15 +18,22 @@
 
 package org.wso2.carbon.transport.file.connector.server;
 
+import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.ServerConnectorProvider;
 import org.wso2.carbon.transport.file.connector.server.util.Constants;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Server connector provider for File transport.
  */
+@Component(
+        name = "org.wso2.carbon.transport.file.connector.server.FileServerConnectorProvider",
+        immediate = true,
+        service = ServerConnectorProvider.class
+)
 public class FileServerConnectorProvider extends ServerConnectorProvider {
     public FileServerConnectorProvider(String protocol) {
         super(protocol);
@@ -42,7 +49,7 @@ public class FileServerConnectorProvider extends ServerConnectorProvider {
     }
 
     @Override
-    public ServerConnector createConnector(String s) {
-        return new FileServerConnector(s);
+    public ServerConnector createConnector(String id, Map<String, String> properties) {
+        return new FileServerConnector(id, properties);
     }
 }
