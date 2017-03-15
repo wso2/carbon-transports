@@ -42,7 +42,7 @@ import java.nio.ByteBuffer;
  */
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
 
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketClient.class);
+    private static final Logger log = LoggerFactory.getLogger(WebSocketClient.class);
 
     private final WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
@@ -70,7 +70,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        logger.info("WebSocket Client disconnected!");
+        log.info("WebSocket Client disconnected!");
     }
 
     @Override
@@ -78,7 +78,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         Channel ch = ctx.channel();
         if (!handshaker.isHandshakeComplete()) {
             handshaker.finishHandshake(ch, (FullHttpResponse) msg);
-            logger.info("WebSocket Client connected!");
+            log.info("WebSocket Client connected!");
             handshakeFuture.setSuccess();
             return;
         }
@@ -93,18 +93,18 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         WebSocketFrame frame = (WebSocketFrame) msg;
         if (frame instanceof TextWebSocketFrame) {
             TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
-            logger.info("WebSocket Client received text message: " + textFrame.text());
+            log.info("WebSocket Client received text message: " + textFrame.text());
             textReceived = textFrame.text();
         } else if (frame instanceof BinaryWebSocketFrame) {
             BinaryWebSocketFrame binaryFrame = (BinaryWebSocketFrame) frame;
             bufferReceived = binaryFrame.content().nioBuffer();
-            logger.info("WebSocket Client received  binary message: " + bufferReceived.toString());
+            log.info("WebSocket Client received  binary message: " + bufferReceived.toString());
         } else if (frame instanceof PongWebSocketFrame) {
-            logger.info("WebSocket Client received pong");
+            log.info("WebSocket Client received pong");
             PongWebSocketFrame pongFrame = (PongWebSocketFrame) frame;
             bufferReceived = pongFrame.content().nioBuffer();
         } else if (frame instanceof CloseWebSocketFrame) {
-            logger.info("WebSocket Client received closing");
+            log.info("WebSocket Client received closing");
             ch.close();
         }
     }
@@ -126,7 +126,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         if (!handshakeFuture.isDone()) {
-            logger.error("Handshake failed : " + cause.getMessage(), cause);
+            log.error("Handshake failed : " + cause.getMessage(), cause);
             handshakeFuture.setFailure(cause);
         }
         ctx.close();

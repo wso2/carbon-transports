@@ -42,18 +42,18 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
- * Test class for WebSocket Upgrade
+ * Test class for WebSocket. This includes the necessary test cases to check WebSocket compatibilities.
  */
-public class WebSocketTestCases {
+public class WebSocketTestCase {
 
-    Logger logger = LoggerFactory.getLogger(WebSocketTestCases.class);
+    private static final Logger log = LoggerFactory.getLogger(WebSocketTestCase.class);
     private List<HTTPServerConnector> serverConnectors;
     private WebSocketClient primaryClient = new WebSocketClient();
     private WebSocketClient secondaryClient = new WebSocketClient();
 
     @BeforeClass
     public void setup() {
-        logger.info(System.lineSeparator() + "-------WebSocket Test Cases-------");
+        log.info(System.lineSeparator() + "-------WebSocket Test Cases-------");
         TransportsConfiguration configuration = YAMLTransportConfigurationBuilder
                 .build("src/test/resources/simple-test-config/netty-transports.yml");
         serverConnectors = TestUtil.startConnectors(configuration, new WebSocketMessageProcessor());
@@ -63,9 +63,9 @@ public class WebSocketTestCases {
     public void handshakeTest() throws URISyntaxException, SSLException {
         try {
             assertTrue(primaryClient.handhshake());
-            logger.info("Handshake test completed.");
+            log.info("Handshake test completed.");
         } catch (InterruptedException e) {
-            logger.error("Handshake interruption.");
+            log.error("Handshake interruption.");
             assertTrue(false);
         }
     }
@@ -78,7 +78,7 @@ public class WebSocketTestCases {
         Thread.sleep(3000);
         String textReceived = primaryClient.getTextReceived();
         assertEquals("Not received the same text.", textReceived, textSent);
-        logger.info("pushing and receiving text data from server completed.");
+        log.info("pushing and receiving text data from server completed.");
         primaryClient.shutDown();
     }
 
@@ -93,14 +93,14 @@ public class WebSocketTestCases {
         assertTrue("Buffer capacity is not the same.",
                    bufferSent.capacity() == bufferReceived.capacity());
         assertEquals("Buffers data are not equal.", bufferReceived, bufferSent);
-        logger.info("pushing and receiving binary data from server completed.");
+        log.info("pushing and receiving binary data from server completed.");
         primaryClient.shutDown();
     }
 
-    /*
-    Primary client is the one who is checking the connections of the Server.
-    When secondary server is connecting to the endpoint, message will be sent to the primary
-    client indicating the state of the secondary client.
+    /**
+     * Primary client is the one who is checking the connections of the Server.
+     * When secondary server is connecting to the endpoint, message will be sent to the primary
+     * client indicating the state of the secondary client.
      */
     @Test
     public void testClientConnected() throws InterruptedException, SSLException, URISyntaxException {
@@ -109,18 +109,18 @@ public class WebSocketTestCases {
         secondaryClient.handhshake();
         Thread.sleep(5000);
         String textReceived = primaryClient.getTextReceived();
-        logger.info("Received text : " + textReceived);
+        log.info("Received text : " + textReceived);
         assertEquals("New Client was not connected.",
-                     textReceived, WebSocketTestConstants.NEW_CLIENT_CONNECTED);
-        logger.info("New client successfully connected to the server.");
+                     textReceived, WebSocketTestConstants.PAYLOAD_NEW_CLIENT_CONNECTED);
+        log.info("New client successfully connected to the server.");
         secondaryClient.shutDown();
         primaryClient.shutDown();
     }
 
-    /*
-    Primary client is the one who is checking the connections of the Server.
-    When secondary server is closing the connection, message will be sent to the primary
-    client indicating the state of the secondary client.
+    /**
+     * Primary client is the one who is checking the connections of the Server.
+     * When secondary server is closing the connection, message will be sent to the primary
+     * client indicating the state of the secondary client.
      */
     @Test
     public void testClientCloseConnection() throws InterruptedException, URISyntaxException, SSLException {
@@ -131,9 +131,9 @@ public class WebSocketTestCases {
         secondaryClient.shutDown();
         Thread.sleep(3000);
         String textReceived = primaryClient.getTextReceived();
-        logger.info("Received Text : " + textReceived);
-        assertEquals("Connection close is unsuccessful.", textReceived, WebSocketTestConstants.CLIENT_LEFT);
-        logger.info("Client left the server successfully.");
+        log.info("Received Text : " + textReceived);
+        assertEquals("Connection close is unsuccessful.", textReceived, WebSocketTestConstants.PAYLOAD_CLIENT_LEFT);
+        log.info("Client left the server successfully.");
         primaryClient.shutDown();
         secondaryClient.shutDown();
     }
@@ -147,11 +147,11 @@ public class WebSocketTestCases {
         Thread.sleep(3000);
         ByteBuffer bufferReceived = primaryClient.getBufferReceived();
         assertEquals("Didn't receive the correct pong.", bufferReceived, bufferSent);
-        logger.info("Receiving a pong message is completed.");
+        log.info("Receiving a pong message is completed.");
     }
 
     @AfterClass
-    public void cleaUp() throws ServerConnectorException, InterruptedException {
+    public void cleanUp() throws ServerConnectorException, InterruptedException {
         primaryClient.shutDown();
         secondaryClient.shutDown();
         serverConnectors.forEach(
