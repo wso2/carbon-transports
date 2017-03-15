@@ -18,16 +18,23 @@
 
 package org.wso2.carbon.transport.jms.provider;
 
+import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.ServerConnectorProvider;
 import org.wso2.carbon.transport.jms.listener.JMSServerConnector;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Server connector provider for jms.
  */
+@Component(
+        name = "org.wso2.carbon.transport.jms.provider.JMSServerConnectorProvider",
+        immediate = true,
+        service = ServerConnectorProvider.class
+)
 public class JMSServerConnectorProvider extends ServerConnectorProvider {
 
     /**
@@ -54,11 +61,8 @@ public class JMSServerConnectorProvider extends ServerConnectorProvider {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public ServerConnector createConnector(String s) {
-        return new JMSServerConnector(s);
+    public ServerConnector createConnector(String id, Map<String, String> properties) {
+        return new JMSServerConnector(id, properties);
     }
 }
