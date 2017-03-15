@@ -48,6 +48,7 @@ public class WebSocketTestCase {
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketTestCase.class);
     private List<HTTPServerConnector> serverConnectors;
+    private final int threadSleepTime = 100;
     private WebSocketClient primaryClient = new WebSocketClient();
     private WebSocketClient secondaryClient = new WebSocketClient();
 
@@ -75,7 +76,7 @@ public class WebSocketTestCase {
         primaryClient.handhshake();
         String textSent = "test";
         primaryClient.sendText(textSent);
-        Thread.sleep(3000);
+        Thread.sleep(threadSleepTime);
         String textReceived = primaryClient.getTextReceived();
         assertEquals("Not received the same text.", textReceived, textSent);
         log.info("pushing and receiving text data from server completed.");
@@ -88,7 +89,7 @@ public class WebSocketTestCase {
         byte[] bytes = {1, 2, 3, 4, 5};
         ByteBuffer bufferSent = ByteBuffer.wrap(bytes);
         primaryClient.sendBinary(bufferSent);
-        Thread.sleep(3000);
+        Thread.sleep(threadSleepTime);
         ByteBuffer bufferReceived = primaryClient.getBufferReceived();
         assertTrue("Buffer capacity is not the same.",
                    bufferSent.capacity() == bufferReceived.capacity());
@@ -105,9 +106,8 @@ public class WebSocketTestCase {
     @Test
     public void testClientConnected() throws InterruptedException, SSLException, URISyntaxException {
         primaryClient.handhshake();
-        Thread.sleep(2000);
         secondaryClient.handhshake();
-        Thread.sleep(5000);
+        Thread.sleep(threadSleepTime);
         String textReceived = primaryClient.getTextReceived();
         log.info("Received text : " + textReceived);
         assertEquals("New Client was not connected.",
@@ -125,11 +125,10 @@ public class WebSocketTestCase {
     @Test
     public void testClientCloseConnection() throws InterruptedException, URISyntaxException, SSLException {
         primaryClient.handhshake();
-        Thread.sleep(2000);
         secondaryClient.handhshake();
-        Thread.sleep(3000);
+        Thread.sleep(threadSleepTime);
         secondaryClient.shutDown();
-        Thread.sleep(3000);
+        Thread.sleep(threadSleepTime);
         String textReceived = primaryClient.getTextReceived();
         log.info("Received Text : " + textReceived);
         assertEquals("Connection close is unsuccessful.", textReceived, WebSocketTestConstants.PAYLOAD_CLIENT_LEFT);
@@ -144,16 +143,15 @@ public class WebSocketTestCase {
         byte[] bytes = {6, 7, 8, 9, 10, 11};
         ByteBuffer bufferSent = ByteBuffer.wrap(bytes);
         primaryClient.sendPong(bufferSent);
-        Thread.sleep(3000);
+        Thread.sleep(threadSleepTime);
         ByteBuffer bufferReceived = primaryClient.getBufferReceived();
         assertEquals("Didn't receive the correct pong.", bufferReceived, bufferSent);
         log.info("Receiving a pong message is completed.");
+        primaryClient.shutDown();
     }
 
     @AfterClass
     public void cleanUp() throws ServerConnectorException, InterruptedException {
-        primaryClient.shutDown();
-        secondaryClient.shutDown();
         serverConnectors.forEach(
                 serverConnector -> {
                     serverConnector.stop();
