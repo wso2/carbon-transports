@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.listener;
+package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +27,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * This class tries to connect to JMS provider until the maximum re-try count meets.
  */
-class JMSConnectionRetryHandler {
+public class JMSConnectionRetryHandler {
     /**
-     * This {@link JMSServerConnector} instance represents the jms listener that asked for retry.
+     * This {@link JMSServerConnector} instance represents the jms receiver that asked for retry.
      */
     private JMSServerConnector jmsServerConnector;
     private static final Logger logger = LoggerFactory.getLogger(JMSConnectionRetryHandler.class);

@@ -1,4 +1,4 @@
-package org.wso2.carbon.transport.jms.listener;
+package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +10,11 @@ import javax.jms.JMSException;
 /**
  * Listener that listens to the problem in the jms connection.
  */
-class JMSExceptionListener implements ExceptionListener {
+public class JMSExceptionListener implements ExceptionListener {
     private static final Logger logger = LoggerFactory.getLogger(JMSExceptionListener.class);
     /**
-     * This {@link JMSServerConnector} instance represents the jms listener that is related with this exception
-     * listener.
+     * This {@link JMSServerConnector} instance represents the jms receiver that is related with this exception
+     * receiver.
      */
     private JMSServerConnector jmsServerConnector;
     /**

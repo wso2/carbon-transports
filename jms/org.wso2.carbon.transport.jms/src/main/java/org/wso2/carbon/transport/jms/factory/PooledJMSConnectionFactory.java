@@ -17,7 +17,6 @@
 */
 package org.wso2.carbon.transport.jms.factory;
 
-import org.apache.commons.pool2.KeyedObjectPool;
 import org.apache.commons.pool2.KeyedPooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -25,6 +24,7 @@ import org.apache.commons.pool2.impl.GenericKeyedObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,13 +42,21 @@ public class PooledJMSConnectionFactory extends JMSConnectionFactory
 
     private static final Logger log = LoggerFactory.getLogger(PooledJMSConnectionFactory.class);
 
-    private KeyedObjectPool<PooledConnectionKey, Connection> keyedObjectPool = new GenericKeyedObjectPool<>(this);
+    private GenericKeyedObjectPool<PooledConnectionKey, Connection> keyedObjectPool =
+            new GenericKeyedObjectPool<>(this);
 
     private ConcurrentHashMap<Connection, PooledConnectionKey> connectionKeyMap = new ConcurrentHashMap<>();
 
 
     public PooledJMSConnectionFactory(Properties properties) throws JMSConnectorException {
         super(properties);
+
+        Object maxConcurrentConnections = properties.get(JMSConstants.MAX_CONNECTIONS);
+
+        if (maxConcurrentConnections != null) {
+            keyedObjectPool.setMaxTotal(Integer.parseInt((String) maxConcurrentConnections));
+        }
+
     }
 
     @Override
@@ -111,7 +119,7 @@ public class PooledJMSConnectionFactory extends JMSConnectionFactory
      *
      * @param key The connection key
      * @return Wrapped connection object
-     * @throws Exception
+     * @throws Exception Any exception thrown when creating a JMS connection will be thrown
      */
     @Override
     public PooledObject<Connection> makeObject(PooledConnectionKey key) throws Exception {
@@ -137,7 +145,7 @@ public class PooledJMSConnectionFactory extends JMSConnectionFactory
      *
      * @param key                    The connection key
      * @param pooledConnectionObject The invalidated wrapped connection object.
-     * @throws Exception
+     * @throws Exception Any exception thrown when closing a JMS connection will be thrown
      */
     @Override
     public void destroyObject(PooledConnectionKey key, PooledObject<Connection> pooledConnectionObject) throws
@@ -175,7 +183,7 @@ public class PooledJMSConnectionFactory extends JMSConnectionFactory
      *
      * @param key                    The connection key
      * @param pooledConnectionObject Wrapped suspended connection object.
-     * @throws Exception
+     * @throws Exception Any exception thrown when starting a JMS connection will be thrown
      */
     @Override
     public void activateObject(PooledConnectionKey key, PooledObject<Connection> pooledConnectionObject) throws
@@ -188,7 +196,7 @@ public class PooledJMSConnectionFactory extends JMSConnectionFactory
      *
      * @param key                    The connection key
      * @param pooledConnectionObject The wrapped connection object that needs to be suspended.
-     * @throws Exception
+     * @throws Exception Any exception thrown when stopping a JMS connection will be thrown
      */
     @Override
     public void passivateObject(PooledConnectionKey key, PooledObject<Connection> pooledConnectionObject) throws

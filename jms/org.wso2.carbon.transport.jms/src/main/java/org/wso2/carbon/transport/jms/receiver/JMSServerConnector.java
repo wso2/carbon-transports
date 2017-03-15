@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.listener;
+package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ import javax.jms.MessageConsumer;
 import javax.jms.Session;
 
 /**
- * This is a transport listener for JMS.
+ * This is a transport receiver for JMS.
  */
 public class JMSServerConnector extends ServerConnector {
     private static final Logger logger = LoggerFactory.getLogger(JMSServerConnector.class);
@@ -89,6 +89,11 @@ public class JMSServerConnector extends ServerConnector {
     private int maxRetryCount = 5;
 
     /**
+     * Tells to use a message receiver instead of a message listener.
+     */
+    private boolean useReceiver = false;
+
+    /**
      * Creates a jms server connector with the id.
      *
      * @param id Unique identifier for the server connector.
@@ -105,10 +110,11 @@ public class JMSServerConnector extends ServerConnector {
     }
 
     /**
-     * To create a message listener to a particular jms destination.
-     * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
+     * Create a connection using the given properties.
+     *
+     * @throws JMSConnectorException
      */
-    void createMessageListener() throws JMSConnectorException {
+    private void createConsumer() throws JMSConnectorException {
         try {
             if (null != userName && null != password) {
                 connection = jmsConnectionFactory.createConnection(userName, password);
@@ -120,13 +126,47 @@ public class JMSServerConnector extends ServerConnector {
             session = jmsConnectionFactory.createSession(connection);
             destination = jmsConnectionFactory.getDestination(session);
             messageConsumer = jmsConnectionFactory.createMessageConsumer(session, destination);
-            messageConsumer.setMessageListener(
-                    new JMSMessageListener(carbonMessageProcessor, id, session.getAcknowledgeMode(), session));
-        } catch (RuntimeException e) {
-            throw new JMSConnectorException("Error while creating the connection from connection factory", e);
         } catch (JMSException e) {
-            throw new JMSConnectorException("Error while creating the connection from the connection factory. ", e);
+            throw new JMSConnectorException("Error occurred while creating a connection", e);
         }
+    }
+
+    /**
+     * Create a message listener to a particular jms destination.
+     *
+     * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
+     */
+    void createMessageListener() throws JMSConnectorException {
+        createConsumer();
+
+        try {
+            messageConsumer.setMessageListener(new JMSMessageListener(carbonMessageProcessor, id, session));
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("Message listener created");
+            }
+
+        } catch (JMSException e) {
+            throw new JMSConnectorException("Error while initializing message listener", e);
+        }
+    }
+
+    /**
+     * Create a message receiver to retrieve messages.
+     *
+     * @throws JMSConnectorException Can be thrown when initializing the message handler or receiving messages
+     */
+    private void createMessageReceiver() throws JMSConnectorException {
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating message receiver");
+        }
+
+        createConsumer();
+
+        JMSMessageReceiver messageReceiver =
+                new JMSMessageReceiver(carbonMessageProcessor, id, session, messageConsumer);
+        messageReceiver.receive();
     }
 
     /**
@@ -242,7 +282,18 @@ public class JMSServerConnector extends ServerConnector {
 
         try {
             jmsConnectionFactory = new JMSConnectionFactory(properties);
-            createMessageListener();
+
+            String useReceiverParam = map.get(JMSConstants.USE_RECEIVER);
+
+            if (useReceiverParam != null) {
+                useReceiver = Boolean.parseBoolean(useReceiverParam);
+            }
+
+            if (useReceiver) {
+                createMessageReceiver();
+            } else {
+                createMessageListener();
+            }
         } catch (JMSConnectorException e) {
             if (null == jmsConnectionFactory) {
                 throw new JMSConnectorException("Cannot create the jms connection factory. please check the connection"
