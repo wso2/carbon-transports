@@ -25,7 +25,7 @@
     <packaging>pom</packaging>
     <groupId>org.wso2.carbon.transport</groupId>
     <artifactId>org.wso2.carbon.transport.parent</artifactId>
-    <version>4.4.0-SNAPSHOT</version>
+    <version>4.3.0-SNAPSHOT</version>
     <name>WSO2 Carbon Transport Parent</name>
 
     <modules>
@@ -326,7 +326,7 @@
         <maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
         <maven.findbugs.plugin.version>3.0.3</maven.findbugs.plugin.version>
 
-        <carbon.metrics.version>2.0.0</carbon.metrics.version>
+        <carbon.metrics.version>2.0.1</carbon.metrics.version>
         <metrics.version>3.1.2</metrics.version>
 
         <testng.version>6.9.10</testng.version>
