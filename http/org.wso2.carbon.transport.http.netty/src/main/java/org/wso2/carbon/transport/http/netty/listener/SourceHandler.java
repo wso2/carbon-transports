@@ -157,9 +157,6 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     }
 
-    /*
-    This handles the WebSocket Handshake.
-     */
     private void handleWebSocketHandshake(HttpRequest httpRequest) throws ProtocolException {
         try {
             WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(

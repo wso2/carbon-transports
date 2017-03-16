@@ -129,7 +129,10 @@ public final class Constants {
 
     public static final String PROTOCOL = "PROTOCOL";
 
+    @Deprecated
     public static final String PROTOCOL_NAME = "http";
+
+    public static final String HTTP_PROTOCOL_NAME = "http";
 
     public static final String HTTP_PROTOCOL = "HTTP_PROTOCOL";
 
@@ -196,11 +199,12 @@ public final class Constants {
 
     public static final String LOCALHOST = "localhost";
 
+
+    //WebSocket related parameters
     public static final String CONNECTION = "Connection";
     public static final String UPGRADE = "Upgrade";
-
     public static final String WEBSOCKET_SESSION = "WEBSOCKET_SESSION";
-    public static final String WEBSOCKET_PROTOCOL = "ws";
+    public static final String WEBSOCKET_PROTOCOL_NAME = "ws";
     public static final String WEBSOCKET_UPGRADE = "websocket";
 
 

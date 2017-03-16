@@ -54,8 +54,7 @@ public class WebSocketBasicRemoteEndpoint implements RemoteEndpoint.Basic {
 
     @Override
     public void sendBinary(ByteBuffer data) throws IOException {
-        byte[] bytes = data.array();
-        ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
+        ByteBuf byteBuf = Unpooled.wrappedBuffer(data);
         ctx.channel().write(new BinaryWebSocketFrame(byteBuf));
         ctx.channel().flush();
     }
