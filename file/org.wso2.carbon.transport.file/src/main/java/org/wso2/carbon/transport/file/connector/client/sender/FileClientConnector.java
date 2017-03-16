@@ -19,11 +19,12 @@
 package org.wso2.carbon.transport.file.connector.client.sender;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.VFS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
@@ -40,6 +41,10 @@ import java.util.Map;
  * FileClientConnector
  */
 public class FileClientConnector implements ClientConnector {
+    private static final Logger logger = LoggerFactory.getLogger(FileClientConnector.class);
+    private String fileURI;
+    private FileSystemManager fsManager;
+    private FileSystemOptions opts = new FileSystemOptions();
 
     @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
             throws ClientConnectorException {
@@ -48,26 +53,48 @@ public class FileClientConnector implements ClientConnector {
 
     @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, String> map)
             throws ClientConnectorException {
-        FileSystemManager fsManager = null;
-        FileSystemOptions opts = new FileSystemOptions();
-        String fileURI = map.get("uri");
+        fileURI = map.get("uri");
+        String action = map.get("action");
         FileType fileType;
-        InputStream is;
+        InputStream is = null;
         OutputStream os = null;
-        is = carbonMessage.getInputStream();
         try {
             fsManager = VFS.getManager();
             FileObject path = fsManager.resolveFile(fileURI, opts);
 
             fileType = path.getType();
-            if (fileType == FileType.IMAGINARY) {
-                path.createFile();
-                os = path.getContent().getOutputStream();
-                long bytesCopied = copy(is, os, new byte[4096]);
-            }
+            if (action.equalsIgnoreCase("send")) {
+                if (fileType == FileType.IMAGINARY) {
+                    path.createFile();
+                    is = carbonMessage.getInputStream();
+                    os = path.getContent().getOutputStream();
+                    long bytesCopied = copy(is, os, new byte[4096]);
 
-        } catch (FileSystemException e) {
-            throw new ClientConnectorException("Exception occurred while sending the message", e);
+                    if (logger.isDebugEnabled()) {
+                        String bytes = Long.toString(bytesCopied);
+                        logger.info(bytes + " bytes sent");
+                    }
+                }
+            } else if (action.equalsIgnoreCase("delete")) {
+                if (fileType == FileType.FILE_OR_FOLDER) {
+                    boolean isDeleted = path.delete();
+                    if (logger.isDebugEnabled() && isDeleted) {
+                        logger.info("File Successfully Deleted");
+                    }
+                }
+            } else if (action.equalsIgnoreCase("append")) {
+                if (fileType == FileType.FILE) {
+                    path.createFile();
+                    is = carbonMessage.getInputStream();
+                    os = path.getContent().getOutputStream(true);
+                    long bytesCopied = copy(is, os, new byte[4096]);
+
+                    if (logger.isDebugEnabled()) {
+                        String bytes = Long.toString(bytesCopied);
+                        logger.info(bytes + " bytes appended");
+                    }
+                }
+            }
         } catch (IOException e) {
             throw new ClientConnectorException("Exception occurred while sending the message", e);
         } finally {
