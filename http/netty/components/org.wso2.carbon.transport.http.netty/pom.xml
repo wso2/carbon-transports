@@ -135,6 +135,7 @@
             io.netty.handler.*;version="${netty.package.import.version.range}",
             io.netty.bootstrap.*;version="${netty.package.import.version.range}",
             io.netty.channel.*;version="${netty.package.import.version.range}",
+            org.wso2.carbon.kernel.utils;version="${carbon.kernel.package.import.version.range}",
             org.wso2.carbon.kernel.transports.*;version="${carbon.kernel.package.import.version.range}",
             org.wso2.carbon.kernel.startupresolver.*;version="${carbon.kernel.package.import.version.range}",
             org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
