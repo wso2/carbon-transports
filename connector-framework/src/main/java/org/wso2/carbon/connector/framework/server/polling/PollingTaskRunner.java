@@ -60,7 +60,7 @@ public class PollingTaskRunner implements Runnable {
     }
 
     /**
-     * Exit the running while loop and terminate the thread
+     * Exit the running while loop and terminate the thread.
      */
     protected void terminate() {
         if (future != null) {

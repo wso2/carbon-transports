@@ -42,6 +42,9 @@ public final class Constants {
     public static final String FILE_SORT_ORDER = "fileSortAscending";
     public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "acknowledgementTimeOut";
     public static final String FILE_DELETE_IF_NOT_ACKNOWLEDGED = "deleteIfNotAcknowledged";
+    public static final String FILE_NAME_PATTERN = "fileNamePattern";
+    public static final String MOVE_AFTER_PROCESS = "MoveAfterProcess";
+    public static final String LOCKING = "Locking";
 
     public static final String SCHEME = "VFS_SCHEME";
     public static final String SFTP_PREFIX = "sftp";

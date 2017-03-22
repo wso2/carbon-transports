@@ -29,7 +29,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This {@link CarbonCallback} will be called by a message processsor to acknowledge that
+ * This {@link CarbonCallback} will be called by a message processor to acknowledge that
  * it has finished processing the file input stream, so it may be closed from the transport end.
  */
 public class FileServerConnectorCallback implements CarbonCallback {

@@ -71,13 +71,10 @@ public class FileTransportUtils {
         if (options.get(Constants.FILE_TYPE) != null) {
             try {
                 delegate.setConfigString(opts, options.get(Constants.SCHEME),
-                        Constants.FILE_TYPE, String.valueOf(getFileType(
-                                options.get(Constants.FILE_TYPE))));
+                        Constants.FILE_TYPE, String.valueOf(getFileType(options.get(Constants.FILE_TYPE))));
             } catch (FileSystemException e) {
-                throw new FileServerConnectorException(
-                        "Failed to set file transport configuration for scheme: "
-                                + options.get(Constants.SCHEME) + " and option: "
-                                + Constants.FILE_TYPE, e);
+                throw new FileServerConnectorException("Failed to set file transport configuration for scheme: "
+                                + options.get(Constants.SCHEME) + " and option: " + Constants.FILE_TYPE, e);
             }
         }
         return opts;
