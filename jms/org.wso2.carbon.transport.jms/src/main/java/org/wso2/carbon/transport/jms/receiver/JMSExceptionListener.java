@@ -17,26 +17,14 @@ public class JMSExceptionListener implements ExceptionListener {
      * receiver.
      */
     private JMSServerConnector jmsServerConnector;
-    /**
-     * Retry Interval in milli seconds.
-     */
-    private long retryInterval;
-    /**
-     * Maximum retry count.
-     */
-    private int maxRetryCount;
 
     /**
      * Creates a exception listening to track the exceptions in jms connection and to handle it.
      *
      * @param jmsServerConnector JMS Server connector related with the particular connection
-     * @param retryInterval      Retry interval in milli seconds
-     * @param maxRetryCount      Maximum retry count to try to connect
      */
-    JMSExceptionListener(JMSServerConnector jmsServerConnector, long retryInterval, int maxRetryCount) {
+    JMSExceptionListener(JMSServerConnector jmsServerConnector) {
         this.jmsServerConnector = jmsServerConnector;
-        this.retryInterval = retryInterval;
-        this.maxRetryCount = maxRetryCount;
     }
 
     /**
@@ -56,16 +44,10 @@ public class JMSExceptionListener implements ExceptionListener {
                     + "from jms provider. ", e);
         }
         try {
-            jmsServerConnector.createMessageListener();
+            jmsServerConnector.startConsuming();
         } catch (JMSConnectorException e) {
-            JMSConnectionRetryHandler jmsConnectionRetryHandler = new JMSConnectionRetryHandler(jmsServerConnector,
-                    retryInterval, maxRetryCount);
-            try {
-                jmsConnectionRetryHandler.retry();
-            } catch (JMSConnectorException e1) {
-                throw new RuntimeException(
-                        "Cannot establish the connection again after retrying for " + maxRetryCount + " times", e1);
-            }
+            throw new RuntimeException(
+                    "Cannot establish the connection after retrying", e);
 
         }
     }

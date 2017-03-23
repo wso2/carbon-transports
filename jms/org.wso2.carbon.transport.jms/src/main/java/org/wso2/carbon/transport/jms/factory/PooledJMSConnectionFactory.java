@@ -172,7 +172,7 @@ public class PooledJMSConnectionFactory extends JMSConnectionFactory
             pooledConnectionObject.getObject().start();
             valid = true;
         } catch (JMSException e) {
-            log.warn("Connection with username " + key + " is not valid anymore");
+            log.warn("Connection with key " + key + " is not valid anymore");
         }
 
         return valid;

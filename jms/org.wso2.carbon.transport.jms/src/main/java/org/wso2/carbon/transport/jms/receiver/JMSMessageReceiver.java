@@ -112,7 +112,7 @@ public class JMSMessageReceiver implements Runnable, Thread.UncaughtExceptionHan
      * Start message receiving thread.
      */
     private void startReceiverThread() {
-        Thread thread = new Thread(this);
+        Thread thread = new Thread(this, "JMSMessageReceiverThread");
 
         thread.setUncaughtExceptionHandler(this);
 

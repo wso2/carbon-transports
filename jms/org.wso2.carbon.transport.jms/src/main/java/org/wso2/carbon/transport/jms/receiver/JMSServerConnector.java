@@ -32,6 +32,7 @@ import java.util.Properties;
 import java.util.Set;
 import javax.jms.Connection;
 import javax.jms.Destination;
+import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
@@ -94,6 +95,16 @@ public class JMSServerConnector extends ServerConnector {
     private boolean useReceiver = false;
 
     /**
+     * The exception listner that listens to exceptions from this connector.
+     */
+    private ExceptionListener exceptionListener;
+
+    /**
+     * The retry handle which is going to retry connections when failed from this connector.
+     */
+    private JMSConnectionRetryHandler retryHandler;
+
+    /**
      * Creates a jms server connector with the id.
      *
      * @param id Unique identifier for the server connector.
@@ -112,16 +123,17 @@ public class JMSServerConnector extends ServerConnector {
     /**
      * Create a connection using the given properties.
      *
-     * @throws JMSConnectorException
+     * @param exceptionListener The exception listner which handles exception of the created consumers
+     * @throws JMSConnectorException when consumer creation is failed due to a JMS layer error
      */
-    private void createConsumer() throws JMSConnectorException {
+    private void createConsumer(ExceptionListener exceptionListener) throws JMSConnectorException {
         try {
             if (null != userName && null != password) {
                 connection = jmsConnectionFactory.createConnection(userName, password);
             } else {
                 connection = jmsConnectionFactory.createConnection();
             }
-            connection.setExceptionListener(new JMSExceptionListener(this, retryInterval, maxRetryCount));
+            connection.setExceptionListener(exceptionListener);
             jmsConnectionFactory.start(connection);
             session = jmsConnectionFactory.createSession(connection);
             destination = jmsConnectionFactory.getDestination(session);
@@ -137,7 +149,6 @@ public class JMSServerConnector extends ServerConnector {
      * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
      */
     void createMessageListener() throws JMSConnectorException {
-        createConsumer();
 
         try {
             messageConsumer.setMessageListener(new JMSMessageListener(carbonMessageProcessor, id, session));
@@ -161,8 +172,6 @@ public class JMSServerConnector extends ServerConnector {
         if (logger.isDebugEnabled()) {
             logger.debug("Creating message receiver");
         }
-
-        createConsumer();
 
         JMSMessageReceiver messageReceiver =
                 new JMSMessageReceiver(carbonMessageProcessor, id, session, messageConsumer);
@@ -260,40 +269,58 @@ public class JMSServerConnector extends ServerConnector {
 
         userName = map.get(JMSConstants.CONNECTION_USERNAME);
         password = map.get(JMSConstants.CONNECTION_PASSWORD);
-        String retryInterval = map.get(JMSConstants.RETRY_INTERVAL);
-        if (retryInterval != null) {
+        String retryIntervalParam = map.get(JMSConstants.RETRY_INTERVAL);
+        if (retryIntervalParam != null) {
             try {
-                this.retryInterval = Long.parseLong(retryInterval);
+                this.retryInterval = Long.parseLong(retryIntervalParam);
             } catch (NumberFormatException ex) {
                 logger.error("Provided value for retry interval is invalid, using the default retry interval value "
                         + this.retryInterval);
             }
         }
 
-        String maxRetryCount = map.get(JMSConstants.MAX_RETRY_COUNT);
-        if (maxRetryCount != null) {
+        String maxRetryCountParam = map.get(JMSConstants.MAX_RETRY_COUNT);
+        if (maxRetryCountParam != null) {
             try {
-                this.maxRetryCount = Integer.parseInt(maxRetryCount);
+                this.maxRetryCount = Integer.parseInt(maxRetryCountParam);
             } catch (NumberFormatException ex) {
                 logger.error("Provided value for max retry count is invalid, using the default max retry count "
                         + this.maxRetryCount);
             }
         }
 
+        String useReceiverParam = map.get(JMSConstants.USE_RECEIVER);
+
+        if (useReceiverParam != null) {
+            useReceiver = Boolean.parseBoolean(useReceiverParam);
+        }
+
+        exceptionListener = new JMSExceptionListener(this);
+        retryHandler = new JMSConnectionRetryHandler(this, retryInterval, maxRetryCount);
+
+        startConsuming();
+    }
+
+    /**
+     * Start message consuming threads.
+     *
+     * @throws JMSConnectorException when consuming thread start fails
+     */
+    void startConsuming()
+            throws JMSConnectorException {
+
         try {
+
             jmsConnectionFactory = new JMSConnectionFactory(properties);
 
-            String useReceiverParam = map.get(JMSConstants.USE_RECEIVER);
-
-            if (useReceiverParam != null) {
-                useReceiver = Boolean.parseBoolean(useReceiverParam);
-            }
+            createConsumer(exceptionListener);
 
             if (useReceiver) {
                 createMessageReceiver();
             } else {
                 createMessageListener();
             }
+
         } catch (JMSConnectorException e) {
             if (null == jmsConnectionFactory) {
                 throw new JMSConnectorException("Cannot create the jms connection factory. please check the connection"
@@ -302,10 +329,12 @@ public class JMSServerConnector extends ServerConnector {
                 closeAll();
                 throw e;
             }
+
             closeAll();
-            JMSConnectionRetryHandler jmsConnectionRetryHandler = new JMSConnectionRetryHandler(this,
-                    this.retryInterval, this.maxRetryCount);
-            jmsConnectionRetryHandler.retry();
+
+            if (!retryHandler.retry()) {
+                throw new JMSConnectorException("Retry was not successful");
+            }
 
         }
     }
