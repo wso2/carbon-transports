@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.listener;
+package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +32,13 @@ import java.util.Properties;
 import java.util.Set;
 import javax.jms.Connection;
 import javax.jms.Destination;
+import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 
 /**
- * This is a transport listener for JMS.
+ * This is a transport receiver for JMS.
  */
 public class JMSServerConnector extends ServerConnector {
     private static final Logger logger = LoggerFactory.getLogger(JMSServerConnector.class);
@@ -89,6 +90,21 @@ public class JMSServerConnector extends ServerConnector {
     private int maxRetryCount = 5;
 
     /**
+     * Tells to use a message receiver instead of a message listener.
+     */
+    private boolean useReceiver = false;
+
+    /**
+     * The exception listner that listens to exceptions from this connector.
+     */
+    private ExceptionListener exceptionListener;
+
+    /**
+     * The retry handle which is going to retry connections when failed from this connector.
+     */
+    private JMSConnectionRetryHandler retryHandler;
+
+    /**
      * Creates a jms server connector with the id.
      *
      * @param id Unique identifier for the server connector.
@@ -105,28 +121,61 @@ public class JMSServerConnector extends ServerConnector {
     }
 
     /**
-     * To create a message listener to a particular jms destination.
-     * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
+     * Create a connection using the given properties.
+     *
+     * @param exceptionListener The exception listner which handles exception of the created consumers
+     * @throws JMSConnectorException when consumer creation is failed due to a JMS layer error
      */
-    void createMessageListener() throws JMSConnectorException {
+    private void createConsumer(ExceptionListener exceptionListener) throws JMSConnectorException {
         try {
             if (null != userName && null != password) {
                 connection = jmsConnectionFactory.createConnection(userName, password);
             } else {
                 connection = jmsConnectionFactory.createConnection();
             }
-            connection.setExceptionListener(new JMSExceptionListener(this, retryInterval, maxRetryCount));
+            connection.setExceptionListener(exceptionListener);
             jmsConnectionFactory.start(connection);
             session = jmsConnectionFactory.createSession(connection);
             destination = jmsConnectionFactory.getDestination(session);
             messageConsumer = jmsConnectionFactory.createMessageConsumer(session, destination);
-            messageConsumer.setMessageListener(
-                    new JMSMessageListener(carbonMessageProcessor, id, session.getAcknowledgeMode(), session));
-        } catch (RuntimeException e) {
-            throw new JMSConnectorException("Error while creating the connection from connection factory", e);
         } catch (JMSException e) {
-            throw new JMSConnectorException("Error while creating the connection from the connection factory. ", e);
+            throw new JMSConnectorException("Error occurred while creating a connection", e);
         }
+    }
+
+    /**
+     * Create a message listener to a particular jms destination.
+     *
+     * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
+     */
+    void createMessageListener() throws JMSConnectorException {
+
+        try {
+            messageConsumer.setMessageListener(new JMSMessageListener(carbonMessageProcessor, id, session));
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("Message listener created");
+            }
+
+        } catch (JMSException e) {
+            throw new JMSConnectorException("Error while initializing message listener", e);
+        }
+    }
+
+    /**
+     * Create a message receiver to retrieve messages.
+     *
+     * @throws JMSConnectorException Can be thrown when initializing the message handler or receiving messages
+     */
+    private void createMessageReceiver() throws JMSConnectorException {
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating message receiver");
+        }
+
+        JMSMessageReceiver messageReceiver =
+                new JMSMessageReceiver(carbonMessageProcessor, id, session, messageConsumer);
+        messageReceiver.receive();
     }
 
     /**
@@ -220,29 +269,58 @@ public class JMSServerConnector extends ServerConnector {
 
         userName = map.get(JMSConstants.CONNECTION_USERNAME);
         password = map.get(JMSConstants.CONNECTION_PASSWORD);
-        String retryInterval = map.get(JMSConstants.RETRY_INTERVAL);
-        if (retryInterval != null) {
+        String retryIntervalParam = map.get(JMSConstants.RETRY_INTERVAL);
+        if (retryIntervalParam != null) {
             try {
-                this.retryInterval = Long.parseLong(retryInterval);
+                this.retryInterval = Long.parseLong(retryIntervalParam);
             } catch (NumberFormatException ex) {
                 logger.error("Provided value for retry interval is invalid, using the default retry interval value "
                         + this.retryInterval);
             }
         }
 
-        String maxRetryCount = map.get(JMSConstants.MAX_RETRY_COUNT);
-        if (maxRetryCount != null) {
+        String maxRetryCountParam = map.get(JMSConstants.MAX_RETRY_COUNT);
+        if (maxRetryCountParam != null) {
             try {
-                this.maxRetryCount = Integer.parseInt(maxRetryCount);
+                this.maxRetryCount = Integer.parseInt(maxRetryCountParam);
             } catch (NumberFormatException ex) {
                 logger.error("Provided value for max retry count is invalid, using the default max retry count "
                         + this.maxRetryCount);
             }
         }
 
+        String useReceiverParam = map.get(JMSConstants.USE_RECEIVER);
+
+        if (useReceiverParam != null) {
+            useReceiver = Boolean.parseBoolean(useReceiverParam);
+        }
+
+        exceptionListener = new JMSExceptionListener(this);
+        retryHandler = new JMSConnectionRetryHandler(this, retryInterval, maxRetryCount);
+
+        startConsuming();
+    }
+
+    /**
+     * Start message consuming threads.
+     *
+     * @throws JMSConnectorException when consuming thread start fails
+     */
+    void startConsuming()
+            throws JMSConnectorException {
+
         try {
+
             jmsConnectionFactory = new JMSConnectionFactory(properties);
-            createMessageListener();
+
+            createConsumer(exceptionListener);
+
+            if (useReceiver) {
+                createMessageReceiver();
+            } else {
+                createMessageListener();
+            }
+
         } catch (JMSConnectorException e) {
             if (null == jmsConnectionFactory) {
                 throw new JMSConnectorException("Cannot create the jms connection factory. please check the connection"
@@ -251,10 +329,12 @@ public class JMSServerConnector extends ServerConnector {
                 closeAll();
                 throw e;
             }
+
             closeAll();
-            JMSConnectionRetryHandler jmsConnectionRetryHandler = new JMSConnectionRetryHandler(this,
-                    this.retryInterval, this.maxRetryCount);
-            jmsConnectionRetryHandler.retry();
+
+            if (!retryHandler.retry()) {
+                throw new JMSConnectorException("Retry was not successful");
+            }
 
         }
     }

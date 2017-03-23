@@ -94,32 +94,15 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
      * {@inheritDoc}
      */
     @Override
-    public Connection getConnection() throws JMSException {
-        return getConnection(null, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Connection getConnection(String userName, String password) throws JMSException {
+    public Connection createConnection() throws JMSException {
         Connection connection;
         if (cachedConnection == null) {
-            connection = createConnection(userName, password);
+            connection = super.createConnection();
+            cachedConnection = connection;
         } else {
             connection = cachedConnection;
         }
-        try {
-            connection.start();
-        } catch (JMSException e) {
-            if (cachedConnection != null) {
-                resetCache();
-                getConnection(userName, password);
-            } else {
-                throw e;
-            }
 
-        }
         return connection;
     }
 
@@ -129,14 +112,29 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
     @Override
     public Connection createConnection(String userName, String password) throws JMSException {
         Connection connection;
-        if (userName == null || password == null) {
-            connection = super.createConnection();
+        if (userName == null && password == null) {
+            connection = createConnection();
         } else {
-            connection = super.createConnection(userName, password);
+            if (cachedConnection == null) {
+                connection = super.createConnection(userName, password);
+                cachedConnection = connection;
+            } else {
+                connection = cachedConnection;
+            }
+
+            try {
+                connection.start();
+            } catch (JMSException e) {
+                if (cachedConnection != null) {
+                    resetCache();
+                    connection = createConnection(userName, password);
+                } else {
+                    throw e;
+                }
+
+            }
         }
-        if (this.cacheLevel >= JMSConstants.CACHE_CONNECTION) {
-            cachedConnection = connection;
-        }
+
         return connection;
     }
 

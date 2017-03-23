@@ -30,7 +30,7 @@ public class JMSConnectorException extends ServerConnectorException {
      * @param message Relevant exception message
      * @param e       Exception object, that has the details of the relevant exception
      */
-    public JMSConnectorException(String message, Exception e) {
+    public JMSConnectorException(String message, Throwable e) {
         super(message, e);
     }
 
