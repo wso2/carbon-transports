@@ -180,7 +180,8 @@ public class WebSocketSourceHandler extends SourceHandler {
         cMsg.setProperty(Constants.REMOTE_ADDRESS, ctx.channel().remoteAddress());
         cMsg.setProperty(Constants.REMOTE_HOST, ((InetSocketAddress) ctx.channel().remoteAddress()).getHostName());
         cMsg.setProperty(Constants.REMOTE_PORT, ((InetSocketAddress) ctx.channel().remoteAddress()).getPort());
-        cMsg.setProperty(Constants.CHANNEL_ID, channelId);
+        cMsg.setProperty(Constants.CHANNEL_ID,
+                         ((SourceHandler) ctx.handler()).getListenerConfiguration().getId());
         cMsg.setProperty(Constants.PROTOCOL, Constants.WEBSOCKET_PROTOCOL_NAME);
         cMsg.setProperty(Constants.WEBSOCKET_SESSION, (Session) session);
     }
