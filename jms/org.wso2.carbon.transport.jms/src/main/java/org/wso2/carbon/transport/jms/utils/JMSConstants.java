@@ -40,7 +40,7 @@ public class JMSConstants {
      */
     public static final String PROTOCOL_JMS = "jms";
     /**
-     * ID of the service, that this listener is bounded to.
+     * ID of the service, that this receiver is bounded to.
      */
     public static final String JMS_SERVICE_ID = "JMS_SERVICE_ID";
 
@@ -110,6 +110,15 @@ public class JMSConstants {
     public static final String CONNECTION_PASSWORD = "connectionPassword";
     public static final String TRANSPORT_HEADERS = "TransportHeaders";
     public static final String TEXT_DATA = "TextData";
+
+    /**
+     * Max number of connection to create when {@link org.wso2.carbon.transport.jms.factory.PooledJMSConnectionFactory}
+     * is used.
+     */
+    public static final String MAX_CONNECTIONS = "maxConnections";
+
+
+    public static final String USE_RECEIVER = "useReceiver";
 
     /**
      * Namespace for JMS map payload representation.

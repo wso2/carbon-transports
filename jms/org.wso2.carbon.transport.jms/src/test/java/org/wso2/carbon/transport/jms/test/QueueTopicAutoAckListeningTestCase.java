@@ -24,7 +24,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
-import org.wso2.carbon.transport.jms.listener.JMSServerConnector;
+import org.wso2.carbon.transport.jms.receiver.JMSServerConnector;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
 import org.wso2.carbon.transport.jms.test.util.JMSTestUtils;
@@ -47,7 +47,7 @@ public class QueueTopicAutoAckListeningTestCase {
     private JMSServerConnector jmsTopicTransportListener;
     private static final Logger logger = LoggerFactory.getLogger(QueueTopicAutoAckListeningTestCase.class);
 
-    @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS listener and message processor")
+    @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS receiver and message processor")
     public void setUp() throws ServerConnectorException {
         queueListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.QUEUE_NAME,
                 JMSTestConstants.QUEUE_CONNECTION_FACTORY, JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants
@@ -59,12 +59,12 @@ public class QueueTopicAutoAckListeningTestCase {
         jmsServer = new JMSServer();
         jmsServer.startServer();
 
-        // Create a queue transport listener
+        // Create a queue transport receiver
         jmsQueueTransportListener = new JMSServerConnector("1");
         queueTestMessageProcessor = new TestMessageProcessor();
         jmsQueueTransportListener.setMessageProcessor(queueTestMessageProcessor);
 
-        // Create a topic transport listener
+        // Create a topic transport receiver
         jmsTopicTransportListener = new JMSServerConnector("2");
         topicTestMessageProcessor = new TestMessageProcessor();
         jmsTopicTransportListener.setMessageProcessor(topicTestMessageProcessor);

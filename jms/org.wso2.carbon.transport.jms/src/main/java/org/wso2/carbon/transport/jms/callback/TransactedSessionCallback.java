@@ -18,49 +18,47 @@
 
 package org.wso2.carbon.transport.jms.callback;
 
-import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
+import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
-import javax.jms.JMSException;
 import javax.jms.Session;
 
 /**
  * Call back used for transacted sessions. To commit or rollback the sessions.
  */
-public class TransactedSessionCallback implements CarbonCallback {
-    /**
-     * The {@link Session} instance representing JMS Session related with this call back
-     */
-    private Session session;
+public class TransactedSessionCallback extends JMSCallback {
 
     /**
      * Creates a call back for the transacted session.
      *
      * @param session JMS Session connected with this callback
+     * @param caller {@link Object} The caller object which needs to wait for the jms acknowledgement to be completed
      */
-    public TransactedSessionCallback(Session session) {
-        this.session = session;
+    public TransactedSessionCallback(Session session, Object caller) {
+        super(session, caller);
     }
 
     /**
-     * {@inheritDoc}
+     * Commits the jms session or rollback if there was an error then notify the caller about operation completion.
+     *
+     * @param carbonMessage The received carbon message
      */
     @Override
     public void done(CarbonMessage carbonMessage) {
-        if (carbonMessage.getProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS)
-                .equals(JMSConstants.JMS_MESSAGE_DELIVERY_SUCCESS)) {
-            try {
-                session.commit();
-            } catch (JMSException e) {
-                throw new RuntimeException("Error while committing the session. ", e);
+
+        try {
+            if (carbonMessage.getProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS)
+                    .equals(JMSConstants.JMS_MESSAGE_DELIVERY_SUCCESS)) {
+
+                commitSession();
+            } else {
+                rollbackSession();
             }
-        } else {
-            try {
-                session.rollback();
-            } catch (JMSException e) {
-                throw new RuntimeException("Error while rolling back the session. ", e);
-            }
+        } catch (JMSConnectorException e) {
+            throw new RuntimeException("Error completing the transaction callback operation", e);
+        } finally {
+            markAsComplete();
         }
     }
 }
