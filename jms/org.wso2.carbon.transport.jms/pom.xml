@@ -77,5 +77,6 @@
             javax.jms.*;version="${javax.jms.import.version.range}",
             org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}"
         </import.package>
+        <bundle.activator>org.wso2.carbon.transport.jms.internal.JMSConnectorBundleActivator</bundle.activator>
     </properties>
 </project>
