@@ -268,8 +268,8 @@ public class JMSServerConnector extends ServerConnector {
 
         userName = getProperties().get(JMSConstants.CONNECTION_USERNAME);
         password = getProperties().get(JMSConstants.CONNECTION_PASSWORD);
-        String retryInterval = super.properties.get(JMSConstants.RETRY_INTERVAL);
-        if (retryInterval != null) {
+        String retryIntervalParam = super.properties.get(JMSConstants.RETRY_INTERVAL);
+        if (retryIntervalParam != null) {
             try {
                 this.retryInterval = Long.parseLong(retryIntervalParam);
             } catch (NumberFormatException ex) {
@@ -278,8 +278,8 @@ public class JMSServerConnector extends ServerConnector {
             }
         }
 
-        String maxRetryCount = super.properties.get(JMSConstants.MAX_RETRY_COUNT);
-        if (maxRetryCount != null) {
+        String maxRetryCountParam = super.properties.get(JMSConstants.MAX_RETRY_COUNT);
+        if (maxRetryCountParam != null) {
             try {
                 this.maxRetryCount = Integer.parseInt(maxRetryCountParam);
             } catch (NumberFormatException ex) {
@@ -288,7 +288,7 @@ public class JMSServerConnector extends ServerConnector {
             }
         }
 
-        String useReceiverParam = map.get(JMSConstants.USE_RECEIVER);
+        String useReceiverParam = super.properties.get(JMSConstants.USE_RECEIVER);
 
         if (useReceiverParam != null) {
             useReceiver = Boolean.parseBoolean(useReceiverParam);
