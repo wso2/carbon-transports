@@ -230,28 +230,6 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     }
 
     /**
-     * To create a connection.
-     *
-     * @return JMS connection
-     * @throws JMSException Thrown when creating jms connection.
-     */
-    public Connection getConnection() throws JMSException {
-        return createConnection();
-    }
-
-    /**
-     * To create a connection to a password protected connection factory.
-     *
-     * @param userName Valid username
-     * @param password valid password
-     * @return JMS connection
-     * @throws JMSException Thrown when creating jms connection.
-     */
-    public Connection getConnection(String userName, String password) throws JMSException {
-        return createConnection(userName, password);
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override

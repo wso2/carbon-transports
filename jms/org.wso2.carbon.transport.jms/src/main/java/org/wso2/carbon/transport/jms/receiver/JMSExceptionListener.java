@@ -1,4 +1,4 @@
-package org.wso2.carbon.transport.jms.listener;
+package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,33 +10,21 @@ import javax.jms.JMSException;
 /**
  * Listener that listens to the problem in the jms connection.
  */
-class JMSExceptionListener implements ExceptionListener {
+public class JMSExceptionListener implements ExceptionListener {
     private static final Logger logger = LoggerFactory.getLogger(JMSExceptionListener.class);
     /**
-     * This {@link JMSServerConnector} instance represents the jms listener that is related with this exception
-     * listener.
+     * This {@link JMSServerConnector} instance represents the jms receiver that is related with this exception
+     * receiver.
      */
     private JMSServerConnector jmsServerConnector;
-    /**
-     * Retry Interval in milli seconds.
-     */
-    private long retryInterval;
-    /**
-     * Maximum retry count.
-     */
-    private int maxRetryCount;
 
     /**
      * Creates a exception listening to track the exceptions in jms connection and to handle it.
      *
      * @param jmsServerConnector JMS Server connector related with the particular connection
-     * @param retryInterval      Retry interval in milli seconds
-     * @param maxRetryCount      Maximum retry count to try to connect
      */
-    JMSExceptionListener(JMSServerConnector jmsServerConnector, long retryInterval, int maxRetryCount) {
+    JMSExceptionListener(JMSServerConnector jmsServerConnector) {
         this.jmsServerConnector = jmsServerConnector;
-        this.retryInterval = retryInterval;
-        this.maxRetryCount = maxRetryCount;
     }
 
     /**
@@ -56,16 +44,10 @@ class JMSExceptionListener implements ExceptionListener {
                     + "from jms provider. ", e);
         }
         try {
-            jmsServerConnector.createMessageListener();
+            jmsServerConnector.startConsuming();
         } catch (JMSConnectorException e) {
-            JMSConnectionRetryHandler jmsConnectionRetryHandler = new JMSConnectionRetryHandler(jmsServerConnector,
-                    retryInterval, maxRetryCount);
-            try {
-                jmsConnectionRetryHandler.retry();
-            } catch (JMSConnectorException e1) {
-                throw new RuntimeException(
-                        "Cannot establish the connection again after retrying for " + maxRetryCount + " times", e1);
-            }
+            throw new RuntimeException(
+                    "Cannot establish the connection after retrying", e);
 
         }
     }

@@ -155,8 +155,14 @@ public class JMSClientConnector implements ClientConnector {
                 properties.put(entry.getKey(), entry.getValue());
             }
         }
-        if ((Integer.parseInt(properties.getProperty(JMSConstants.PARAM_CACHE_LEVEL)) == JMSConstants.CACHE_NONE) ||
-            this.jmsConnectionFactory == null) {
+
+        String cacheLevel = properties.getProperty(JMSConstants.PARAM_CACHE_LEVEL);
+
+        if (cacheLevel == null) {
+            jmsConnectionFactory = new JMSConnectionFactory(properties);
+        } else if (
+                (Integer.parseInt(properties.getProperty(JMSConstants.PARAM_CACHE_LEVEL)) == JMSConstants.CACHE_NONE) ||
+                this.jmsConnectionFactory == null) {
             this.jmsConnectionFactory = new CachedJMSConnectionFactory(properties);
         }
 
@@ -165,9 +171,9 @@ public class JMSClientConnector implements ClientConnector {
 
         Connection connection;
         if (conUsername != null && conPassword != null) {
-            connection = this.jmsConnectionFactory.getConnection(conUsername, conPassword);
+            connection = this.jmsConnectionFactory.createConnection(conUsername, conPassword);
         } else {
-            connection = this.jmsConnectionFactory.getConnection();
+            connection = this.jmsConnectionFactory.createConnection();
         }
 
         this.connection = connection;
