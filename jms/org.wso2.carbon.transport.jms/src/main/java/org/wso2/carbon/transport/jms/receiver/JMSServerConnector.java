@@ -36,7 +36,7 @@ import java.util.Properties;
 import java.util.Set;
 
 /**
- * This is a transport receiver for JMS.
+ * This is the transport receiver for JMS.
  */
 public class JMSServerConnector extends ServerConnector {
     private static final Logger logger = LoggerFactory.getLogger(JMSServerConnector.class);
