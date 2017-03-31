@@ -40,19 +40,17 @@ public class FileServerConnectorTestCase {
             "is equal to what is expected.")
     public void filePollingTestCase() throws ServerConnectorException, InterruptedException {
         FileServerConnectorProvider provider = new FileServerConnectorProvider();
-        ServerConnector connector = provider.createConnector("testService");
+        ClassLoader classLoader = getClass().getClassLoader();
+        String fileURI = new File(classLoader.getResource("test.txt").getFile()).getAbsolutePath();
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put(Constants.TRANSPORT_FILE_FILE_URI, fileURI);
+        parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "1000");
+        ServerConnector connector = provider.createConnector("testService", parameters);
 
         TestMessageProcessor messageProcessor = new TestMessageProcessor();
         connector.setMessageProcessor(messageProcessor);
 
-        ClassLoader classLoader = getClass().getClassLoader();
-        String fileURI = new File(classLoader.getResource("test.txt").getFile()).getAbsolutePath();
-
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put(Constants.TRANSPORT_FILE_FILE_URI, fileURI);
-        parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "1000");
-
-        connector.start(parameters);
+        connector.start();
         messageProcessor.waitTillDone();
         Assert.assertEquals(messageProcessor.getFileContent(), "File Server Connector test");
         connector.stop();
