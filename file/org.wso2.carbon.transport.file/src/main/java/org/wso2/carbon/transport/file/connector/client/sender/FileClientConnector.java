@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.transport.file.connector.client.sender;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -31,7 +33,6 @@ import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,6 +46,8 @@ public class FileClientConnector implements ClientConnector {
     private String fileURI;
     private FileSystemManager fsManager;
     private FileSystemOptions opts = new FileSystemOptions();
+    private CarbonMessageProcessor carbonMessageProcessor;
+    private final byte[] bytes = new byte[4096];
 
     @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
             throws ClientConnectorException {
@@ -61,47 +64,102 @@ public class FileClientConnector implements ClientConnector {
         try {
             fsManager = VFS.getManager();
             FileObject path = fsManager.resolveFile(fileURI, opts);
-
             fileType = path.getType();
-            if (action.equalsIgnoreCase("send")) {
-                if (fileType == FileType.IMAGINARY) {
-                    path.createFile();
-                    is = carbonMessage.getInputStream();
-                    os = path.getContent().getOutputStream();
-                    long bytesCopied = copy(is, os, new byte[4096]);
+            switch (action) {
 
-                    if (logger.isDebugEnabled()) {
+                case "send":
+                    if (fileType == FileType.IMAGINARY) {
+                        path.createFile();
+                        path.refresh();
+                        fileType = path.getType();
+                    }
+                    if (carbonMessage != null && fileType == FileType.FILE) {
+                        is = carbonMessage.getInputStream();
+                        os = path.getContent().getOutputStream();
+                        long bytesCopied = IOUtils.copy(is, os);
+                        os.flush();
                         String bytes = Long.toString(bytesCopied);
-                        logger.info(bytes + " bytes sent");
+                        logger.debug(bytes + " bytes sent");
                     }
-                }
-            } else if (action.equalsIgnoreCase("delete")) {
-                if (fileType == FileType.FILE_OR_FOLDER) {
-                    boolean isDeleted = path.delete();
-                    if (logger.isDebugEnabled() && isDeleted) {
-                        logger.info("File Successfully Deleted");
+                    // TODO: 3/20/17 Send response on error eg: not a file
+                    break;
+                case "create":
+                    if (fileType == FileType.IMAGINARY) {
+                        FileName name = path.getName();
+                        boolean isFolder = name.getExtension().isEmpty();
+                        if (isFolder) {
+                            path.createFolder();
+                        } else {
+                            path.createFile();
+                        }
+                        path.refresh();
+                        fileType = path.getType();
                     }
-                }
-            } else if (action.equalsIgnoreCase("append")) {
-                if (fileType == FileType.FILE) {
-                    path.createFile();
-                    is = carbonMessage.getInputStream();
-                    os = path.getContent().getOutputStream(true);
-                    long bytesCopied = copy(is, os, new byte[4096]);
+                    if (carbonMessage != null && fileType == FileType.FILE) {
+                        is = carbonMessage.getInputStream();
+                        os = path.getContent().getOutputStream();
+                        long bytesCopied = IOUtils.copy(is, os);
+                        os.flush();
+                        String bytes = Long.toString(bytesCopied);
+                        logger.debug(bytes + " bytes sent");
+                    }
+                    break;
+                case "delete":
+                    if (path.exists()) {
+                        boolean isDeleted = path.delete();
+                        if (isDeleted) {
+                            logger.debug("File Successfully Deleted");
+                        }
+                    }
+                    break;
+                case "append":
+                    if (!path.exists()) {
+                        path.createFile();
+                        path.refresh();
+                        fileType = path.getType();
+                    }
+                    if (fileType == FileType.FILE) {
+                        is = carbonMessage.getInputStream();
+                        os = path.getContent().getOutputStream(true);
+                        long bytesCopied = IOUtils.copy(is, os);
+                        os.flush();
 
-                    if (logger.isDebugEnabled()) {
                         String bytes = Long.toString(bytesCopied);
                         logger.info(bytes + " bytes appended");
                     }
-                }
+                    break;
+                case "copy":
+                    if (path.exists()) {
+                        is = path.getContent().getInputStream();
+                        String destination = map.get("destination");
+                        path = fsManager.resolveFile(destination, opts);
+                        if (!path.exists()) {
+                            os = path.getContent().getOutputStream();
+                            IOUtils.copy(is, os);
+                            os.flush();
+                        }
+                    }
+                    break;
+                case "move":
+                    if (path.exists()) {
+                        is = path.getContent().getInputStream();
+                        String destination = map.get("destination");
+                        FileObject newPath = fsManager.resolveFile(destination, opts);
+                        if (!newPath.exists()) {
+                            path.moveTo(newPath);
+                        }
+
+                    }
+                    break;
+                default: return false;
             }
         } catch (IOException e) {
             throw new ClientConnectorException("Exception occurred while sending the message", e);
         } finally {
-            closeQuietly(is);
-            closeQuietly(os);
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(os);
         }
-        return false;
+        return true;
     }
 
     @Override public String getProtocol() {
@@ -109,28 +167,7 @@ public class FileClientConnector implements ClientConnector {
     }
 
     @Override public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
-
+        this.carbonMessageProcessor = carbonMessageProcessor;
     }
 
-    public static long copy(InputStream input, OutputStream output, byte[] buffer) throws IOException {
-        long count = 0L;
-
-        int n1;
-        for (boolean n = false; -1 != (n1 = input.read(buffer)); count += (long) n1) {
-            output.write(buffer, 0, n1);
-        }
-
-        return count > 2147483647L ? -1 : (int) count;
-    }
-
-    public static void closeQuietly(Closeable closeable) {
-        try {
-            if (closeable != null) {
-                closeable.close();
-            }
-        } catch (IOException var2) {
-
-        }
-
-    }
 }
