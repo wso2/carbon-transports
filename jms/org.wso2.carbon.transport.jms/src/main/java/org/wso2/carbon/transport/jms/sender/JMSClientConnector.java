@@ -30,6 +30,7 @@ import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.factory.CachedJMSConnectionFactory;
 import org.wso2.carbon.transport.jms.factory.JMSConnectionFactory;
+import org.wso2.carbon.transport.jms.factory.PooledJMSConnectionFactory;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.nio.charset.Charset;
@@ -156,14 +157,21 @@ public class JMSClientConnector implements ClientConnector {
             }
         }
 
-        String cacheLevel = properties.getProperty(JMSConstants.PARAM_CACHE_LEVEL);
+        String connectionFactoryNature = properties.getProperty(JMSConstants.CONNECTION_FACTORY_NATURE);
 
-        if (cacheLevel == null) {
+        if (connectionFactoryNature != null) {
+            switch (connectionFactoryNature) {
+                case JMSConstants.CACHED_CONNECTION_FACTORY:
+                    jmsConnectionFactory = new CachedJMSConnectionFactory(properties);
+                    break;
+                case JMSConstants.POOLED_CONNECTION_FACTORY:
+                    jmsConnectionFactory = new PooledJMSConnectionFactory(properties);
+                    break;
+                default:
+                    jmsConnectionFactory = new JMSConnectionFactory(properties);
+            }
+        } else {
             jmsConnectionFactory = new JMSConnectionFactory(properties);
-        } else if (
-                (Integer.parseInt(properties.getProperty(JMSConstants.PARAM_CACHE_LEVEL)) == JMSConstants.CACHE_NONE) ||
-                this.jmsConnectionFactory == null) {
-            this.jmsConnectionFactory = new CachedJMSConnectionFactory(properties);
         }
 
         String conUsername = properties.getProperty(JMSConstants.CONNECTION_USERNAME);

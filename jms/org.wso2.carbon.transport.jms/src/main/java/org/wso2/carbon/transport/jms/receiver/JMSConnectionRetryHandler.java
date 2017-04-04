@@ -29,22 +29,32 @@ import java.util.concurrent.TimeUnit;
  */
 class JMSConnectionRetryHandler {
     /**
-     * This {@link JMSServerConnector} instance represents the jms receiver that asked for retry.
+     * This {@link JMSMessageConsumer} instance represents the jms receiver that asked for retry.
      */
-    private JMSServerConnector jmsServerConnector;
+    private JMSMessageConsumer messageConsumer;
+
     private static final Logger logger = LoggerFactory.getLogger(JMSConnectionRetryHandler.class);
+
     /**
-     * Retry Interval in milli seconds.
+     * Current retry interval in milliseconds.
+     */
+    private long currentRetryInterval;
+
+    /**
+     * Initial retry interval in milliseconds.
      */
     private long retryInterval;
+
     /**
      * Current retry count.
      */
     private int retryCount = 0;
+
     /**
      * Maximum retry count.
      */
     private int maxRetryCount;
+
 
     /**
      * States whether a retrying is in progress.
@@ -54,14 +64,16 @@ class JMSConnectionRetryHandler {
     /**
      * Creates a jms connection retry handler.
      *
-     * @param jmsServerConnector JMS Server Connector
+     * @param messageConsumer    JMS message consumer that needs to retry
      * @param retryInterval      Retry interval between
      * @param maxRetryCount      Maximum retries
      */
-    JMSConnectionRetryHandler(JMSServerConnector jmsServerConnector, long retryInterval, int maxRetryCount) {
-        this.jmsServerConnector = jmsServerConnector;
+    JMSConnectionRetryHandler(JMSMessageConsumer messageConsumer, long retryInterval, int maxRetryCount) {
+        this.messageConsumer = messageConsumer;
         this.retryInterval = retryInterval;
         this.maxRetryCount = maxRetryCount;
+
+        currentRetryInterval = retryInterval;
     }
 
     /**
@@ -71,10 +83,6 @@ class JMSConnectionRetryHandler {
      * @throws JMSConnectorException JMS Connector Exception
      */
     boolean retry() throws JMSConnectorException {
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Re-connection will be attempted after " + retryInterval + " milli-seconds.");
-        }
 
         if (retrying) {
 
@@ -87,34 +95,34 @@ class JMSConnectionRetryHandler {
             retrying = true;
         }
 
-        try {
-            TimeUnit.MILLISECONDS.sleep(retryInterval);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
         while (retryCount < maxRetryCount) {
             try {
                 retryCount++;
-                jmsServerConnector.startConsuming();
+                messageConsumer.startConsuming();
                 logger.info("Connected to the message broker after retrying for " + retryCount + " time(s)");
+                retryCount = 0;
+                currentRetryInterval = retryInterval;
+                retrying = false;
                 return true;
-            } catch (JMSConnectorException ex) {
-                if (null != jmsServerConnector.getConnection()) {
-                    jmsServerConnector.closeAll();
-                    throw new JMSConnectorException("JMS Connection succeeded but exception has occurred while "
-                            + "creating, session or consumer from the connection");
+            } catch (JMSConnectorException e) {
+                try {
+                    messageConsumer.closeAll();
+                } catch (JMSConnectorException ex) {
+                    logger.debug("Failed to close erroneous connection. This could be due to a broken connection.", ex);
                 }
-                jmsServerConnector.closeAll();
                 if (retryCount < maxRetryCount) {
-                    logger.error("Retry connection attempt " + retryCount + " to JMS Provider failed. Retry will be "
-                            + "attempted ");
-                    retryInterval = retryInterval * 2;
+
+                    logger.error("Retry connection attempt " + retryCount + " to JMS Provider failed. Retry will be " +
+                            "attempted again after " +
+                            TimeUnit.SECONDS.convert(currentRetryInterval, TimeUnit.MILLISECONDS) + " seconds");
+
                     try {
-                        TimeUnit.MILLISECONDS.sleep(retryInterval);
-                    } catch (InterruptedException e) {
+                        TimeUnit.MILLISECONDS.sleep(currentRetryInterval);
+                    } catch (InterruptedException ex) {
                         Thread.currentThread().interrupt();
                     }
+
+                    currentRetryInterval = currentRetryInterval * 2;
                 }
             }
         }

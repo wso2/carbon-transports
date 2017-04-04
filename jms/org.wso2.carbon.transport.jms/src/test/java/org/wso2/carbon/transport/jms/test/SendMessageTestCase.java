@@ -55,7 +55,6 @@ public class SendMessageTestCase {
         properties.put(JMSConstants.CONNECTION_FACTORY_TYPE_PARAM_NAME, JMSConstants.DESTINATION_TYPE_QUEUE);
         properties.put(JMSConstants.TEXT_DATA, "Hello World");
         properties.put(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.TEXT_MESSAGE_TYPE);
-        properties.put(JMSConstants.CACHE_LEVEL, ((Integer) JMSConstants.CACHE_PRODUCER).toString());
         jmsServer = new JMSServer();
         jmsServer.startServer();
     }
