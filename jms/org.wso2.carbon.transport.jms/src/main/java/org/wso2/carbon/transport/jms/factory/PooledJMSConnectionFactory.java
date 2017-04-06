@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.QueueConnection;
+import javax.jms.Session;
 import javax.jms.TopicConnection;
 
 /**
@@ -62,8 +63,16 @@ public class PooledJMSConnectionFactory extends JMSConnectionFactory
     @Override
     public Connection createConnection() throws JMSException {
         PooledConnectionKey key = new PooledConnectionKey(null, null);
+        Connection connection;
         try {
-            return keyedObjectPool.borrowObject(key);
+            connection = keyedObjectPool.borrowObject(key);
+
+            if (!validateObject(key, new DefaultPooledObject<>(connection))) {
+                keyedObjectPool.invalidateObject(key, connection);
+                throw new JMSException("Could not create a valid connection");
+            }
+
+            return connection;
         } catch (Exception e) {
             throw new JMSException("Error occurred creating connection : " + e.getMessage());
         }
@@ -169,10 +178,13 @@ public class PooledJMSConnectionFactory extends JMSConnectionFactory
         boolean valid = false;
 
         try {
-            pooledConnectionObject.getObject().start();
+            Session session = pooledConnectionObject.getObject().createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+            session.close();
+
             valid = true;
         } catch (JMSException e) {
-            log.warn("Connection with key " + key + " is not valid anymore");
+            log.warn("Connection with key " + key.hashCode() + " is not valid anymore");
         }
 
         return valid;
