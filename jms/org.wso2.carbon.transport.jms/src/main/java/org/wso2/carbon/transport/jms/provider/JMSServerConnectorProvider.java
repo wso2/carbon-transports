@@ -24,6 +24,7 @@ import org.wso2.carbon.transport.jms.receiver.JMSServerConnector;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Server connector provider for jms.
@@ -54,11 +55,8 @@ public class JMSServerConnectorProvider extends ServerConnectorProvider {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public ServerConnector createConnector(String s) {
-        return new JMSServerConnector(s);
+    public ServerConnector createConnector(String id, Map<String, String> properties) {
+        return new JMSServerConnector(id, properties);
     }
 }

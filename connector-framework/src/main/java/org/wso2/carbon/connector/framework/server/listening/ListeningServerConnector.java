@@ -19,13 +19,15 @@ package org.wso2.carbon.connector.framework.server.listening;
 
 import org.wso2.carbon.messaging.ServerConnector;
 
+import java.util.Map;
+
 /**
  * This class represents listening type of server connector. When adding a new listening type of server connector
  * (eg: http), this class needs to be extended, implement the start, stop the methods.
  */
 public abstract class ListeningServerConnector extends ServerConnector {
 
-    public ListeningServerConnector(String id) {
-        super(id);
+    public ListeningServerConnector(String id, Map<String, String> properties) {
+        super(id, properties);
     }
 }
