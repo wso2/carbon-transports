@@ -40,7 +40,12 @@ public abstract class PollingServerConnector extends ServerConnector {
     public void start() throws ServerConnectorException {
         String pollingInterval = getProperties().get(Constants.POLLING_INTERVAL);
         if (pollingInterval != null) {
-            this.interval = Long.parseLong(pollingInterval);
+            try {
+                this.interval = Long.parseLong(pollingInterval);
+            } catch (NumberFormatException e) {
+                throw new ServerConnectorException("Could not parse parameter: " + Constants.POLLING_INTERVAL
+                                                           + " to numeric type: Long", e);
+            }
         }
         pollingTaskRunner = new PollingTaskRunner(this);
         pollingTaskRunner.start();
