@@ -47,7 +47,6 @@ public class FileClientConnector implements ClientConnector {
     private FileSystemManager fsManager;
     private FileSystemOptions opts = new FileSystemOptions();
     private CarbonMessageProcessor carbonMessageProcessor;
-    private final byte[] bytes = new byte[4096];
 
     @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
             throws ClientConnectorException {
@@ -151,6 +150,15 @@ public class FileClientConnector implements ClientConnector {
 
                     }
                     break;
+                case "archive":
+                    if (path.exists()) {
+                        String destination = map.get("destination");
+                        FileObject newPath = fsManager.resolveFile(destination, opts);
+                        if (!newPath.exists()) {
+                            Utils.fileCompress(path, newPath);
+                        }
+                    }
+                    break;
                 default: return false;
             }
         } catch (IOException e) {
@@ -170,4 +178,11 @@ public class FileClientConnector implements ClientConnector {
         this.carbonMessageProcessor = carbonMessageProcessor;
     }
 
+    //                case "read":
+    //                    if (path.exists()) {
+    //                        is = path.getContent().getInputStream();
+    //                        StreamingCarbonMessage message = new StreamingCarbonMessage(is);
+    //                        carbonMessageProcessor.receive(message, carbonCallback);
+    //                    }
+    //                    break;
 }
