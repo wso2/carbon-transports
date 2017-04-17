@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.listener;
+package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,20 +24,19 @@ import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.factory.CachedJMSConnectionFactory;
 import org.wso2.carbon.transport.jms.factory.JMSConnectionFactory;
+import org.wso2.carbon.transport.jms.factory.PooledJMSConnectionFactory;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import javax.jms.Connection;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
 
 /**
- * This is a transport listener for JMS.
+ * This is a transport receiver for JMS.
  */
 public class JMSServerConnector extends ServerConnector {
     private static final Logger logger = LoggerFactory.getLogger(JMSServerConnector.class);
@@ -51,22 +50,16 @@ public class JMSServerConnector extends ServerConnector {
      * connector.
      */
     private JMSConnectionFactory jmsConnectionFactory = null;
+
     /**
-     * The {@link Connection} instance represents the jms connection related with this server connector.
+     * The number of concurrent consumers that needs to be created.
      */
-    private Connection connection;
+    private int numOfConcurrentConsumers = 1;
+
     /**
-     * The {@link Session} instance represents the jms session related with this server connector.
+     * List of {@link JMSMessageConsumer} instances that are created for this connector instance.
      */
-    private Session session;
-    /**
-     * The {@link Destination} instance represents a particular jms destination, this server connector listening to.
-     */
-    private Destination destination;
-    /**
-     * The {@link MessageConsumer} instance represents a particular jms consumer, this server related with
-     */
-    private MessageConsumer messageConsumer;
+    private List<JMSMessageConsumer> messageConsumers;
     /**
      * The {@link String} instance represents the jms connection user-name.
      */
@@ -79,6 +72,7 @@ public class JMSServerConnector extends ServerConnector {
      * The {@link Properties} instance represents the jms connection properties.
      */
     private Properties properties;
+
     /**
      * The retry interval (in milli seconds) if the connection is lost or if the connection cannot be established.
      */
@@ -87,6 +81,16 @@ public class JMSServerConnector extends ServerConnector {
      * The maximum retry count, for retrying to establish a jms connection with the jms provider.
      */
     private int maxRetryCount = 5;
+
+    /**
+     * Tells to use a message receiver instead of a message listener.
+     */
+    private boolean useReceiver = false;
+
+    /**
+     * The nature of the connection factory to use.
+     */
+    private String connectionFactoryNature = JMSConstants.DEFAULT_CONNECTION_FACTORY;
 
     /**
      * Creates a jms server connector with the id.
@@ -105,52 +109,33 @@ public class JMSServerConnector extends ServerConnector {
     }
 
     /**
-     * To create a message listener to a particular jms destination.
-     * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
-     */
-    void createMessageListener() throws JMSConnectorException {
-        try {
-            if (null != userName && null != password) {
-                connection = jmsConnectionFactory.createConnection(userName, password);
-            } else {
-                connection = jmsConnectionFactory.createConnection();
-            }
-            connection.setExceptionListener(new JMSExceptionListener(this, retryInterval, maxRetryCount));
-            jmsConnectionFactory.start(connection);
-            session = jmsConnectionFactory.createSession(connection);
-            destination = jmsConnectionFactory.getDestination(session);
-            messageConsumer = jmsConnectionFactory.createMessageConsumer(session, destination);
-            messageConsumer.setMessageListener(
-                    new JMSMessageListener(carbonMessageProcessor, id, session.getAcknowledgeMode(), session));
-        } catch (RuntimeException e) {
-            throw new JMSConnectorException("Error while creating the connection from connection factory", e);
-        } catch (JMSException e) {
-            throw new JMSConnectorException("Error while creating the connection from the connection factory. ", e);
-        }
-    }
-
-    /**
-     * Close the connection, session and consumer.
+     * Close the connection, session and consumers.
      *
      * @throws JMSConnectorException Exception that can be thrown when trying to close the connection, session
      *                               and message consumer
      */
     void closeAll() throws JMSConnectorException {
-        jmsConnectionFactory.closeMessageConsumer(messageConsumer);
-        jmsConnectionFactory.closeSession(session);
-        jmsConnectionFactory.closeConnection(connection);
-        messageConsumer = null;
-        session = null;
-        connection = null;
-    }
 
-    /**
-     * To get the jms connection.
-     *
-     * @return JMS Connection
-     */
-    Connection getConnection() {
-        return connection;
+        JMSConnectorException exception = null;
+
+        for (JMSMessageConsumer messageConsumer : messageConsumers) {
+            try {
+                messageConsumer.closeAll();
+            } catch (JMSConnectorException e) {
+
+                if (exception == null) {
+                    exception = new JMSConnectorException("Error closing the consumers for service " + id, e);
+                } else {
+                    exception.addSuppressed(e);
+                }
+            }
+        }
+
+        messageConsumers = null;
+
+        if (exception != null) {
+            throw exception;
+        }
     }
 
     /**
@@ -193,7 +178,9 @@ public class JMSServerConnector extends ServerConnector {
      */
     @Override
     protected void beginMaintenance() throws JMSConnectorException {
-        jmsConnectionFactory.stop(connection);
+        for (JMSMessageConsumer messageConsumer : messageConsumers) {
+            messageConsumer.stop();
+        }
     }
 
     /**
@@ -201,7 +188,9 @@ public class JMSServerConnector extends ServerConnector {
      */
     @Override
     protected void endMaintenance() throws JMSConnectorException {
-        jmsConnectionFactory.start(connection);
+        for (JMSMessageConsumer messageConsumer : messageConsumers) {
+            messageConsumer.start();
+        }
     }
 
     /**
@@ -220,41 +209,112 @@ public class JMSServerConnector extends ServerConnector {
 
         userName = map.get(JMSConstants.CONNECTION_USERNAME);
         password = map.get(JMSConstants.CONNECTION_PASSWORD);
-        String retryInterval = map.get(JMSConstants.RETRY_INTERVAL);
-        if (retryInterval != null) {
+        String retryIntervalParam = map.get(JMSConstants.RETRY_INTERVAL);
+        if (retryIntervalParam != null) {
             try {
-                this.retryInterval = Long.parseLong(retryInterval);
+                this.retryInterval = Long.parseLong(retryIntervalParam);
             } catch (NumberFormatException ex) {
                 logger.error("Provided value for retry interval is invalid, using the default retry interval value "
                         + this.retryInterval);
             }
         }
 
-        String maxRetryCount = map.get(JMSConstants.MAX_RETRY_COUNT);
-        if (maxRetryCount != null) {
+        String maxRetryCountParam = map.get(JMSConstants.MAX_RETRY_COUNT);
+        if (maxRetryCountParam != null) {
             try {
-                this.maxRetryCount = Integer.parseInt(maxRetryCount);
+                this.maxRetryCount = Integer.parseInt(maxRetryCountParam);
             } catch (NumberFormatException ex) {
                 logger.error("Provided value for max retry count is invalid, using the default max retry count "
                         + this.maxRetryCount);
             }
         }
 
+        String useReceiverParam = map.get(JMSConstants.USE_RECEIVER);
+
+        if (useReceiverParam != null) {
+            useReceiver = Boolean.parseBoolean(useReceiverParam);
+        }
+
+        String concurrentConsumers = map.get(JMSConstants.CONCURRENT_CONSUMERS);
+
+        if (concurrentConsumers != null) {
+            try {
+                numOfConcurrentConsumers = Integer.parseInt(concurrentConsumers);
+            } catch (NumberFormatException e) {
+                logger.error("Provided value for " + JMSConstants.CONCURRENT_CONSUMERS +
+                        " is invalid. Using the default value of " + numOfConcurrentConsumers);
+            }
+        }
+
+        String connectionFactoryType = properties.getProperty(JMSConstants.CONNECTION_FACTORY_TYPE);
+
+        if (connectionFactoryType != null) {
+            if (JMSConstants.DESTINATION_TYPE_TOPIC.equalsIgnoreCase(connectionFactoryType)) {
+                String subDurable = properties.getProperty(JMSConstants.PARAM_SUB_DURABLE);
+
+                if (!Boolean.parseBoolean(subDurable) && numOfConcurrentConsumers > 1) {
+                    // If this is a non durable topic subscription then concurrent consumers should not be allowed
+                    // since each subscription will get a duplicate of the same message
+                    throw new JMSConnectorException("Concurrent consumers are not allowed for non-durable topic " +
+                            "connections");
+                }
+            }
+        }
+
+        String connectionFacNatureParam = map.get(JMSConstants.CONNECTION_FACTORY_NATURE);
+
+        if (connectionFacNatureParam != null) {
+            connectionFactoryNature = connectionFacNatureParam;
+        }
+
+        startConsuming();
+    }
+
+    /**
+     * Start message consuming threads.
+     *
+     * @throws JMSConnectorException when consumer creation is failed due to a JMS layer error
+     */
+    void startConsuming() throws JMSConnectorException {
+
         try {
-            jmsConnectionFactory = new JMSConnectionFactory(properties);
-            createMessageListener();
+
+            if (jmsConnectionFactory == null) {
+
+                switch (connectionFactoryNature) {
+                    case JMSConstants.CACHED_CONNECTION_FACTORY :
+                        jmsConnectionFactory = new CachedJMSConnectionFactory(properties);
+                        break;
+                    case JMSConstants.POOLED_CONNECTION_FACTORY :
+                        jmsConnectionFactory = new PooledJMSConnectionFactory(properties);
+                        break;
+                    default :
+                        jmsConnectionFactory = new JMSConnectionFactory(properties);
+                }
+            }
+
+            messageConsumers = new ArrayList<>();
+
+            for (int i = 0; i < numOfConcurrentConsumers; i++) {
+                JMSMessageConsumerBuilder consumerBuilder = new JMSMessageConsumerBuilder(jmsConnectionFactory,
+                        carbonMessageProcessor, id);
+
+                consumerBuilder.setUseReceiver(useReceiver)
+                        .setUsername(userName)
+                        .setPassword(password)
+                        .setRetryInterval(retryInterval)
+                        .setMaxRetryCount(maxRetryCount);
+
+                messageConsumers.add(consumerBuilder.build());
+            }
+
         } catch (JMSConnectorException e) {
             if (null == jmsConnectionFactory) {
                 throw new JMSConnectorException("Cannot create the jms connection factory. please check the connection"
-                        + " properties and re-deploy the jms service. " + e.getMessage());
-            } else if (connection != null) {
-                closeAll();
-                throw e;
+                        + " properties and re-deploy the jms service.", e);
             }
-            closeAll();
-            JMSConnectionRetryHandler jmsConnectionRetryHandler = new JMSConnectionRetryHandler(this,
-                    this.retryInterval, this.maxRetryCount);
-            jmsConnectionRetryHandler.retry();
+
+            throw e;
 
         }
     }

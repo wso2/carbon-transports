@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.listener;
+package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,75 +29,106 @@ import java.util.concurrent.TimeUnit;
  */
 class JMSConnectionRetryHandler {
     /**
-     * This {@link JMSServerConnector} instance represents the jms listener that asked for retry.
+     * This {@link JMSMessageConsumer} instance represents the jms receiver that asked for retry.
      */
-    private JMSServerConnector jmsServerConnector;
+    private JMSMessageConsumer messageConsumer;
+
     private static final Logger logger = LoggerFactory.getLogger(JMSConnectionRetryHandler.class);
+
     /**
-     * Retry Interval in milli seconds.
+     * Current retry interval in milliseconds.
+     */
+    private long currentRetryInterval;
+
+    /**
+     * Initial retry interval in milliseconds.
      */
     private long retryInterval;
+
     /**
      * Current retry count.
      */
     private int retryCount = 0;
+
     /**
      * Maximum retry count.
      */
     private int maxRetryCount;
 
+
+    /**
+     * States whether a retrying is in progress.
+     */
+    private volatile boolean retrying = false;
+
     /**
      * Creates a jms connection retry handler.
      *
-     * @param jmsServerConnector JMS Server Connector
+     * @param messageConsumer    JMS message consumer that needs to retry
      * @param retryInterval      Retry interval between
      * @param maxRetryCount      Maximum retries
      */
-    JMSConnectionRetryHandler(JMSServerConnector jmsServerConnector, long retryInterval, int maxRetryCount) {
-        this.jmsServerConnector = jmsServerConnector;
+    JMSConnectionRetryHandler(JMSMessageConsumer messageConsumer, long retryInterval, int maxRetryCount) {
+        this.messageConsumer = messageConsumer;
         this.retryInterval = retryInterval;
         this.maxRetryCount = maxRetryCount;
+
+        currentRetryInterval = retryInterval;
     }
 
     /**
      * To retry the retrying to connect to JMS provider.
      *
+     * @return True if retrying was successfull
      * @throws JMSConnectorException JMS Connector Exception
      */
-    void retry() throws JMSConnectorException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Re-connection will be attempted after " + retryInterval + " milli-seconds.");
+    boolean retry() throws JMSConnectorException {
+
+        if (retrying) {
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("Retrying is in progress from a different thread, hence not retrying");
+            }
+
+            return false;
+        } else {
+            retrying = true;
         }
-        try {
-            TimeUnit.MILLISECONDS.sleep(retryInterval);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+
         while (retryCount < maxRetryCount) {
             try {
                 retryCount++;
-                jmsServerConnector.createMessageListener();
+                messageConsumer.startConsuming();
                 logger.info("Connected to the message broker after retrying for " + retryCount + " time(s)");
-                return;
-            } catch (JMSConnectorException ex) {
-                if (null != jmsServerConnector.getConnection()) {
-                    jmsServerConnector.closeAll();
-                    throw new JMSConnectorException("JMS Connection succeeded but exception has occurred while "
-                            + "creating, session or consumer from the connection");
+                retryCount = 0;
+                currentRetryInterval = retryInterval;
+                retrying = false;
+                return true;
+            } catch (JMSConnectorException e) {
+                try {
+                    messageConsumer.closeAll();
+                } catch (JMSConnectorException ex) {
+                    logger.debug("Failed to close erroneous connection. This could be due to a broken connection.", ex);
                 }
-                jmsServerConnector.closeAll();
                 if (retryCount < maxRetryCount) {
-                    logger.error("Retry connection attempt " + retryCount + " to JMS Provider failed. Retry will be "
-                            + "attempted ");
-                    retryInterval = retryInterval * 2;
+
+                    logger.error("Retry connection attempt " + retryCount + " to JMS Provider failed. Retry will be " +
+                            "attempted again after " +
+                            TimeUnit.SECONDS.convert(currentRetryInterval, TimeUnit.MILLISECONDS) + " seconds");
+
                     try {
-                        TimeUnit.MILLISECONDS.sleep(retryInterval);
-                    } catch (InterruptedException e) {
+                        TimeUnit.MILLISECONDS.sleep(currentRetryInterval);
+                    } catch (InterruptedException ex) {
                         Thread.currentThread().interrupt();
                     }
+
+                    currentRetryInterval = currentRetryInterval * 2;
                 }
             }
         }
+
+        retrying = false;
+
         throw new JMSConnectorException(
                 "Connection to the jms provider failed after retrying for " + retryCount + " times");
     }

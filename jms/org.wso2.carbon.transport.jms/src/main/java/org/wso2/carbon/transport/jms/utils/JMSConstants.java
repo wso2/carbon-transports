@@ -40,7 +40,7 @@ public class JMSConstants {
      */
     public static final String PROTOCOL_JMS = "jms";
     /**
-     * ID of the service, that this listener is bounded to.
+     * ID of the service, that this receiver is bounded to.
      */
     public static final String JMS_SERVICE_ID = "JMS_SERVICE_ID";
 
@@ -104,12 +104,30 @@ public class JMSConstants {
     public static final String DURABLE_SUBSCRIBER_CLIENT_ID_PARAM_NAME = "durableSubscriberClientID";
     public static final String DURABLE_SUBSCRIBER_PARAM_NAME = "durableSubscriberName";
     public static final String PERSISTENCE = "Persistence";
-    public static final String CACHE_LEVEL = "CacheLevel";
+
+    /**
+     * Number of concurrent consumers to be spawned when the server connector is starting.
+     */
+    public static final String CONCURRENT_CONSUMERS = "concurrentConsumers";
+
+    /**
+     * The behavioural nature of the connection factory to use.
+     */
+    public static final String CONNECTION_FACTORY_NATURE = "connectionFactoryNature";
 
     public static final String CONNECTION_USERNAME = "connectionUsername";
     public static final String CONNECTION_PASSWORD = "connectionPassword";
     public static final String TRANSPORT_HEADERS = "TransportHeaders";
     public static final String TEXT_DATA = "TextData";
+
+    /**
+     * Max number of connection to create when {@link org.wso2.carbon.transport.jms.factory.PooledJMSConnectionFactory}
+     * is used.
+     */
+    public static final String MAX_CONNECTIONS = "maxConnections";
+
+
+    public static final String USE_RECEIVER = "useReceiver";
 
     /**
      * Namespace for JMS map payload representation.
@@ -144,8 +162,6 @@ public class JMSConstants {
      */
     public static final String CONNECTION_STRING = "connectionfactory.QueueConnectionFactory";
 
-    public static final String PARAM_CACHE_LEVEL = "transport.jms.CacheLevel";
-
     /**
      * Mapping between parameters and actual values.
      */
@@ -159,7 +175,6 @@ public class JMSConstants {
         mappingParameters.put(NAMING_FACTORY_INITIAL_PARAM_NAME, NAMING_FACTORY_INITIAL);
         mappingParameters.put(PROVIDER_URL_PARAM_NAME, PROVIDER_URL);
         mappingParameters.put(SESSION_ACK_MODE_PARAM_NAME, SESSION_ACK);
-        mappingParameters.put(CACHE_LEVEL, PARAM_CACHE_LEVEL);
         mappingParameters.put(SUBSCRIPTION_DURABLE_PARAM_NAME, PARAM_SUB_DURABLE);
         mappingParameters.put(DURABLE_SUBSCRIBER_CLIENT_ID_PARAM_NAME, PARAM_DURABLE_SUB_CLIENT_ID);
         mappingParameters.put(DURABLE_SUBSCRIBER_PARAM_NAME, PARAM_DURABLE_SUB_NAME);
@@ -210,29 +225,19 @@ public class JMSConstants {
     public static final String MAX_RETRY_COUNT = "maxRetryCount";
 
     /**
-     * Do not cache any JMS resources between tasks (when sending) or JMS CF's
-     * (when sending)
+     * Parameter to be passed in to select default connection factory nature.
      */
-    public static final int CACHE_NONE = 0;
+    public static final String DEFAULT_CONNECTION_FACTORY = "default";
+
     /**
-     * Cache only the JMS connection between tasks (when receiving), or JMS CF's
-     * (when sending)
+     * Parameter to be passed in to select cached connection factory nature.
      */
-    public static final int CACHE_CONNECTION = 1;
+    public static final String CACHED_CONNECTION_FACTORY = "cached";
+
     /**
-     * Cache only the JMS connection and Session between tasks (receiving), or
-     * JMS CF's (sending)
+     * Parameter to be passed in to select pooled connection factory nature.
      */
-    public static final int CACHE_SESSION = 2;
-    /**
-     * Cache the JMS connection, Session and Consumer between tasks when
-     * receiving
-     */
-    public static final int CACHE_CONSUMER = 3;
-    /**
-     * Cache the JMS connection, Session and Producer within a
-     * JMSConnectionFactory when sending
-     */
-    public static final int CACHE_PRODUCER = 4;
+    public static final String POOLED_CONNECTION_FACTORY = "pooled";
+
 
 }
