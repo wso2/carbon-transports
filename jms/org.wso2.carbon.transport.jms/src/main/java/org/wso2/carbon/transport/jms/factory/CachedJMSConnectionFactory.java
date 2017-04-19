@@ -19,7 +19,6 @@
 package org.wso2.carbon.transport.jms.factory;
 
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.Properties;
 
@@ -36,6 +35,37 @@ import javax.jms.Session;
  * if needed to cache connections.
  */
 public class CachedJMSConnectionFactory extends JMSConnectionFactory {
+
+    /**
+     * Parameter for passing in cache level.
+     */
+    public static final String PARAM_CACHE_LEVEL = "transport.jms.CacheLevel";
+
+    /**
+     * Do not cache any JMS resources between tasks (when sending) or JMS CF's
+     * (when sending)
+     */
+    public static final int CACHE_NONE = 0;
+    /**
+     * Cache only the JMS connection between tasks (when receiving), or JMS CF's
+     * (when sending)
+     */
+    public static final int CACHE_CONNECTION = 1;
+    /**
+     * Cache only the JMS connection and Session between tasks (receiving), or
+     * JMS CF's (sending)
+     */
+    public static final int CACHE_SESSION = 2;
+    /**
+     * Cache the JMS connection, Session and Consumer between tasks when
+     * receiving
+     */
+    public static final int CACHE_CONSUMER = 3;
+    /**
+     * Cache the JMS connection, Session and Producer within a
+     * JMSConnectionFactory when sending
+     */
+    public static final int CACHE_PRODUCER = 4;
 
     /**
      * Indicates cache level given by the user.
@@ -74,11 +104,11 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
     }
 
     private void setValues(Properties properties) {
-        String cacheLevel = properties.getProperty(JMSConstants.PARAM_CACHE_LEVEL);
+        String cacheLevel = properties.getProperty(PARAM_CACHE_LEVEL);
         if (null != cacheLevel && !cacheLevel.isEmpty()) {
             this.cacheLevel = Integer.parseInt(cacheLevel);
         } else {
-            this.cacheLevel = JMSConstants.CACHE_NONE;
+            this.cacheLevel = CACHE_NONE;
         }
     }
 
@@ -96,11 +126,17 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
     @Override
     public Connection createConnection() throws JMSException {
         Connection connection;
-        if (cachedConnection == null) {
-            connection = super.createConnection();
-            cachedConnection = connection;
+
+        if (cacheLevel >= CACHE_CONNECTION) {
+
+            if (cachedConnection == null) {
+                connection = super.createConnection();
+                cachedConnection = connection;
+            } else {
+                connection = cachedConnection;
+            }
         } else {
-            connection = cachedConnection;
+            connection = super.createConnection();
         }
 
         return connection;
@@ -155,9 +191,19 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
      */
     @Override
     public Session createSession(Connection connection) throws JMSConnectorException {
-        Session session = super.createSession(connection);
-        if (this.cacheLevel >= JMSConstants.CACHE_SESSION) {
-            cachedSession = session;
+        Session session;
+
+        if (cacheLevel >= CACHE_SESSION) {
+
+            if (cachedSession == null) {
+                session = super.createSession(connection);
+                cachedSession = session;
+            } else {
+                session = cachedSession;
+            }
+
+        } else {
+            session = super.createSession(connection);
         }
         return session;
     }
@@ -180,10 +226,21 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
     @Override
     public MessageConsumer createMessageConsumer(Session session, Destination destination)
             throws JMSConnectorException {
-        MessageConsumer messageConsumer = super.createMessageConsumer(session, destination);
-        if (this.cacheLevel >= JMSConstants.CACHE_CONSUMER) {
-            cachedMessageConsumer = messageConsumer;
+
+        MessageConsumer messageConsumer;
+
+        if (cacheLevel >= CACHE_CONSUMER) {
+
+            if (cachedMessageConsumer == null) {
+                messageConsumer = super.createMessageConsumer(session, destination);
+                cachedMessageConsumer = messageConsumer;
+            } else {
+                messageConsumer = cachedMessageConsumer;
+            }
+        } else {
+            messageConsumer = super.createMessageConsumer(session, destination);
         }
+
         return messageConsumer;
     }
 
@@ -208,10 +265,18 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
     @Override
     public MessageProducer createMessageProducer(Session session, Destination destination)
             throws JMSConnectorException {
-        MessageProducer messageProducer = super.createMessageProducer(session, destination);
-        if (this.cacheLevel >= JMSConstants.CACHE_PRODUCER) {
-            cachedMessageProducer = messageProducer;
+        MessageProducer messageProducer;
+        if (this.cacheLevel >= CACHE_PRODUCER) {
+            if (cachedMessageProducer == null) {
+                messageProducer = super.createMessageProducer(session, destination);
+                cachedMessageProducer = messageProducer;
+            } else {
+                messageProducer = cachedMessageProducer;
+            }
+        } else {
+            messageProducer = super.createMessageProducer(session, destination);
         }
+
         return messageProducer;
     }
 
@@ -227,11 +292,14 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
     @Override
     public void closeConnection(Connection connection) throws JMSConnectorException {
         try {
-            if (this.cacheLevel < JMSConstants.CACHE_CONNECTION) {
-                connection.close();
-            }
+            connection.close();
         } catch (JMSException e) {
             throw new JMSConnectorException("JMS Exception while closing the connection.", e);
+        } finally {
+            if (cacheLevel >= CACHE_CONNECTION && cachedConnection != null &&
+                    cachedConnection.equals(connection)) {
+                cachedConnection = null;
+            }
         }
     }
 
@@ -241,11 +309,14 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
     @Override
     public void closeMessageConsumer(MessageConsumer messageConsumer) throws JMSConnectorException {
         try {
-            if (this.cacheLevel < JMSConstants.CACHE_CONSUMER) {
-                messageConsumer.close();
-            }
+            messageConsumer.close();
         } catch (JMSException e) {
             throw new JMSConnectorException("JMS Exception while closing the consumer.", e);
+        } finally {
+            if (cacheLevel >= CACHE_CONSUMER && cachedMessageConsumer != null &&
+                    cachedMessageConsumer.equals(messageConsumer)) {
+                cachedMessageConsumer = null;
+            }
         }
     }
 
@@ -255,11 +326,14 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
     @Override
     public void closeMessageProducer(MessageProducer messageProducer) throws JMSConnectorException {
         try {
-            if (this.cacheLevel < JMSConstants.CACHE_PRODUCER) {
-                messageProducer.close();
-            }
+            messageProducer.close();
         } catch (JMSException e) {
             throw new JMSConnectorException("JMS Exception while closing the producer.", e);
+        } finally {
+            if (cacheLevel >= CACHE_PRODUCER && cachedMessageProducer != null &&
+                    cachedMessageProducer.equals(messageProducer)) {
+                cachedMessageProducer = null;
+            }
         }
     }
 
@@ -269,11 +343,13 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
     @Override
     public void closeSession(Session session) throws JMSConnectorException {
         try {
-            if (this.cacheLevel < JMSConstants.CACHE_SESSION) {
-                session.close();
-            }
+            session.close();
         } catch (JMSException e) {
             throw new JMSConnectorException("JMS Exception while closing the session.", e);
+        } finally {
+            if (cacheLevel >= CACHE_SESSION && cachedSession != null && cachedSession.equals(session)) {
+                cachedSession = null;
+            }
         }
     }
 

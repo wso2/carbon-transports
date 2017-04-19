@@ -58,8 +58,19 @@ public class PooledConnectionKey {
      * Pre-populate hashCode.
      */
     private void generateHashCode() {
+        int usernameHash = 0;
+        int passwordHash = 0;
+
+        if (username != null) {
+            usernameHash = username.hashCode();
+        }
+
         // Why 31? - http://stackoverflow.com/questions/299304/why-does-javas-hashcode-in-string-use-31-as-a-multiplier
-        hashCode = username.hashCode() + 31 * password.hashCode();
+        if (password  != null) {
+            passwordHash = 31 * password.hashCode();
+        }
+
+        hashCode = usernameHash + passwordHash;
     }
 
     @Override
