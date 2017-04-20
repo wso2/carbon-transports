@@ -14,20 +14,15 @@
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
+ *
  */
-package org.wso2.carbon.connector.framework.server.listening;
 
-import org.wso2.carbon.messaging.ServerConnector;
-
-import java.util.Map;
+package org.wso2.carbon.transport.http.netty.util.client.websocket;
 
 /**
- * This class represents listening type of server connector. When adding a new listening type of server connector
- * (eg: http), this class needs to be extended, implement the start, stop the methods.
+ * WebSocket constants for testing purposes.
  */
-public abstract class ListeningServerConnector extends ServerConnector {
-
-    public ListeningServerConnector(String id, Map<String, String> properties) {
-        super(id, properties);
-    }
+public class WebSocketTestConstants {
+    public static final String NEW_CLIENT_CONNECTED = "NEW_CLIENT_CONNECTED";
+    public static final String CLIENT_LEFT = "CLIENT_LEFT";
 }

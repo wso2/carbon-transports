@@ -82,7 +82,8 @@ public class ConnectorManager {
      * @return returns the newly created instance.
      * @throws ServerConnectorException error if there are no server connector provider found.
      */
-    public ServerConnector createServerConnector(String protocol, String id) throws ServerConnectorException {
+    public ServerConnector createServerConnector(String protocol, String id, Map<String, String> properties)
+            throws ServerConnectorException {
         Optional<ServerConnectorProvider> serverConnectorProviderOptional = getServerConnectorProvider(protocol);
 
         if (!serverConnectorProviderOptional.isPresent()) {
@@ -90,7 +91,7 @@ public class ConnectorManager {
                     "provider available for protocol : " + protocol);
         }
 
-        ServerConnector serverConnector = serverConnectorProviderOptional.get().createConnector(id);
+        ServerConnector serverConnector = serverConnectorProviderOptional.get().createConnector(id, properties);
         serverConnector.setMessageProcessor(messageProcessor);
         registerServerConnector(serverConnector);
         return serverConnector;
@@ -166,6 +167,16 @@ public class ConnectorManager {
 
         //3. Initialize all server connectors
         initializeServerConnectors();
+    }
+
+    /**
+     * Start all the server Connectors.
+     * @throws ServerConnectorException if error occure while starting connector.
+     */
+    public void startConnectors() throws ServerConnectorException {
+        for (ServerConnector serverConnector: serverConnectors.values()) {
+            serverConnector.start();
+        }
     }
 
     /**

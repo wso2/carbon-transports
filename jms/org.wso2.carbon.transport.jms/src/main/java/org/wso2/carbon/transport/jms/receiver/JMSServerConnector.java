@@ -36,7 +36,7 @@ import java.util.Properties;
 import java.util.Set;
 
 /**
- * This is a transport receiver for JMS.
+ * This is the transport receiver for JMS.
  */
 public class JMSServerConnector extends ServerConnector {
     private static final Logger logger = LoggerFactory.getLogger(JMSServerConnector.class);
@@ -96,16 +96,18 @@ public class JMSServerConnector extends ServerConnector {
      * Creates a jms server connector with the id.
      *
      * @param id Unique identifier for the server connector.
+     * @param properties require to initialize
      */
-    public JMSServerConnector(String id) {
-        super(id);
+    public JMSServerConnector(String id, Map<String, String> properties) {
+        super(id, properties);
     }
 
     /**
      * Creates a jms server connector with the protocol name.
+     * @param properties need to initialize.
      */
-    public JMSServerConnector() {
-        super(JMSConstants.PROTOCOL_JMS);
+    public JMSServerConnector(Map<String, String> properties) {
+        super(JMSConstants.PROTOCOL_JMS, properties);
     }
 
     /**
@@ -193,13 +195,10 @@ public class JMSServerConnector extends ServerConnector {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void start(Map<String, String> map) throws ServerConnectorException {
+    public void start() throws ServerConnectorException {
         properties = new Properties();
-        Set<Map.Entry<String, String>> set = map.entrySet();
+        Set<Map.Entry<String, String>> set = getProperties().entrySet();
         for (Map.Entry<String, String> entry : set) {
             String mappedParameter = JMSConstants.MAPPING_PARAMETERS.get(entry.getKey());
             if (mappedParameter != null) {
@@ -207,35 +206,35 @@ public class JMSServerConnector extends ServerConnector {
             }
         }
 
-        userName = map.get(JMSConstants.CONNECTION_USERNAME);
-        password = map.get(JMSConstants.CONNECTION_PASSWORD);
-        String retryIntervalParam = map.get(JMSConstants.RETRY_INTERVAL);
+        userName = getProperties().get(JMSConstants.CONNECTION_USERNAME);
+        password = getProperties().get(JMSConstants.CONNECTION_PASSWORD);
+        String retryIntervalParam = super.properties.get(JMSConstants.RETRY_INTERVAL);
         if (retryIntervalParam != null) {
             try {
                 this.retryInterval = Long.parseLong(retryIntervalParam);
             } catch (NumberFormatException ex) {
                 logger.error("Provided value for retry interval is invalid, using the default retry interval value "
-                        + this.retryInterval);
+                                     + this.retryInterval);
             }
         }
 
-        String maxRetryCountParam = map.get(JMSConstants.MAX_RETRY_COUNT);
+        String maxRetryCountParam = super.properties.get(JMSConstants.MAX_RETRY_COUNT);
         if (maxRetryCountParam != null) {
             try {
                 this.maxRetryCount = Integer.parseInt(maxRetryCountParam);
             } catch (NumberFormatException ex) {
                 logger.error("Provided value for max retry count is invalid, using the default max retry count "
-                        + this.maxRetryCount);
+                                     + this.maxRetryCount);
             }
         }
 
-        String useReceiverParam = map.get(JMSConstants.USE_RECEIVER);
+        String useReceiverParam = super.properties.get(JMSConstants.USE_RECEIVER);
 
         if (useReceiverParam != null) {
             useReceiver = Boolean.parseBoolean(useReceiverParam);
         }
 
-        String concurrentConsumers = map.get(JMSConstants.CONCURRENT_CONSUMERS);
+        String concurrentConsumers = super.properties.get(JMSConstants.CONCURRENT_CONSUMERS);
 
         if (concurrentConsumers != null) {
             try {
@@ -261,7 +260,7 @@ public class JMSServerConnector extends ServerConnector {
             }
         }
 
-        String connectionFacNatureParam = map.get(JMSConstants.CONNECTION_FACTORY_NATURE);
+        String connectionFacNatureParam = super.properties.get(JMSConstants.CONNECTION_FACTORY_NATURE);
 
         if (connectionFacNatureParam != null) {
             connectionFactoryNature = connectionFacNatureParam;
