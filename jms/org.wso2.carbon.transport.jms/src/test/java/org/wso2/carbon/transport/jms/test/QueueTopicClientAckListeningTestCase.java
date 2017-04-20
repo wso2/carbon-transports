@@ -70,7 +70,7 @@ public class QueueTopicClientAckListeningTestCase {
         jmsQueueTransportListener.setMessageProcessor(queueTestMessageProcessor);
 
         // Create a topic transport listener
-        jmsTopicTransportListener = new JMSServerConnector("2", queueListeningParameters);
+        jmsTopicTransportListener = new JMSServerConnector("2", topicListeningParameters);
         topicTestMessageProcessor = new TestMessageProcessor();
         jmsTopicTransportListener.setMessageProcessor(topicTestMessageProcessor);
     }
