@@ -171,17 +171,17 @@ public class FileConsumer {
 
 
     /**
-     * Setup the required transport parameters
+     * Setup the required transport parameters.
      */
     private void setupParams() throws ServerConnectorException {
         fileURI = fileProperties.get(Constants.TRANSPORT_FILE_FILE_URI);
         if (fileURI == null) {
             throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " is a " +
-                    "mandatory parameter for " + Constants.PROTOCOL_NAME + " transport.");
+                    "mandatory parameter for " + Constants.PROTOCOL_FILE + " transport.");
         }
         if (fileURI.trim().equals("")) {
             throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " parameter " +
-                    "cannot be empty for " + Constants.PROTOCOL_NAME + " transport.");
+                    "cannot be empty for " + Constants.PROTOCOL_FILE + " transport.");
         }
         String strDeleteIfNotAck = fileProperties.get(Constants.READ_FILE_FROM_BEGINNING);
         if (strDeleteIfNotAck != null) {
@@ -212,7 +212,7 @@ public class FileConsumer {
     }
 
     /**
-     * Actual processing of the file/folder
+     * Actual processing of the file/folder.
      *
      * @param file
      * @return
@@ -328,7 +328,7 @@ public class FileConsumer {
 
                 FileCarbonMessage cMessage = new FileCarbonMessage();
                 cMessage.setFilePath(file.getURL().toString());
-                cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_NAME);
+                cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE);
                 cMessage.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
                 cMessage.setProperty(Constants.FILE_TRANSPORT_EVENT_NAME, Constants.FILE_ROTATE);
 
@@ -343,7 +343,7 @@ public class FileConsumer {
 
             try {
                 CarbonMessage cMessage = new TextCarbonMessage(content);
-                cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_NAME);
+                cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE);
                 cMessage.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
                 cMessage.setProperty(Constants.FILE_TRANSPORT_EVENT_NAME, Constants.FILE_UPDATE);
 

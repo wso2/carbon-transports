@@ -23,7 +23,7 @@ package org.wso2.carbon.transport.file.connector.server.util;
  */
 public final class Constants {
 
-    public static final String PROTOCOL_NAME = "file";
+    public static final String PROTOCOL_FILE = "file";
 
     //transport properties
     public static final String FILE_TRANSPORT_PROPERTY_SERVICE_NAME = "TRANSPORT_FILE_SERVICE_NAME";

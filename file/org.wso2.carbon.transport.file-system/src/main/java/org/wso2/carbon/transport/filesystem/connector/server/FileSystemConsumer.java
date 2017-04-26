@@ -121,8 +121,8 @@ public class FileSystemConsumer {
                 isFileExists = fileObject.exists();
             } catch (FileSystemException e) {
                 throw new FileSystemServerConnectorException("Error occurred when determining" +
-                                                             " whether the file at URI : " + maskURLPassword(fileURI)
-                                                             + " exists. " + e);
+                                                             " whether the file at URI : " + maskURLPassword(fileURI) +
+                                                             " exists. " + e);
             }
 
             boolean isFileReadable;
@@ -130,8 +130,8 @@ public class FileSystemConsumer {
                 isFileReadable = fileObject.isReadable();
             } catch (FileSystemException e) {
                 throw new FileSystemServerConnectorException("Error occurred when determining whether" +
-                                                             " the file at URI : " + maskURLPassword(fileURI)
-                                                             + " is readable. " + e);
+                                                             " the file at URI : " + maskURLPassword(fileURI) +
+                                                             " is readable. " + e);
             }
 
             if (isFileExists && isFileReadable) {
@@ -140,8 +140,8 @@ public class FileSystemConsumer {
                     fileType = fileObject.getType();
                 } catch (FileSystemException e) {
                     throw new FileSystemServerConnectorException("Error occurred when determining whether file: " +
-                                                                 maskURLPassword(fileURI)
-                                                                 + " is a file or a folder", e);
+                                                                 maskURLPassword(fileURI) + " is a file or a folder",
+                                                                 e);
                 }
 
                 if (fileType == FileType.FILE) {
@@ -196,8 +196,9 @@ public class FileSystemConsumer {
     private void setupParams() throws ServerConnectorException {
         fileURI = fileProperties.get(Constants.TRANSPORT_FILE_FILE_URI);
         if (fileURI == null) {
-            throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " is a " + "mandatory parameter for "
-                                               + Constants.PROTOCOL_FILE_SYSTEM + " transport.");
+            throw new ServerConnectorException(
+                    Constants.TRANSPORT_FILE_FILE_URI + " is a " + "mandatory parameter for " +
+                    Constants.PROTOCOL_FILE_SYSTEM + " transport.");
         }
         if (fileURI.trim().equals("")) {
             throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " parameter " +
@@ -382,39 +383,6 @@ public class FileSystemConsumer {
      * @return
      */
     private FileObject processFile(FileObject file) throws FileSystemServerConnectorException {
-        /*FileContent content;
-        String fileURI;
-
-        String fileName = file.getName().getBaseName();
-        String filePath = file.getName().getPath();
-        fileURI = file.getName().getURI();
-        try {
-            content = file.getContent();
-        } catch (FileSystemException e) {
-            throw new FileServerConnectorException(
-                    "Could not read content of file at URI: " + maskURLPassword(fileURI) + ". ", e);
-        }
-
-        InputStream inputStream;
-        try {
-            inputStream = content.getInputStream();
-        } catch (FileSystemException e) {
-            throw new FileServerConnectorException("Error occurred when trying to get " +
-                                                   "input stream from file at URI :" +
-                                                   maskURLPassword(fileURI), e);
-        }
-        CarbonMessage cMessage = new StreamingCarbonMessage(inputStream);
-        cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE_SYSTEM);
-        cMessage.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
-        cMessage.setHeader(Constants.FILE_PATH, filePath);
-        cMessage.setHeader(Constants.FILE_NAME, fileName);
-        cMessage.setHeader(Constants.FILE_URI, fileURI);
-        try {
-            cMessage.setHeader(Constants.FILE_LENGTH, Long.toString(content.getSize()));
-            cMessage.setHeader(Constants.LAST_MODIFIED, Long.toString(content.getLastModifiedTime()));
-        } catch (FileSystemException e) {
-            log.warn("Unable to set file length or last modified date header.", e);
-        }*/
 
         FileCarbonMessage fileMessage = new FileCarbonMessage();
         fileMessage.setFilePath(file.getName().getURI());
@@ -425,8 +393,8 @@ public class FileSystemConsumer {
         try {
             messageProcessor.receive(fileMessage, callback);
         } catch (Exception e) {
-            throw new FileSystemServerConnectorException("Failed to send stream from file: " + maskURLPassword(fileURI)
-                                                         + " to message processor. ", e);
+            throw new FileSystemServerConnectorException(
+                    "Failed to send stream from file: " + maskURLPassword(fileURI) + " to message processor. ", e);
         }
         try {
             callback.waitTillDone(timeOutInterval, deleteIfNotAck, fileURI);
