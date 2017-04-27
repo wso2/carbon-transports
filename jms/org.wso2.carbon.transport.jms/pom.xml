@@ -82,5 +82,8 @@
             org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}"
         </import.package>
         <bundle.activator>org.wso2.carbon.transport.jms.internal.JMSConnectorBundleActivator</bundle.activator>
+        <carbon.component>
+            osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"
+        </carbon.component>
     </properties>
 </project>
