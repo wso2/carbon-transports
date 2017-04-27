@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.jms.callback;
 
-import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
+import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import javax.jms.JMSException;
@@ -29,45 +29,43 @@ import javax.jms.Session;
 /**
  * Callback to be used when there is a need for acknowledgement.
  */
-public class AcknowledgementCallback implements CarbonCallback {
+public class AcknowledgementCallback extends JMSCallback {
     /**
      * The {@link Message} instance representing JMS Message related with this callback.
      */
     private Message message;
-    /**
-     * The {@link Session} instance representing JMS Session related with this call back
-     */
-    private Session session;
 
     /**
      * Creates a acknowledgement call back to acknowledge or recover messages in client acknowledgement mode
      *
-     * @param message {@link Message} JMS message related with this call back
      * @param session {@link Session} JMS session related with this call back
+     * @param caller {@link Object} The caller object which needs to wait for the jms acknowledgement to be completed
+     * @param message {@link Message} JMS message related with this call back
      */
-    public AcknowledgementCallback(Message message, Session session) {
+    public AcknowledgementCallback(Session session, Object caller, Message message) {
+        super(session, caller);
         this.message = message;
-        this.session = session;
     }
 
     /**
-     * {@inheritDoc}
+     * Acknowledges the received message or recovers the session if there was an error then notify the caller.
+     *
+     * @param carbonMessage The received message
      */
     @Override
     public void done(CarbonMessage carbonMessage) {
-        if (carbonMessage.getProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS).toString()
-                .equalsIgnoreCase(JMSConstants.JMS_MESSAGE_DELIVERY_SUCCESS)) {
-            try {
+
+        try {
+            if (carbonMessage.getProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS).toString()
+                    .equalsIgnoreCase(JMSConstants.JMS_MESSAGE_DELIVERY_SUCCESS)) {
                 message.acknowledge();
-            } catch (JMSException e) {
-                throw new RuntimeException("Error while acknowledging the message. ", e);
+            } else {
+                recoverSession();
             }
-        } else {
-            try {
-                session.recover();
-            } catch (JMSException e) {
-                throw new RuntimeException("Error while recovering the session. ", e);
-            }
+        } catch (JMSException | JMSConnectorException e) {
+            throw new RuntimeException("Error completing the acknowledgement callback", e);
+        } finally {
+            markAsComplete();
         }
     }
 }

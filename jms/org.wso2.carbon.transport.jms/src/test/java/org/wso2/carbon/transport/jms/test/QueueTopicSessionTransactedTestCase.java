@@ -24,7 +24,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
-import org.wso2.carbon.transport.jms.listener.JMSServerConnector;
+import org.wso2.carbon.transport.jms.receiver.JMSServerConnector;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
 import org.wso2.carbon.transport.jms.test.util.JMSTestUtils;
@@ -53,7 +53,7 @@ public class QueueTopicSessionTransactedTestCase {
      *
      * @throws ServerConnectorException Server Connector Exception
      */
-    @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS listener and message processor")
+    @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS receiver and message processor")
     public void setUp() throws ServerConnectorException {
         queueListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.QUEUE_NAME_3,
                 JMSTestConstants.QUEUE_CONNECTION_FACTORY, JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants

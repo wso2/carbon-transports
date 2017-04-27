@@ -24,7 +24,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
-import org.wso2.carbon.transport.jms.listener.JMSServerConnector;
+import org.wso2.carbon.transport.jms.receiver.JMSServerConnector;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
 import org.wso2.carbon.transport.jms.test.util.JMSTestUtils;
@@ -47,15 +47,17 @@ public class QueueTopicAutoAckListeningTestCase {
     private JMSServerConnector jmsTopicTransportListener;
     private static final Logger logger = LoggerFactory.getLogger(QueueTopicAutoAckListeningTestCase.class);
 
-    @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS listener and message processor")
+    @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS receiver and message processor")
     public void setUp() throws ServerConnectorException {
-        queueListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.QUEUE_NAME,
-                JMSTestConstants.QUEUE_CONNECTION_FACTORY, JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants
-                        .AUTO_ACKNOWLEDGE_MODE);
+        queueListeningParameters = JMSTestUtils.
+                createJMSListeningParameterMap(JMSTestConstants.QUEUE_NAME,
+                                               JMSTestConstants.QUEUE_CONNECTION_FACTORY,
+                                               JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants.AUTO_ACKNOWLEDGE_MODE);
 
-        topicListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.TOPIC_NAME,
-                JMSTestConstants.TOPIC_CONNECTION_FACTORY, JMSConstants.DESTINATION_TYPE_TOPIC, JMSConstants
-                        .AUTO_ACKNOWLEDGE_MODE);
+        topicListeningParameters = JMSTestUtils.
+                createJMSListeningParameterMap(JMSTestConstants.TOPIC_NAME,
+                                               JMSTestConstants.TOPIC_CONNECTION_FACTORY,
+                                               JMSConstants.DESTINATION_TYPE_TOPIC, JMSConstants.AUTO_ACKNOWLEDGE_MODE);
         jmsServer = new JMSServer();
         jmsServer.startServer();
 
@@ -82,8 +84,8 @@ public class QueueTopicAutoAckListeningTestCase {
         logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME);
         jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME);
         Assert.assertEquals(queueTestMessageProcessor.getCount(), 10,
-                "Expected message count is not received when " + "listening to queue "
-                        + JMSTestConstants.QUEUE_NAME);
+                            "Expected message count is not received when " + "listening to queue "
+                                    + JMSTestConstants.QUEUE_NAME);
         jmsQueueTransportListener.stop();
     }
 
@@ -99,8 +101,8 @@ public class QueueTopicAutoAckListeningTestCase {
         logger.info("JMS Transport Listener is starting to listen to the topic " + JMSTestConstants.TOPIC_NAME);
         jmsServer.publishMessagesToTopic(JMSTestConstants.TOPIC_NAME);
         Assert.assertEquals(topicTestMessageProcessor.getCount(), 10,
-                "Expected message count is not received when " + "listening to topic "
-                        + JMSTestConstants.TOPIC_NAME);
+                            "Expected message count is not received when " + "listening to topic "
+                                    + JMSTestConstants.TOPIC_NAME);
         jmsTopicTransportListener.stop();
     }
 
