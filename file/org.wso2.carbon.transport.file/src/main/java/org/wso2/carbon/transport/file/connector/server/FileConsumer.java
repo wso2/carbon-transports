@@ -62,8 +62,8 @@ public class FileConsumer {
     private final byte[] inbuf = new byte[4096];
     private boolean end = true;
     private boolean reOpen = true;
-    long currentTime = 0L;
-    long position = 0L;
+    private long currentTime = 0L;
+    private long position = 0L;
     private RandomAccessContent reader = null;
 
     public FileConsumer(String id, Map<String, String> fileProperties,
@@ -111,8 +111,7 @@ public class FileConsumer {
      */
     public void consume() throws FileServerConnectorException {
         if (log.isDebugEnabled()) {
-            log.debug("Polling for file : " +
-                    FileTransportUtils.maskURLPassword(fileURI));
+            log.debug("Polling for file : " + FileTransportUtils.maskURLPassword(fileURI));
         }
 
         // If file/folder found proceed to the processing stage
@@ -146,17 +145,14 @@ public class FileConsumer {
                 processFile(fileObject);
             } else {
                 throw new FileServerConnectorException(
-                        "File: " + FileTransportUtils.maskURLPassword(fileURI) + " is not a file " +
-                        (fileType == null ? "" : ". Found file type: " + fileType.toString()));
+                        "Unable to access or read file or directory : " + FileTransportUtils.maskURLPassword(fileURI) +
+                        ". Reason: " +
+                        (isFileExists ? (isFileReadable ? "Unknown reason" : "The file can not be read!") :
+                         "The file does not exist!"));
             }
-        } else {
-            throw new FileServerConnectorException(
-                    "Unable to access or read file or directory : " + FileTransportUtils.maskURLPassword(fileURI) +
-                    ". Reason: " + (isFileExists ? (isFileReadable ? "Unknown reason" : "The file can not be read!") :
-                                    "The file does not exist!"));
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("End : Scanning directory or file : " + FileTransportUtils.maskURLPassword(fileURI));
+            if (log.isDebugEnabled()) {
+                log.debug("End : Scanning directory or file : " + FileTransportUtils.maskURLPassword(fileURI));
+            }
         }
     }
 
@@ -236,11 +232,11 @@ public class FileConsumer {
                 }
 
                 if (this.reOpen) {
+                    FileObject parent = fileObject.getParent();
+                    parent.getType(); // assure that parent folder is attached
+                    parent.refresh();
                     fileObject.refresh();
                     reader.close();
-                }
-
-                if (this.reOpen) {
                     reader = fileObject.getContent().getRandomAccessContent(RandomAccessMode.READ);
                     reader.seek(position);
                 }

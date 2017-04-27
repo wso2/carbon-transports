@@ -44,6 +44,7 @@ public class FileServerConnectorTestCase {
         String fileURI = new File(classLoader.getResource("test.txt").getFile()).getAbsolutePath();
         Map<String, String> parameters = new HashMap<>();
         parameters.put(Constants.TRANSPORT_FILE_FILE_URI, fileURI);
+        parameters.put(Constants.READ_FILE_FROM_BEGINNING, "false");
         parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "1000");
         ServerConnector connector = provider.createConnector("testService", parameters);
 
