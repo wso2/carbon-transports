@@ -19,7 +19,6 @@
 package org.wso2.carbon.transport.file.test;
 
 import org.testng.Assert;
-
 import org.testng.annotations.Test;
 import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;

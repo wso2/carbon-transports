@@ -20,7 +20,7 @@
     <parent>
         <artifactId>org.wso2.carbon.transport.jms.parent</artifactId>
         <groupId>org.wso2.carbon.transport</groupId>
-        <version>4.3.2-SNAPSHOT</version>
+        <version>4.4.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -81,5 +81,9 @@
             javax.jms.*;version="${javax.jms.import.version.range}",
             org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}"
         </import.package>
+        <bundle.activator>org.wso2.carbon.transport.jms.internal.JMSConnectorBundleActivator</bundle.activator>
+        <carbon.component>
+            osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"
+        </carbon.component>
     </properties>
 </project>

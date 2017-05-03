@@ -35,6 +35,7 @@ public abstract class PollingServerConnector extends ServerConnector {
 
     /**
      * The start polling method which should be called when starting the polling with given interval.
+     * @throws ServerConnectorException if a error happen while starting the connector.
      */
     @Override
     public void start() throws ServerConnectorException {
