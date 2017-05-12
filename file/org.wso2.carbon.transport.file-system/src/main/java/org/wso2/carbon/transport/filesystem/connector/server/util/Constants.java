@@ -23,7 +23,7 @@ package org.wso2.carbon.transport.filesystem.connector.server.util;
  */
 public final class Constants {
 
-    public static final String PROTOCOL_FILE_SYSTEM = "file-system";
+    public static final String PROTOCOL_FILE_SYSTEM = "filesystem";
 
     //transport properties
     public static final String FILE_TRANSPORT_PROPERTY_SERVICE_NAME = "TRANSPORT_FILE_SERVICE_NAME";
@@ -41,7 +41,8 @@ public final class Constants {
     public static final String FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP = "lastModifiedTimestamp";
     public static final String FILE_SORT_ORDER = "fileSortAscending";
     public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "acknowledgementTimeOut";
-    public static final String FILE_DELETE_IF_NOT_ACKNOWLEDGED = "deleteIfNotAcknowledged";
+    public static final String FILE_CONT_IF_NOT_ACKNOWLEDGED = "continueIfNotAcknowledged";
+    public static final String FILE_UNZIP = "unzip";
     public static final String FILE_NAME_PATTERN = "fileNamePattern";
     public static final String ACTION_AFTER_PROCESS = "actionAfterProcess";
     public static final String MOVE_TIMESTAMP_FORMAT = "moveTimestampFormat";
@@ -50,6 +51,7 @@ public final class Constants {
     public static final String LOCKING = "locking";
 
     public static final String ACTION_MOVE = "MOVE";
+    public static final String ACTION_DELETE = "DELETE";
 
     public static final String SCHEME = "VFS_SCHEME";
     public static final String SFTP_PREFIX = "sftp";
