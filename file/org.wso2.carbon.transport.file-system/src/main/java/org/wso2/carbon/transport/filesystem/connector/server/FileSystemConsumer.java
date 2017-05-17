@@ -36,22 +36,14 @@ import org.wso2.carbon.transport.filesystem.connector.server.exception.FileSyste
 import org.wso2.carbon.transport.filesystem.connector.server.util.Constants;
 import org.wso2.carbon.transport.filesystem.connector.server.util.FileTransportUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.File;
 import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
-
-import static org.wso2.carbon.transport.filesystem.connector.server.util.FileTransportUtils.maskURLPassword;
 
 /**
  * Provides the capability to process a file and delete it afterwards.
@@ -69,6 +61,7 @@ public class FileSystemConsumer {
     private FileSystemOptions fso;
     private boolean fileLock = true;
     private boolean unzip = false;
+    private boolean processFailed = false;
     /**
      * Time-out interval (in mill-seconds) to wait for the callback.
      */
@@ -102,7 +95,8 @@ public class FileSystemConsumer {
         try {
             fileObject = fsManager.resolveFile(fileURI, fso);
         } catch (FileSystemException e) {
-            throw new FileSystemServerConnectorException("Failed to resolve fileURI: " + maskURLPassword(fileURI), e);
+            throw new FileSystemServerConnectorException("Failed to resolve fileURI: "
+                                                         + FileTransportUtils.maskURLPassword(fileURI), e);
         }
     }
 
@@ -112,7 +106,7 @@ public class FileSystemConsumer {
      */
     public void consume() throws FileSystemServerConnectorException {
         if (log.isDebugEnabled()) {
-            log.debug("Polling for directory or file : " + maskURLPassword(fileURI));
+            log.debug("Polling for directory or file : " + FileTransportUtils.maskURLPassword(fileURI));
         }
 
         // If file/folder found proceed to the processing stage
@@ -124,7 +118,8 @@ public class FileSystemConsumer {
                 isFileReadable = fileObject.isReadable();
             } catch (FileSystemException e) {
                 throw new FileSystemServerConnectorException("Error occurred when determining" +
-                                                             " whether the file at URI : " + maskURLPassword(fileURI) +
+                                                             " whether the file at URI : " +
+                                                             FileTransportUtils.maskURLPassword(fileURI) +
                                                              " exists and readable. " + e);
             }
 
@@ -134,8 +129,8 @@ public class FileSystemConsumer {
                     fileType = fileObject.getType();
                 } catch (FileSystemException e) {
                     throw new FileSystemServerConnectorException("Error occurred when determining whether file: " +
-                                                                 maskURLPassword(fileURI) + " is a file or a folder",
-                                                                 e);
+                                                                 FileTransportUtils.maskURLPassword(fileURI)
+                                                                 + " is a file or a folder", e);
                 }
                 if (fileType == FileType.FILE) {
                     fileHandler(fileObject);
@@ -147,25 +142,25 @@ public class FileSystemConsumer {
                         if (log.isDebugEnabled()) {
                             log.debug("The file does not exist, or is not a folder, or an error " +
                                       "has occurred when trying to list the children. File URI : " +
-                                      maskURLPassword(fileURI), ignored);
+                                      FileTransportUtils.maskURLPassword(fileURI), ignored);
                         }
                     }
                     // if this is a file that would translate to a single message
                     if (children == null || children.length == 0) {
                         if (log.isDebugEnabled()) {
-                            log.debug("Folder at " + maskURLPassword(fileURI) + " is empty.");
+                            log.debug("Folder at " + FileTransportUtils.maskURLPassword(fileURI) + " is empty.");
                         }
                     } else {
                         directoryHandler(children);
                     }
                 } else {
                     throw new FileSystemServerConnectorException(
-                            "File: " + maskURLPassword(fileURI) + " is neither a file or " +
+                            "File: " + FileTransportUtils.maskURLPassword(fileURI) + " is neither a file or " +
                             "a folder" + (fileType == null ? "" : ". Found file type: " + fileType.toString()));
                 }
             } else {
                 throw new FileSystemServerConnectorException(
-                        "Unable to access or read file or directory : " + maskURLPassword(fileURI) +
+                        "Unable to access or read file or directory : " + FileTransportUtils.maskURLPassword(fileURI) +
                         ". Reason: " +
                         (isFileExists ? (isFileReadable ? "Unknown reason" : "The file can not be read!") :
                          "The file does not exist!"));
@@ -174,11 +169,11 @@ public class FileSystemConsumer {
             try {
                 fileObject.close();
             } catch (FileSystemException e) {
-                log.warn("Could not close file at URI: " + maskURLPassword(fileURI), e);
+                log.warn("Could not close file at URI: " + FileTransportUtils.maskURLPassword(fileURI), e);
             }
         }
         if (log.isDebugEnabled()) {
-            log.debug("End : Scanning directory or file : " + maskURLPassword(fileURI));
+            log.debug("End : Scanning directory or file : " + FileTransportUtils.maskURLPassword(fileURI));
         }
     }
 
@@ -255,7 +250,7 @@ public class FileSystemConsumer {
         String strSortParam = fileProperties.get(Constants.FILE_SORT_PARAM);
 
         if (strSortParam != null && !"NONE".equals(strSortParam)) {
-            log.debug("Starting to sort the files in folder: " + maskURLPassword(fileURI));
+            log.debug("Starting to sort the files in folder: " + FileTransportUtils.maskURLPassword(fileURI));
 
             String strSortOrder = fileProperties.get(Constants.FILE_SORT_ORDER);
             boolean bSortOrderAscending = true;
@@ -307,7 +302,7 @@ public class FileSystemConsumer {
             }
             if ((fileNamePattern != null && !fileObject.getName().getBaseName().matches(fileNamePattern)) &&
                 log.isDebugEnabled()) {
-                log.debug("File " + maskURLPassword(fileObject.getName().getBaseName()) +
+                log.debug("File " + FileTransportUtils.maskURLPassword(fileObject.getName().getBaseName()) +
                           " is not processed because it did not match the specified pattern.");
             } else {
                 FileType childType;
@@ -315,8 +310,8 @@ public class FileSystemConsumer {
                     childType = child.getType();
                 } catch (FileSystemException e) {
                     throw new FileSystemServerConnectorException("Error occurred when determining whether child: " +
-                                                                 maskURLPassword(fileURI) + " is a file or a folder",
-                                                                 e);
+                                                                 FileTransportUtils.maskURLPassword(fileURI)
+                                                                 + " is a file or a folder", e);
                 }
                 if (childType == FileType.FOLDER) {
                     FileObject[] c = null;
@@ -326,19 +321,20 @@ public class FileSystemConsumer {
                         if (log.isDebugEnabled()) {
                             log.debug("The file does not exist, or is not a folder, or an error " +
                                       "has occurred when trying to list the children. File URI : " +
-                                      maskURLPassword(fileURI), ignored);
+                                      FileTransportUtils.maskURLPassword(fileURI), ignored);
                         }
                     }
 
                     // if this is a file that would translate to a single message
                     if (c == null || c.length == 0) {
                         if (log.isDebugEnabled()) {
-                            log.debug("Folder at " + maskURLPassword(fileURI) + " is empty.");
+                            log.debug("Folder at "
+                                      + FileTransportUtils.maskURLPassword(child.getName().getURI()) + " is empty.");
                         }
                     } else {
                         directoryHandler(c);
-                        postProcess(child);
                     }
+                    postProcess(child);
                 } else if (child.getName().getExtension().equals("zip") && unzip) {
                     try {
                         FileObject zipFile = fsManager.resolveFile("zip:" + child.getName().getURI());
@@ -369,6 +365,19 @@ public class FileSystemConsumer {
      */
     private void fileHandler(FileObject file) {
         boolean isWritable = true;
+        if (FileTransportUtils.isFailRecord(fsManager, fileObject)) {
+            // it is a failed record
+            try {
+                postProcess(file);
+            } catch (FileSystemServerConnectorException e) {
+                log.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().getURI())
+                          + "'cloud not be moved, will remain in \"fail\" state", e);
+            }
+            if (fileLock) {
+                // TODO: passing null to avoid build break. Fix properly
+                FileTransportUtils.releaseLock(fsManager, file, fso);
+            }
+        }
         try {
             isWritable = file.isWriteable();
         } catch (FileSystemException e) {
@@ -376,32 +385,35 @@ public class FileSystemConsumer {
                 log.debug("Error occurred while determining whether file is writable");
             }
         }
-        if (!fileLock || acquireLock(fsManager, file) || !isWritable) {
+        if (!fileLock || FileTransportUtils.acquireLock(fsManager, file) || !isWritable) {
             try {
                 processFile(file);
+                processFailed = false;
             } catch (FileSystemServerConnectorException e) {
-                log.error("Error processing File URI : " + maskURLPassword(file.getName().toString()), e);
+                log.error(
+                        "Error processing File URI : " + FileTransportUtils.maskURLPassword(file.getName().toString()),
+                        e);
+                processFailed = true;
             }
 
             try {
                 postProcess(file);
             } catch (FileSystemServerConnectorException e) {
-                log.error("File object '" + maskURLPassword(file.getName().toString()) + "' " +
+                log.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().toString()) + "' " +
                           "cloud not be moved", e);
-                //VFSUtils.markFailRecord(fsManager, fileObject);
             }
 
             if (fileLock) {
                 // TODO: passing null to avoid build break. Fix properly
-                releaseLock(fsManager, file, fso);
+                FileTransportUtils.releaseLock(fsManager, file, fso);
                 if (log.isDebugEnabled()) {
-                    log.debug("Removed the lock file '" + maskURLPassword(file.toString()) +
-                              ".lock' of the file '" + maskURLPassword(file.toString()));
+                    log.debug("Removed the lock file '" + FileTransportUtils.maskURLPassword(file.toString()) +
+                              ".lock' of the file '" + FileTransportUtils.maskURLPassword(file.toString()));
                 }
             }
         } else {
-            log.error("Couldn't get the lock for processing the file : " +
-                      maskURLPassword(file.getName().toString()));
+            log.warn("Couldn't get the lock for processing the file : " +
+                      FileTransportUtils.maskURLPassword(file.getName().toString()));
         }
     }
 
@@ -423,14 +435,15 @@ public class FileSystemConsumer {
             messageProcessor.receive(fileMessage, callback);
         } catch (Exception e) {
             throw new FileSystemServerConnectorException(
-                    "Failed to send stream from file: " + maskURLPassword(fileURI) + " to message processor. ", e);
+                    "Failed to send stream from file: " + FileTransportUtils.maskURLPassword(fileURI)
+                    + " to message processor. ", e);
         }
         try {
             callback.waitTillDone(timeOutInterval, continueIfNotAck, fileURI);
         } catch (InterruptedException e) {
             throw new FileSystemServerConnectorException("Interrupted while waiting for message processor to consume" +
                                                          " the file input stream. Aborting processing of file: " +
-                                                         maskURLPassword(fileURI), e);
+                                                         FileTransportUtils.maskURLPassword(fileURI), e);
         }
         return file;
     }
@@ -453,21 +466,25 @@ public class FileSystemConsumer {
             fileType = file.getType();
         } catch (FileSystemException e) {
             throw new FileSystemServerConnectorException("Error occurred when determining whether file: " +
-                                                         maskURLPassword(fileURI) + " is a file or a folder",
-                                                         e);
+                                                         FileTransportUtils.maskURLPassword(fileURI)
+                                                         + " is a file or a folder", e);
         }
-        try {
-            if (!((Constants.ACTION_DELETE.equalsIgnoreCase(fileProperties.get(Constants.ACTION_AFTER_PROCESS))) ||
-                  fileType == FileType.FOLDER)) {
+        if (!processFailed) {
+            if (Constants.ACTION_MOVE.equalsIgnoreCase(fileProperties.get(Constants.ACTION_AFTER_PROCESS))) {
                 moveToDirectoryURI = fileProperties.get(Constants.MOVE_AFTER_PROCESS);
-                if (moveToDirectoryURI == null) {
-                    throw new FileSystemServerConnectorException(
-                            "Cannot move file because moveAfterProcess annotation is not defined.");
-                }
+            }
+        } else {
+            if (Constants.ACTION_MOVE.equalsIgnoreCase(fileProperties.get(Constants.ACTION_AFTER_FAILURE))) {
+                moveToDirectoryURI = fileProperties.get(Constants.MOVE_AFTER_FAILURE);
+            }
+        }
 
+        try {
+            if (!(moveToDirectoryURI == null || fileType == FileType.FOLDER)) {
                 FileObject moveToDirectory;
                 String relativeName = file.getName().getURI().split(fileObject.getName().getURI())[1];
-                moveToDirectoryURI += (relativeName.split(file.getName().getBaseName()))[0];
+                int index = relativeName.lastIndexOf(File.separator);
+                moveToDirectoryURI += relativeName.substring(0, index);
                 moveToDirectory = fsManager.resolveFile(moveToDirectoryURI, fso);
 
                 String prefix;
@@ -487,212 +504,45 @@ public class FileSystemConsumer {
 
                 FileObject dest = moveToDirectory.resolveFile(prefix + file.getName().getBaseName());
                 if (log.isDebugEnabled()) {
-                    log.debug("Moving to file :" + maskURLPassword(dest.getName().getURI()));
+                    log.debug("Moving to file :" + FileTransportUtils.maskURLPassword(dest.getName().getURI()));
                 }
                 try {
                     file.moveTo(dest);
-                    /*if (FileTransportUtils.isFailRecord(fsManager, fileObject)) {
-                        VFSUtils.releaseFail(fsManager, fileObject);
-                    }*/
+                    if (FileTransportUtils.isFailRecord(fsManager, fileObject)) {
+                        FileTransportUtils.releaseFail(fsManager, fileObject);
+                    }
                 } catch (FileSystemException e) {
-                    /*if (!VFSUtils.isFailRecord(fsManager, fileObject)) {
-                        VFSUtils.markFailRecord(fsManager, fileObject);
-                    }*/
-                    log.error("Error moving file : " + maskURLPassword(file.toString()) +
-                              " to " + maskURLPassword(moveToDirectoryURI), e);
+                    if (!FileTransportUtils.isFailRecord(fsManager, fileObject)) {
+                        FileTransportUtils.markFailRecord(fsManager, fileObject);
+                    }
+                    log.error("Error moving file : " + FileTransportUtils.maskURLPassword(file.toString()) +
+                              " to " + FileTransportUtils.maskURLPassword(moveToDirectoryURI), e);
                 }
 
             } else {
-
                 if (log.isDebugEnabled()) {
-                    log.debug("Deleting file :" + maskURLPassword(file.getName().getBaseName()));
+                    log.debug("Deleting file :"
+                              + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 }
                 try {
                     if (!file.delete()) {
                         throw new FileSystemServerConnectorException(
-                                "Could not delete file : " + maskURLPassword(file.getName().getBaseName()));
+                                "Could not delete file : "
+                                + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                     }
                 } catch (FileSystemException e) {
                     throw new FileSystemServerConnectorException(
-                            "Could not delete file : " + maskURLPassword(file.getName().getBaseName()), e);
+                            "Could not delete file : "
+                            + FileTransportUtils.maskURLPassword(file.getName().getBaseName()), e);
                 }
             }
         } catch (FileSystemException e) {
-            throw new FileSystemServerConnectorException("Failed to resolve file post process.", e);
-        }
-    }
-
-    /**
-     * Acquire the file level locking.
-     *
-     * @param fsManager
-     * @param fileObject
-     * @return
-     */
-    private boolean acquireLock(FileSystemManager fsManager, FileObject fileObject) {
-        String strContext = fileObject.getName().getURI();
-        boolean rtnValue = false;
-
-        // When processing a directory list is fetched initially. Therefore
-        // there is still a chance of file processed by another process.
-        // Need to check the source file before processing.
-        try {
-            String parentURI = fileObject.getParent().getName().getURI();
-            if (parentURI.contains("?")) {
-                String suffix = parentURI.substring(parentURI.indexOf("?"));
-                strContext += suffix;
-            }
-            FileObject sourceFile = fsManager.resolveFile(strContext);
-            if (!sourceFile.exists()) {
-                return false;
-            }
-        } catch (FileSystemException e) {
-            return false;
-        }
-        /*VFSParamDTO vfsParamDTO = new VFSParamDTO();
-        vfsParamDTO.setAutoLockRelease(autoLockRelease);
-        vfsParamDTO.setAutoLockReleaseSameNode(autoLockReleaseSameNode);
-        vfsParamDTO.setAutoLockReleaseInterval(autoLockReleaseInterval);
-        rtnValue = VFSUtils.acquireLock(fsManager, fileObject, vfsParamDTO, fso, true);*/
-
-        /* finally {
-            if (distributedLock) {
-                ClusteringServiceUtil.releaseLock(strContext);
-            }
-        }*/
-        //return rtnValue;
-
-        String stringSplitter = ":";
-        // generate a random lock value to ensure that there are no two parties
-        // processing the same file
-        Random random = new Random();
-        // Lock format random:hostname:hostip:time
-        String strLockValue = String.valueOf(random.nextLong());
-        try {
-            strLockValue += stringSplitter + InetAddress.getLocalHost().getHostName();
-            strLockValue += stringSplitter + InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException ue) {
-            if (log.isDebugEnabled()) {
-                log.debug("Unable to get the Hostname or IP.");
+            if (!FileTransportUtils.isFailRecord(fsManager, fileObject)) {
+                FileTransportUtils.markFailRecord(fsManager, fileObject);
+                log.error("Error resolving directory to move file : "
+                          + FileTransportUtils.maskURLPassword(moveToDirectoryURI), e);
             }
         }
-        strLockValue += stringSplitter + (new Date()).getTime();
-        byte[] lockValue = strLockValue.getBytes(Charset.defaultCharset());
-        FileObject lockObject = null;
-
-        try {
-            // check whether there is an existing lock for this item, if so it is assumed
-            // to be processed by an another listener (downloading) or a sender (uploading)
-            // lock file is derived by attaching the ".lock" second extension to the file name
-            String fullPath = fileObject.getName().getURI();
-            int pos = fullPath.indexOf("?");
-            if (pos != -1) {
-                fullPath = fullPath.substring(0, pos);
-            }
-            lockObject = fsManager.resolveFile(fullPath + ".lock", fso);
-            if (lockObject.exists()) {
-                log.debug("There seems to be an external lock, aborting the processing of the file " +
-                          maskURLPassword(fileObject.getName().getURI()) +
-                          ". This could possibly be due to some other party already " +
-                          "processing this file or the file is still being uploaded");
-            /*if(paramDTO != null && paramDTO.isAutoLockRelease()){
-                releaseLock(lockValue, strLockValue, lockObject, paramDTO.isAutoLockReleaseSameNode(),
-                            paramDTO.getAutoLockReleaseInterval());
-            }*/
-            } else {
-                //Check the original file existence before the lock file to handle concurrent access scenario
-                FileObject originalFileObject = fsManager.resolveFile(fullPath, fso);
-                if (!originalFileObject.exists()) {
-                    return false;
-                }
-                // write a lock file before starting of the processing, to ensure that the
-                // item is not processed by any other parties
-                lockObject.createFile();
-                OutputStream stream = lockObject.getContent().getOutputStream();
-                try {
-                    stream.write(lockValue);
-                    stream.flush();
-                    stream.close();
-                } catch (IOException e) {
-                    lockObject.delete();
-                    log.error("Couldn't create the lock file before processing the file " + maskURLPassword(fullPath),
-                              e);
-                    return false;
-                } finally {
-                    lockObject.close();
-                }
-
-                // check whether the lock is in place and is it me who holds the lock. This is
-                // required because it is possible to write the lock file simultaneously by
-                // two processing parties. It checks whether the lock file content is the same
-                // as the written random lock value.
-                // NOTE: this may not be optimal but is sub optimal
-                FileObject verifyingLockObject = fsManager.resolveFile(fullPath + ".lock", fso);
-                if (verifyingLockObject.exists() && verifyLock(lockValue, verifyingLockObject)) {
-                    return true;
-                }
-            }
-        } catch (FileSystemException fse) {
-            log.error("Cannot get the lock for the file : " + maskURLPassword(fileObject.getName().getURI()) +
-                      " before processing", fse);
-            if (lockObject != null) {
-                try {
-                    fsManager.closeFileSystem(lockObject.getParent().getFileSystem());
-                } catch (FileSystemException e) {
-                    log.warn("Unable to close the lockObject parent file system");
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Release a file item lock acquired either by the VFS listener or a sender.
-     *
-     * @param fsManager which is used to resolve the processed file
-     * @param fo        representing the processed file
-     * @param fso       represents file system options used when resolving file from file system manager.
-     */
-    public static void releaseLock(FileSystemManager fsManager, FileObject fo, FileSystemOptions fso) {
-        String fullPath = fo.getName().getURI();
-
-        try {
-            int pos = fullPath.indexOf("?");
-            if (pos > -1) {
-                fullPath = fullPath.substring(0, pos);
-            }
-            FileObject lockObject = fsManager.resolveFile(fullPath + ".lock", fso);
-            if (lockObject.exists()) {
-                lockObject.delete();
-            }
-        } catch (FileSystemException e) {
-            log.error("Couldn't release the lock for the file : " + maskURLPassword(fo.getName().getURI()) +
-                      " after processing");
-        }
-    }
-
-    private static boolean verifyLock(byte[] lockValue, FileObject lockObject) {
-        try {
-            InputStream is = lockObject.getContent().getInputStream();
-            byte[] val = new byte[lockValue.length];
-            int data;
-            int i = 0;
-            while ((data = is.read()) != -1) {
-                val[i++] = (byte) data;
-            }
-            if (lockValue.length == val.length && Arrays.equals(lockValue, val)) {
-                return true;
-            } else {
-                log.debug("The lock has been acquired by an another party");
-            }
-        } catch (FileSystemException e) {
-            log.error("Couldn't verify the lock", e);
-            return false;
-        } catch (IOException e) {
-            log.error("Couldn't verify the lock", e);
-            return false;
-        }
-        return false;
     }
 
     /**

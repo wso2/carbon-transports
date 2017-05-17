@@ -45,8 +45,10 @@ public final class Constants {
     public static final String FILE_UNZIP = "unzip";
     public static final String FILE_NAME_PATTERN = "fileNamePattern";
     public static final String ACTION_AFTER_PROCESS = "actionAfterProcess";
+    public static final String ACTION_AFTER_FAILURE = "actionAfterFailure";
     public static final String MOVE_TIMESTAMP_FORMAT = "moveTimestampFormat";
     public static final String MOVE_AFTER_PROCESS = "moveAfterProcess";
+    public static final String MOVE_AFTER_FAILURE = "moveAfterFailure";
     public static final String FORCE_CREATE_FOLDER = "createFolder";
     public static final String LOCKING = "locking";
 
