@@ -161,9 +161,7 @@ public class FileSystemConsumer {
             } else {
                 throw new FileSystemServerConnectorException(
                         "Unable to access or read file or directory : " + FileTransportUtils.maskURLPassword(fileURI) +
-                        ". Reason: " +
-                        (isFileExists ? (isFileReadable ? "Unknown reason" : "The file can not be read!") :
-                         "The file does not exist!"));
+                        ". Reason: " + (isFileExists ? "The file can not be read!" : "The file does not exist!"));
             }
         } finally {
             try {

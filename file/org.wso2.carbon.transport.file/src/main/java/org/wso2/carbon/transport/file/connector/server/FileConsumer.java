@@ -145,14 +145,15 @@ public class FileConsumer {
                 processFile(fileObject);
             } else {
                 throw new FileServerConnectorException(
-                        "Unable to access or read file or directory : " + FileTransportUtils.maskURLPassword(fileURI) +
-                        ". Reason: " +
-                        (isFileExists ? (isFileReadable ? "Unknown reason" : "The file can not be read!") :
-                         "The file does not exist!"));
+                        "Specified URL " + FileTransportUtils.maskURLPassword(fileURI) + " does not point to a file.");
             }
             if (log.isDebugEnabled()) {
                 log.debug("End : Scanning directory or file : " + FileTransportUtils.maskURLPassword(fileURI));
             }
+        } else {
+            throw new FileServerConnectorException(
+                    "Unable to access or read file or directory : " + FileTransportUtils.maskURLPassword(fileURI) +
+                    ". Reason: " + (isFileExists ? "The file can not be read!" : "The file does not exist!"));
         }
     }
 
