@@ -30,7 +30,6 @@ import org.apache.commons.vfs2.provider.zip.ZipFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
-import org.wso2.carbon.messaging.FileCarbonMessage;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.filesystem.connector.server.exception.FileSystemServerConnectorException;
 import org.wso2.carbon.transport.filesystem.connector.server.util.Constants;
@@ -61,7 +60,7 @@ public class FileSystemConsumer {
     private FileSystemOptions fso;
     private boolean fileLock = true;
     private boolean unzip = false;
-    private boolean processFailed = false;
+    boolean processFailed = false;
     /**
      * Time-out interval (in mill-seconds) to wait for the callback.
      */
@@ -384,31 +383,9 @@ public class FileSystemConsumer {
             }
         }
         if (!fileLock || FileTransportUtils.acquireLock(fsManager, file) || !isWritable) {
-            try {
-                processFile(file);
-                processFailed = false;
-            } catch (FileSystemServerConnectorException e) {
-                log.error(
-                        "Error processing File URI : " + FileTransportUtils.maskURLPassword(file.getName().toString()),
-                        e);
-                processFailed = true;
-            }
-
-            try {
-                postProcess(file);
-            } catch (FileSystemServerConnectorException e) {
-                log.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().toString()) + "' " +
-                          "cloud not be moved", e);
-            }
-
-            if (fileLock) {
-                // TODO: passing null to avoid build break. Fix properly
-                FileTransportUtils.releaseLock(fsManager, file, fso);
-                if (log.isDebugEnabled()) {
-                    log.debug("Removed the lock file '" + FileTransportUtils.maskURLPassword(file.toString()) +
-                              ".lock' of the file '" + FileTransportUtils.maskURLPassword(file.toString()));
-                }
-            }
+            FileSystemProcessor fsp = new FileSystemProcessor(messageProcessor, serviceName, file, continueIfNotAck,
+                                                              timeOutInterval, fileURI, this, fileLock, fsManager, fso);
+            fsp.startProcessThread();
         } else {
             log.warn("Couldn't get the lock for processing the file : " +
                       FileTransportUtils.maskURLPassword(file.getName().toString()));
@@ -416,42 +393,11 @@ public class FileSystemConsumer {
     }
 
     /**
-     * Actual processing of the file/folder.
-     *
-     * @param file
-     * @return
-     */
-    private FileObject processFile(FileObject file) throws FileSystemServerConnectorException {
-
-        FileCarbonMessage fileMessage = new FileCarbonMessage();
-        fileMessage.setFilePath(file.getName().getURI());
-        fileMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE_SYSTEM);
-        fileMessage.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
-
-        FileSystemServerConnectorCallback callback = new FileSystemServerConnectorCallback();
-        try {
-            messageProcessor.receive(fileMessage, callback);
-        } catch (Exception e) {
-            throw new FileSystemServerConnectorException(
-                    "Failed to send stream from file: " + FileTransportUtils.maskURLPassword(fileURI)
-                    + " to message processor. ", e);
-        }
-        try {
-            callback.waitTillDone(timeOutInterval, continueIfNotAck, fileURI);
-        } catch (InterruptedException e) {
-            throw new FileSystemServerConnectorException("Interrupted while waiting for message processor to consume" +
-                                                         " the file input stream. Aborting processing of file: " +
-                                                         FileTransportUtils.maskURLPassword(fileURI), e);
-        }
-        return file;
-    }
-
-    /**
      * Do the post processing actions.
      *
      * @param file
      */
-    private void postProcess(FileObject file) throws FileSystemServerConnectorException {
+    synchronized void postProcess(FileObject file) throws FileSystemServerConnectorException {
         String moveToDirectoryURI = null;
         FileType fileType;
         if (file.getFileSystem() instanceof ZipFileSystem) {
