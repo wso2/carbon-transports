@@ -51,6 +51,8 @@ public final class Constants {
     public static final String MOVE_AFTER_FAILURE = "moveAfterFailure";
     public static final String FORCE_CREATE_FOLDER = "createFolder";
     public static final String LOCKING = "locking";
+    public static final String PARALLEL = "parallel";
+    public static final String THREAD_POOL_SIZE = "threadPoolSize";
 
     public static final String ACTION_MOVE = "MOVE";
     public static final String ACTION_DELETE = "DELETE";
@@ -77,7 +79,7 @@ public final class Constants {
         UserDirIsRoot,
         IdentityPassPhrase;
 
-        private SftpFileOption() {
+        SftpFileOption() {
         }
     }
 }

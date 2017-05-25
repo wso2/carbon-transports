@@ -24,16 +24,22 @@ import java.util.concurrent.Executors;
  *
  */
 public class ThreadPoolFactory {
-    private static ThreadPoolFactory instance = new ThreadPoolFactory();
+    private static ThreadPoolFactory instance;
+    private ExecutorService executorService;
 
-    //TODO: Make the thread count configurable.
-    // Ideally number of threads need to be calculated and spawned intelligently
-    // based on the environment and runtime status (CPU Usage, memory, etc).
-    // A configuration parameter which is user configurable is also required.
-    // Issue#1929
-    private ExecutorService executorService =  Executors.newFixedThreadPool(10);
+    private ThreadPoolFactory(int threadPoolSize, boolean parallel) {
+        if (parallel) {
+            executorService = Executors.newFixedThreadPool(threadPoolSize);
+        } else {
+            executorService = Executors.newSingleThreadExecutor();
+        }
+    }
 
-    private ThreadPoolFactory(){};
+    public static synchronized void createInstance(int threadPoolSize, boolean parallel) {
+        if (instance == null) {
+            instance = new ThreadPoolFactory(threadPoolSize, parallel);
+        }
+    }
 
     public static ThreadPoolFactory getInstance() {
         return instance;

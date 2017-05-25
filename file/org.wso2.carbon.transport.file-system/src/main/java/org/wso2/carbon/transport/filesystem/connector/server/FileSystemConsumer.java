@@ -34,6 +34,7 @@ import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.filesystem.connector.server.exception.FileSystemServerConnectorException;
 import org.wso2.carbon.transport.filesystem.connector.server.util.Constants;
 import org.wso2.carbon.transport.filesystem.connector.server.util.FileTransportUtils;
+import org.wso2.carbon.transport.filesystem.connector.server.util.ThreadPoolFactory;
 
 import java.io.File;
 import java.io.Serializable;
@@ -45,7 +46,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Provides the capability to process a file and delete it afterwards.
+ * Provides the capability to process a file and move/delete it afterwards.
  */
 public class FileSystemConsumer {
 
@@ -61,6 +62,8 @@ public class FileSystemConsumer {
     private boolean fileLock = true;
     private boolean unzip = false;
     boolean processFailed = false;
+    private boolean parallelProcess = false;
+    private int threadPoolSize = 10;
     /**
      * Time-out interval (in mill-seconds) to wait for the callback.
      */
@@ -97,6 +100,18 @@ public class FileSystemConsumer {
             throw new FileSystemServerConnectorException("Failed to resolve fileURI: "
                                                          + FileTransportUtils.maskURLPassword(fileURI), e);
         }
+        try {
+            if (!fileObject.isWriteable()) {
+                //todo find an efficient way to do this
+                throw new FileSystemServerConnectorException(
+                        "File cannot be processed since the file system is read only");
+            }
+        } catch (FileSystemException e) {
+            throw new FileSystemServerConnectorException(
+                    "Failed to resolve fileURI: " + FileTransportUtils.maskURLPassword(fileURI), e);
+        }
+        //Initialize the thread executor based on properties
+        ThreadPoolFactory.createInstance(threadPoolSize, parallelProcess);
     }
 
     /**
@@ -210,6 +225,14 @@ public class FileSystemConsumer {
         String strUnzip = fileProperties.get(Constants.FILE_UNZIP);
         if (strUnzip != null) {
             unzip = Boolean.parseBoolean(strUnzip);
+        }
+        String strParallel = fileProperties.get(Constants.PARALLEL);
+        if (strParallel != null) {
+            parallelProcess = Boolean.parseBoolean(strParallel);
+        }
+        String strPoolSize = fileProperties.get(Constants.THREAD_POOL_SIZE);
+        if (strPoolSize != null) {
+            threadPoolSize = Integer.parseInt(strPoolSize);
         }
     }
 

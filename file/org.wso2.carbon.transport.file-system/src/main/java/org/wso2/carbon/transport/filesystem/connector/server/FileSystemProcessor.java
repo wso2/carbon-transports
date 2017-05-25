@@ -23,7 +23,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
-import org.wso2.carbon.messaging.FileCarbonMessage;
+import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.transport.filesystem.connector.server.exception.FileSystemServerConnectorException;
 import org.wso2.carbon.transport.filesystem.connector.server.util.Constants;
 import org.wso2.carbon.transport.filesystem.connector.server.util.FileTransportUtils;
@@ -33,7 +33,7 @@ import org.wso2.carbon.transport.filesystem.connector.server.util.ThreadPoolFact
 /**
  * Message receiver for receiving JMS messages synchronously.
  */
-public class FileSystemProcessor implements Runnable, Thread.UncaughtExceptionHandler {
+class FileSystemProcessor implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(FileSystemProcessor.class);
 
@@ -72,14 +72,13 @@ public class FileSystemProcessor implements Runnable, Thread.UncaughtExceptionHa
      */
     @Override
     public void run() {
-        FileCarbonMessage fileMessage = new FileCarbonMessage();
-        fileMessage.setFilePath(file.getName().getURI());
-        fileMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE_SYSTEM);
-        fileMessage.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
+        TextCarbonMessage message = new TextCarbonMessage(file.getName().getURI());
+        message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE_SYSTEM);
+        message.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
 
         FileSystemServerConnectorCallback callback = new FileSystemServerConnectorCallback();
         try {
-            messageProcessor.receive(fileMessage, callback);
+            messageProcessor.receive(message, callback);
         } catch (Exception e) {
             logger.warn(
                     "Failed to send stream from file: " + FileTransportUtils.maskURLPassword(fileURI)
@@ -115,23 +114,9 @@ public class FileSystemProcessor implements Runnable, Thread.UncaughtExceptionHa
     }
 
     /**
-     * Start message receiving thread.
+     * Start file processing thread.
      */
-    public void startProcessThread() {
-        //Thread thread = new Thread(this, file.getName().getPath());
-        //thread.setUncaughtExceptionHandler(this);
+    void startProcessThread() {
         ThreadPoolFactory.getInstance().getExecutor().execute(this);
-        //thread.start();
-    }
-
-    /**
-     * Any exception that was thrown when receiving messages from the receiver thread will be reported here.
-     *
-     * @param thread The thread which produced the error
-     * @param error  The error
-     */
-    @Override
-    public void uncaughtException(Thread thread, Throwable error) {
-        logger.error("Unexpected error occurred while receiving messages", error);
     }
 }
