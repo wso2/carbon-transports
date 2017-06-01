@@ -24,6 +24,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.Selectors;
 import org.apache.commons.vfs2.VFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,14 +130,9 @@ public class FileClientConnector implements ClientConnector {
                     break;
                 case "copy":
                     if (path.exists()) {
-                        is = path.getContent().getInputStream();
                         String destination = map.get("destination");
-                        path = fsManager.resolveFile(destination, opts);
-                        if (!path.exists()) {
-                            os = path.getContent().getOutputStream();
-                            IOUtils.copy(is, os);
-                            os.flush();
-                        }
+                        FileObject dest = fsManager.resolveFile(destination, opts);
+                        dest.copyFrom(path, Selectors.SELECT_ALL);
                     }
                     break;
                 case "move":
