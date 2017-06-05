@@ -53,6 +53,7 @@ public final class Constants {
     public static final String LOCKING = "locking";
     public static final String PARALLEL = "parallel";
     public static final String THREAD_POOL_SIZE = "threadPoolSize";
+    public static final String FILE_PROCESS_COUNT = "FileProcessCount";
 
     public static final String ACTION_MOVE = "MOVE";
     public static final String ACTION_DELETE = "DELETE";

@@ -64,6 +64,8 @@ public class FileSystemConsumer {
     boolean processFailed = false;
     private boolean parallelProcess = false;
     private int threadPoolSize = 10;
+    private int fileProcessCount;
+    private int processCount;
     /**
      * Time-out interval (in mill-seconds) to wait for the callback.
      */
@@ -115,6 +117,79 @@ public class FileSystemConsumer {
     }
 
     /**
+     * Setup the required transport parameters.
+     */
+    private void setupParams() throws ServerConnectorException {
+        fileURI = fileProperties.get(Constants.TRANSPORT_FILE_FILE_URI);
+        if (fileURI == null) {
+            throw new ServerConnectorException(
+                    Constants.TRANSPORT_FILE_FILE_URI + " is a " + "mandatory parameter for " +
+                    Constants.PROTOCOL_FILE_SYSTEM + " transport.");
+        }
+        if (fileURI.trim().equals("")) {
+            throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " parameter " +
+                                               "cannot be empty for " + Constants.PROTOCOL_FILE_SYSTEM + " transport.");
+        }
+        String timeOut = fileProperties.get(Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT);
+        if (timeOut != null) {
+            try {
+                timeOutInterval = Long.parseLong(timeOut);
+            } catch (NumberFormatException e) {
+                log.error("Provided " + Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT + " is invalid. " +
+                          "Using the default callback timeout, " +
+                          timeOutInterval + " milliseconds", e);
+            }
+        }
+        String strContIfNotAck = fileProperties.get(Constants.FILE_CONT_IF_NOT_ACKNOWLEDGED);
+        if (strContIfNotAck != null) {
+            continueIfNotAck = Boolean.parseBoolean(strContIfNotAck);
+        }
+        fileNamePattern = fileProperties.get(Constants.FILE_NAME_PATTERN);
+        String strLocking = fileProperties.get(Constants.LOCKING);
+        if (strLocking != null) {
+            fileLock = Boolean.parseBoolean(strLocking);
+        }
+        String strUnzip = fileProperties.get(Constants.FILE_UNZIP);
+        if (strUnzip != null) {
+            unzip = Boolean.parseBoolean(strUnzip);
+        }
+        String strParallel = fileProperties.get(Constants.PARALLEL);
+        if (strParallel != null) {
+            parallelProcess = Boolean.parseBoolean(strParallel);
+        }
+        String strPoolSize = fileProperties.get(Constants.THREAD_POOL_SIZE);
+        if (strPoolSize != null) {
+            threadPoolSize = Integer.parseInt(strPoolSize);
+        }
+        String strProcessCount = fileProperties.get(Constants.FILE_PROCESS_COUNT);
+        if (strProcessCount != null) {
+            fileProcessCount = Integer.parseInt(strProcessCount);
+        }
+    }
+
+    private Map<String, String> parseSchemeFileOptions(String fileURI) {
+        String scheme = UriParser.extractScheme(fileURI);
+        if (scheme == null) {
+            return null;
+        }
+        HashMap<String, String> schemeFileOptions = new HashMap<>();
+        schemeFileOptions.put(Constants.SCHEME, scheme);
+        addOptions(scheme, schemeFileOptions);
+        return schemeFileOptions;
+    }
+
+    private void addOptions(String scheme, Map<String, String> schemeFileOptions) {
+        if (scheme.equals(Constants.SCHEME_SFTP)) {
+            for (Constants.SftpFileOption option : Constants.SftpFileOption.values()) {
+                String strValue = fileProperties.get(Constants.SFTP_PREFIX + option.toString());
+                if (strValue != null && !strValue.equals("")) {
+                    schemeFileOptions.put(option.toString(), strValue);
+                }
+            }
+        }
+    }
+
+    /**
      * Do the file processing operation for the given set of properties. Do the
      * checks and pass the control to processFile method
      */
@@ -122,7 +197,8 @@ public class FileSystemConsumer {
         if (log.isDebugEnabled()) {
             log.debug("Polling for directory or file : " + FileTransportUtils.maskURLPassword(fileURI));
         }
-
+        //Resetting the process count, used to control number of files processed per batch
+        processCount = 0;
         // If file/folder found proceed to the processing stage
         try {
             boolean isFileExists;
@@ -190,75 +266,6 @@ public class FileSystemConsumer {
     }
 
     /**
-     * Setup the required transport parameters.
-     */
-    private void setupParams() throws ServerConnectorException {
-        fileURI = fileProperties.get(Constants.TRANSPORT_FILE_FILE_URI);
-        if (fileURI == null) {
-            throw new ServerConnectorException(
-                    Constants.TRANSPORT_FILE_FILE_URI + " is a " + "mandatory parameter for " +
-                    Constants.PROTOCOL_FILE_SYSTEM + " transport.");
-        }
-        if (fileURI.trim().equals("")) {
-            throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " parameter " +
-                                               "cannot be empty for " + Constants.PROTOCOL_FILE_SYSTEM + " transport.");
-        }
-        String timeOut = fileProperties.get(Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT);
-        if (timeOut != null) {
-            try {
-                timeOutInterval = Long.parseLong(timeOut);
-            } catch (NumberFormatException e) {
-                log.error("Provided " + Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT + " is invalid. " +
-                          "Using the default callback timeout, " +
-                          timeOutInterval + " milliseconds", e);
-            }
-        }
-        String strContIfNotAck = fileProperties.get(Constants.FILE_CONT_IF_NOT_ACKNOWLEDGED);
-        if (strContIfNotAck != null) {
-            continueIfNotAck = Boolean.parseBoolean(strContIfNotAck);
-        }
-        fileNamePattern = fileProperties.get(Constants.FILE_NAME_PATTERN);
-        String strLocking = fileProperties.get(Constants.LOCKING);
-        if (strLocking != null) {
-            fileLock = Boolean.parseBoolean(strLocking);
-        }
-        String strUnzip = fileProperties.get(Constants.FILE_UNZIP);
-        if (strUnzip != null) {
-            unzip = Boolean.parseBoolean(strUnzip);
-        }
-        String strParallel = fileProperties.get(Constants.PARALLEL);
-        if (strParallel != null) {
-            parallelProcess = Boolean.parseBoolean(strParallel);
-        }
-        String strPoolSize = fileProperties.get(Constants.THREAD_POOL_SIZE);
-        if (strPoolSize != null) {
-            threadPoolSize = Integer.parseInt(strPoolSize);
-        }
-    }
-
-    private Map<String, String> parseSchemeFileOptions(String fileURI) {
-        String scheme = UriParser.extractScheme(fileURI);
-        if (scheme == null) {
-            return null;
-        }
-        HashMap<String, String> schemeFileOptions = new HashMap<>();
-        schemeFileOptions.put(Constants.SCHEME, scheme);
-        addOptions(scheme, schemeFileOptions);
-        return schemeFileOptions;
-    }
-
-    private void addOptions(String scheme, Map<String, String> schemeFileOptions) {
-        if (scheme.equals(Constants.SCHEME_SFTP)) {
-            for (Constants.SftpFileOption option : Constants.SftpFileOption.values()) {
-                String strValue = fileProperties.get(Constants.SFTP_PREFIX + option.toString());
-                if (strValue != null && !strValue.equals("")) {
-                    schemeFileOptions.put(option.toString(), strValue);
-                }
-            }
-        }
-    }
-
-    /**
      * Handle directory with child elements.
      *
      * @param children
@@ -316,6 +323,9 @@ public class FileSystemConsumer {
             }
         }
         for (FileObject child : children) {
+            if (fileProcessCount != 0 && processCount > fileProcessCount) {
+                return;
+            }
             if (child.getName().getBaseName().endsWith(".lock")
                 || child.getName().getBaseName().endsWith(".fail")) {
                 continue;
@@ -409,6 +419,7 @@ public class FileSystemConsumer {
             FileSystemProcessor fsp = new FileSystemProcessor(messageProcessor, serviceName, file, continueIfNotAck,
                                                               timeOutInterval, fileURI, this, fileLock, fsManager, fso);
             fsp.startProcessThread();
+            processCount++;
         } else {
             log.warn("Couldn't get the lock for processing the file : " +
                       FileTransportUtils.maskURLPassword(file.getName().toString()));
