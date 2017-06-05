@@ -73,7 +73,7 @@ public class FileSystemConsumer {
     private boolean continueIfNotAck = false;
     private String fileNamePattern = null;
 
-    public FileSystemConsumer(String id, Map<String, String> fileProperties, CarbonMessageProcessor messageProcessor)
+    FileSystemConsumer(String id, Map<String, String> fileProperties, CarbonMessageProcessor messageProcessor)
             throws ServerConnectorException {
         this.serviceName = id;
         this.fileProperties = fileProperties;
@@ -193,7 +193,7 @@ public class FileSystemConsumer {
      * Do the file processing operation for the given set of properties. Do the
      * checks and pass the control to processFile method
      */
-    public void consume() throws FileSystemServerConnectorException {
+    void consume() throws FileSystemServerConnectorException {
         if (log.isDebugEnabled()) {
             log.debug("Polling for directory or file : " + FileTransportUtils.maskURLPassword(fileURI));
         }
@@ -268,9 +268,7 @@ public class FileSystemConsumer {
     /**
      * Handle directory with child elements.
      *
-     * @param children
-     * @return
-     * @throws FileSystemException
+     * @param children The array containing child elements of a folder
      */
     private void directoryHandler(FileObject[] children) throws FileSystemServerConnectorException {
         // Sort the files
@@ -389,9 +387,8 @@ public class FileSystemConsumer {
     }
 
     /**
-     * If not a folder just a file handle the flow.
-     *
-     * @throws FileSystemException
+     * Process a single file.
+     * @param file A single file to be processed
      */
     private void fileHandler(FileObject file) {
         boolean isWritable = true;
@@ -429,7 +426,7 @@ public class FileSystemConsumer {
     /**
      * Do the post processing actions.
      *
-     * @param file
+     * @param file The file object which needs to be post processed
      */
     synchronized void postProcess(FileObject file) throws FileSystemServerConnectorException {
         String moveToDirectoryURI = null;
@@ -526,7 +523,7 @@ public class FileSystemConsumer {
     /**
      * Comparator classes used to sort the files according to user input.
      */
-    static class FileNameAscComparator implements Comparator<FileObject>, Serializable {
+    private static class FileNameAscComparator implements Comparator<FileObject>, Serializable {
 
         private static final long serialVersionUID = 1;
 
@@ -535,7 +532,7 @@ public class FileSystemConsumer {
         }
     }
 
-    static class FileLastmodifiedtimestampAscComparator implements Comparator<FileObject>, Serializable {
+    private static class FileLastmodifiedtimestampAscComparator implements Comparator<FileObject>, Serializable {
 
         private static final long serialVersionUID = 1;
 
@@ -550,7 +547,7 @@ public class FileSystemConsumer {
         }
     }
 
-    static class FileSizeAscComparator implements Comparator<FileObject>, Serializable {
+    private static class FileSizeAscComparator implements Comparator<FileObject>, Serializable {
 
         private static final long serialVersionUID = 1;
 
@@ -565,7 +562,7 @@ public class FileSystemConsumer {
         }
     }
 
-    static class FileNameDesComparator implements Comparator<FileObject>, Serializable {
+    private static class FileNameDesComparator implements Comparator<FileObject>, Serializable {
 
         private static final long serialVersionUID = 1;
 
@@ -574,7 +571,7 @@ public class FileSystemConsumer {
         }
     }
 
-    static class FileLastmodifiedtimestampDesComparator implements Comparator<FileObject>, Serializable {
+    private static class FileLastmodifiedtimestampDesComparator implements Comparator<FileObject>, Serializable {
 
         private static final long serialVersionUID = 1;
 
@@ -589,7 +586,7 @@ public class FileSystemConsumer {
         }
     }
 
-    static class FileSizeDesComparator implements Comparator<FileObject>, Serializable {
+    private static class FileSizeDesComparator implements Comparator<FileObject>, Serializable {
 
         private static final long serialVersionUID = 1;
 

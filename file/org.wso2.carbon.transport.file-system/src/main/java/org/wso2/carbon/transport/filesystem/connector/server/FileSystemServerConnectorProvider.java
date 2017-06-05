@@ -29,9 +29,6 @@ import java.util.Map;
  * Server connector provider for File transport.
  */
 public class FileSystemServerConnectorProvider extends ServerConnectorProvider {
-    public FileSystemServerConnectorProvider(String protocol) {
-        super(protocol);
-    }
 
     public FileSystemServerConnectorProvider() {
         super(Constants.PROTOCOL_FILE_SYSTEM);

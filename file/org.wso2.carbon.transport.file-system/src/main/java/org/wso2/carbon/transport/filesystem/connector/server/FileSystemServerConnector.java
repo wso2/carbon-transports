@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Server connector for File transport.
  */
-public class FileSystemServerConnector extends PollingServerConnector {
+class FileSystemServerConnector extends PollingServerConnector {
     private static final Logger log = LoggerFactory.getLogger(FileSystemServerConnector.class);
 
 
@@ -38,7 +38,7 @@ public class FileSystemServerConnector extends PollingServerConnector {
     private CarbonMessageProcessor messageProcessor;
     private FileSystemConsumer consumer;
 
-    public FileSystemServerConnector(String id, Map<String, String> properties) {
+    FileSystemServerConnector(String id, Map<String, String> properties) {
         super(id, properties);
         interval = FILE_CONNECTOR_DEFAULT_INTERVAL; //this might be overridden in super.start()
     }

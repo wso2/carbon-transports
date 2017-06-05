@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  * This {@link CarbonCallback} will be called by a message processor to acknowledge that
  * it has finished processing the file input stream, so it may be closed from the transport end.
  */
-public class FileSystemServerConnectorCallback implements CarbonCallback {
+class FileSystemServerConnectorCallback implements CarbonCallback {
 
     private static final Logger log = LoggerFactory.getLogger(FileSystemServerConnectorCallback.class);
     /**
@@ -58,7 +58,7 @@ public class FileSystemServerConnectorCallback implements CarbonCallback {
      * @throws FileSystemServerConnectorException If deleteIfNotAcknowledged parameter is set to false,
      *  and acknowledgement was not received.
      */
-    protected void waitTillDone(long timeOutInterval, boolean deleteIfNotAck, String fileURI)
+    void waitTillDone(long timeOutInterval, boolean deleteIfNotAck, String fileURI)
             throws InterruptedException, FileSystemServerConnectorException {
         boolean isCallbackReceived = latch.await(timeOutInterval, TimeUnit.MILLISECONDS);
 
