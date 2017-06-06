@@ -47,6 +47,7 @@ class FileSystemProcessor implements Runnable {
     private boolean fileLock;
     private FileSystemManager fsManager;
     private FileSystemOptions fso;
+    private String postProcessAction;
 
     /**
      *
@@ -54,7 +55,7 @@ class FileSystemProcessor implements Runnable {
     FileSystemProcessor(CarbonMessageProcessor messageProcessor, String serviceName, FileObject file,
                         boolean continueIfNotAck, long timeOutInterval, String fileURI,
                         FileSystemConsumer fileSystemConsumer, boolean fileLock, FileSystemManager fsManager,
-                        FileSystemOptions fso) {
+                        FileSystemOptions fso, String postProcessAction) {
         this.messageProcessor = messageProcessor;
         this.file = file;
         this.continueIfNotAck = continueIfNotAck;
@@ -65,6 +66,7 @@ class FileSystemProcessor implements Runnable {
         this.fileLock = fileLock;
         this.fsManager = fsManager;
         this.fso = fso;
+        this.postProcessAction = postProcessAction;
     }
 
     /**
@@ -75,7 +77,7 @@ class FileSystemProcessor implements Runnable {
         TextCarbonMessage message = new TextCarbonMessage(file.getName().getURI());
         message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE_SYSTEM);
         message.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
-
+        boolean processFailed = false;
         FileSystemServerConnectorCallback callback = new FileSystemServerConnectorCallback();
         try {
             messageProcessor.receive(message, callback);
@@ -86,25 +88,25 @@ class FileSystemProcessor implements Runnable {
         }
         try {
             callback.waitTillDone(timeOutInterval, continueIfNotAck, fileURI);
-            fileSystemConsumer.processFailed = false;
         } catch (InterruptedException e) {
             logger.warn("Interrupted while waiting for message processor to consume" +
                                                          " the file input stream. Aborting processing of file: " +
                                                          FileTransportUtils.maskURLPassword(fileURI), e);
         } catch (FileSystemServerConnectorException e) {
             logger.warn(e.getMessage());
-            fileSystemConsumer.processFailed = true;
+            processFailed = true;
         }
 
-        try {
-            fileSystemConsumer.postProcess(file);
-        } catch (FileSystemServerConnectorException e) {
-            logger.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().toString()) + "' " +
-                      "cloud not be moved", e);
+        if (!postProcessAction.equals(Constants.ACTION_NONE)) {
+            try {
+                fileSystemConsumer.postProcess(file, processFailed);
+            } catch (FileSystemServerConnectorException e) {
+                logger.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().toString()) + "' " +
+                             "cloud not be moved", e);
+            }
         }
 
         if (fileLock) {
-            // TODO: passing null to avoid build break. Fix properly
             FileTransportUtils.releaseLock(fsManager, file, fso);
             if (logger.isDebugEnabled()) {
                 logger.debug("Removed the lock file '" + FileTransportUtils.maskURLPassword(file.toString()) +

@@ -53,10 +53,11 @@ public final class Constants {
     public static final String LOCKING = "locking";
     public static final String PARALLEL = "parallel";
     public static final String THREAD_POOL_SIZE = "threadPoolSize";
-    public static final String FILE_PROCESS_COUNT = "FileProcessCount";
+    public static final String FILE_PROCESS_COUNT = "fileProcessCount";
 
     public static final String ACTION_MOVE = "MOVE";
     public static final String ACTION_DELETE = "DELETE";
+    public static final String ACTION_NONE = "NONE";
 
     public static final String SCHEME = "VFS_SCHEME";
     public static final String SFTP_PREFIX = "sftp";

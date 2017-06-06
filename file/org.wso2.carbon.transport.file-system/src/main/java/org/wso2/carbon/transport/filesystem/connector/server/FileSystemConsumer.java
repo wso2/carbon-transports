@@ -61,7 +61,6 @@ public class FileSystemConsumer {
     private FileSystemOptions fso;
     private boolean fileLock = true;
     private boolean unzip = false;
-    boolean processFailed = false;
     private boolean parallelProcess = false;
     private int threadPoolSize = 10;
     private int fileProcessCount;
@@ -72,6 +71,8 @@ public class FileSystemConsumer {
     private long timeOutInterval = 30000;
     private boolean continueIfNotAck = false;
     private String fileNamePattern = null;
+    private String postProcessAction = Constants.ACTION_DELETE;
+    private String postFailureAction = Constants.ACTION_DELETE;
 
     FileSystemConsumer(String id, Map<String, String> fileProperties, CarbonMessageProcessor messageProcessor)
             throws ServerConnectorException {
@@ -164,6 +165,32 @@ public class FileSystemConsumer {
         String strProcessCount = fileProperties.get(Constants.FILE_PROCESS_COUNT);
         if (strProcessCount != null) {
             fileProcessCount = Integer.parseInt(strProcessCount);
+        }
+
+        if (fileProperties.get(Constants.ACTION_AFTER_FAILURE) != null) {
+            switch (fileProperties.get(Constants.ACTION_AFTER_FAILURE)) {
+                case Constants.ACTION_MOVE:
+                    postFailureAction = Constants.ACTION_MOVE;
+                    break;
+                case Constants.ACTION_NONE:
+                    postFailureAction = Constants.ACTION_NONE;
+                    break;
+                default:
+                    postFailureAction = Constants.ACTION_DELETE;
+            }
+        }
+
+        if (fileProperties.get(Constants.ACTION_AFTER_PROCESS) != null) {
+            switch (fileProperties.get(Constants.ACTION_AFTER_PROCESS)) {
+                case Constants.ACTION_MOVE:
+                    postProcessAction = Constants.ACTION_MOVE;
+                    break;
+                case Constants.ACTION_NONE:
+                    postProcessAction = Constants.ACTION_NONE;
+                    break;
+                default:
+                    postProcessAction = Constants.ACTION_DELETE;
+            }
         }
     }
 
@@ -324,14 +351,14 @@ public class FileSystemConsumer {
             if (fileProcessCount != 0 && processCount > fileProcessCount) {
                 return;
             }
-            if (child.getName().getBaseName().endsWith(".lock")
-                || child.getName().getBaseName().endsWith(".fail")) {
+            if (child.getName().getBaseName().endsWith(".lock") || child.getName().getBaseName().endsWith(".fail")) {
                 continue;
             }
-            if ((fileNamePattern != null && !fileObject.getName().getBaseName().matches(fileNamePattern)) &&
-                log.isDebugEnabled()) {
-                log.debug("File " + FileTransportUtils.maskURLPassword(fileObject.getName().getBaseName()) +
-                          " is not processed because it did not match the specified pattern.");
+            if (!(fileNamePattern == null || child.getName().getBaseName().matches(fileNamePattern))) {
+                if (log.isDebugEnabled()) {
+                    log.debug("File " + FileTransportUtils.maskURLPassword(fileObject.getName().getBaseName()) +
+                              " is not processed because it did not match the specified pattern.");
+                }
             } else {
                 FileType childType;
                 try {
@@ -362,12 +389,17 @@ public class FileSystemConsumer {
                     } else {
                         directoryHandler(c);
                     }
-                    postProcess(child);
+                    postProcess(child, false);
                 } else if (child.getName().getExtension().equals("zip") && unzip) {
                     try {
-                        FileObject zipFile = fsManager.resolveFile("zip:" + child.getName().getURI());
-                        directoryHandler(zipFile.getChildren());
-                        postProcess(child);
+                        if (!fileLock || FileTransportUtils.acquireLock(fsManager, child)) {
+                            FileObject zipFile = fsManager.resolveFile("zip:" + child.getName().getURI());
+                            directoryHandler(zipFile.getChildren());
+                            postProcess(child, false);
+                            if (fileLock) {
+                                FileTransportUtils.releaseLock(fsManager, child, fso);
+                            }
+                        }
                     } catch (FileSystemException e) {
                         if (log.isDebugEnabled()) {
                             log.debug("Error occurred while resolving zip file.");
@@ -392,10 +424,10 @@ public class FileSystemConsumer {
      */
     private void fileHandler(FileObject file) {
         boolean isWritable = true;
-        if (FileTransportUtils.isFailRecord(fsManager, fileObject)) {
+        if (FileTransportUtils.isFailRecord(fsManager, file)) {
             // it is a failed record
             try {
-                postProcess(file);
+                postProcess(file, true);
             } catch (FileSystemServerConnectorException e) {
                 log.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().getURI())
                           + "'cloud not be moved, will remain in \"fail\" state", e);
@@ -412,9 +444,12 @@ public class FileSystemConsumer {
                 log.debug("Error occurred while determining whether file is writable");
             }
         }
-        if (!fileLock || FileTransportUtils.acquireLock(fsManager, file) || !isWritable) {
+        if (!fileLock || !isWritable || FileTransportUtils.acquireLock(fsManager, file)) {
+            log.info("Processingfile :"
+                     + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
             FileSystemProcessor fsp = new FileSystemProcessor(messageProcessor, serviceName, file, continueIfNotAck,
-                                                              timeOutInterval, fileURI, this, fileLock, fsManager, fso);
+                                                              timeOutInterval, fileURI, this, fileLock, fsManager, fso
+                                                                , postProcessAction);
             fsp.startProcessThread();
             processCount++;
         } else {
@@ -428,7 +463,7 @@ public class FileSystemConsumer {
      *
      * @param file The file object which needs to be post processed
      */
-    synchronized void postProcess(FileObject file) throws FileSystemServerConnectorException {
+    synchronized void postProcess(FileObject file, boolean processFailed) throws FileSystemServerConnectorException {
         String moveToDirectoryURI = null;
         FileType fileType;
         if (file.getFileSystem() instanceof ZipFileSystem) {
@@ -445,12 +480,32 @@ public class FileSystemConsumer {
                                                          + " is a file or a folder", e);
         }
         if (!processFailed) {
-            if (Constants.ACTION_MOVE.equalsIgnoreCase(fileProperties.get(Constants.ACTION_AFTER_PROCESS))) {
+            if (postProcessAction.equals(Constants.ACTION_MOVE)) {
                 moveToDirectoryURI = fileProperties.get(Constants.MOVE_AFTER_PROCESS);
             }
         } else {
-            if (Constants.ACTION_MOVE.equalsIgnoreCase(fileProperties.get(Constants.ACTION_AFTER_FAILURE))) {
+            if (postFailureAction.equals(Constants.ACTION_MOVE)) {
                 moveToDirectoryURI = fileProperties.get(Constants.MOVE_AFTER_FAILURE);
+            }
+        }
+
+        if (moveToDirectoryURI != null) {
+            try {
+                if ((fsManager.resolveFile(moveToDirectoryURI)).getType() == FileType.FILE) {
+                    moveToDirectoryURI = null;
+                    if (processFailed) {
+                        postFailureAction = Constants.ACTION_DELETE;
+                    } else {
+                        postProcessAction = Constants.ACTION_DELETE;
+                    }
+                    if (log.isDebugEnabled()) {
+                        log.debug("Cannot move file because provided location is not a folder");
+                    }
+                }
+            } catch (FileSystemException e) {
+                throw new FileSystemServerConnectorException("Error occurred when determining whether file: " +
+                                                             FileTransportUtils.maskURLPassword(fileURI)
+                                                             + " is a file or a folder", e);
             }
         }
 
@@ -461,7 +516,6 @@ public class FileSystemConsumer {
                 int index = relativeName.lastIndexOf(File.separator);
                 moveToDirectoryURI += relativeName.substring(0, index);
                 moveToDirectory = fsManager.resolveFile(moveToDirectoryURI, fso);
-
                 String prefix;
                 if (fileProperties.get(Constants.MOVE_TIMESTAMP_FORMAT) != null) {
                     prefix = new SimpleDateFormat(fileProperties.get(Constants.MOVE_TIMESTAMP_FORMAT))
@@ -481,14 +535,16 @@ public class FileSystemConsumer {
                 if (log.isDebugEnabled()) {
                     log.debug("Moving to file :" + FileTransportUtils.maskURLPassword(dest.getName().getURI()));
                 }
+                log.info("Moving file :"
+                         + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 try {
                     file.moveTo(dest);
-                    if (FileTransportUtils.isFailRecord(fsManager, fileObject)) {
-                        FileTransportUtils.releaseFail(fsManager, fileObject);
+                    if (FileTransportUtils.isFailRecord(fsManager, file)) {
+                        FileTransportUtils.releaseFail(fsManager, file);
                     }
                 } catch (FileSystemException e) {
-                    if (!FileTransportUtils.isFailRecord(fsManager, fileObject)) {
-                        FileTransportUtils.markFailRecord(fsManager, fileObject);
+                    if (!FileTransportUtils.isFailRecord(fsManager, file)) {
+                        FileTransportUtils.markFailRecord(fsManager, file);
                     }
                     log.error("Error moving file : " + FileTransportUtils.maskURLPassword(file.toString()) +
                               " to " + FileTransportUtils.maskURLPassword(moveToDirectoryURI), e);
@@ -499,11 +555,14 @@ public class FileSystemConsumer {
                     log.debug("Deleting file :"
                               + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 }
+                log.info("Deleting file :"
+                          + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 try {
                     if (!file.delete()) {
-                        throw new FileSystemServerConnectorException(
-                                "Could not delete file : "
-                                + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                        if (log.isDebugEnabled()) {
+                            log.debug("Could not delete file : "
+                                      + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                        }
                     }
                 } catch (FileSystemException e) {
                     throw new FileSystemServerConnectorException(
@@ -512,8 +571,8 @@ public class FileSystemConsumer {
                 }
             }
         } catch (FileSystemException e) {
-            if (!FileTransportUtils.isFailRecord(fsManager, fileObject)) {
-                FileTransportUtils.markFailRecord(fsManager, fileObject);
+            if (!FileTransportUtils.isFailRecord(fsManager, file)) {
+                FileTransportUtils.markFailRecord(fsManager, file);
                 log.error("Error resolving directory to move file : "
                           + FileTransportUtils.maskURLPassword(moveToDirectoryURI), e);
             }
