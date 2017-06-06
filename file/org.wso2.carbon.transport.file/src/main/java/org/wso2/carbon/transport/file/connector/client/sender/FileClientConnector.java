@@ -19,7 +19,6 @@
 package org.wso2.carbon.transport.file.connector.client.sender;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -32,6 +31,8 @@ import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
+import org.wso2.carbon.messaging.StreamingCarbonMessage;
+import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 
 import java.io.IOException;
@@ -67,52 +68,7 @@ public class FileClientConnector implements ClientConnector {
             fileType = path.getType();
             switch (action) {
 
-                case "send":
-                    if (fileType == FileType.IMAGINARY) {
-                        path.createFile();
-                        path.refresh();
-                        fileType = path.getType();
-                    }
-                    if (carbonMessage != null && fileType == FileType.FILE) {
-                        is = carbonMessage.getInputStream();
-                        os = path.getContent().getOutputStream();
-                        long bytesCopied = IOUtils.copy(is, os);
-                        os.flush();
-                        String bytes = Long.toString(bytesCopied);
-                        logger.debug(bytes + " bytes sent");
-                    }
-                    // TODO: 3/20/17 Send response on error eg: not a file
-                    break;
-                case "create":
-                    if (fileType == FileType.IMAGINARY) {
-                        FileName name = path.getName();
-                        boolean isFolder = name.getExtension().isEmpty();
-                        if (isFolder) {
-                            path.createFolder();
-                        } else {
-                            path.createFile();
-                        }
-                        path.refresh();
-                        fileType = path.getType();
-                    }
-                    if (carbonMessage != null && fileType == FileType.FILE) {
-                        is = carbonMessage.getInputStream();
-                        os = path.getContent().getOutputStream();
-                        long bytesCopied = IOUtils.copy(is, os);
-                        os.flush();
-                        String bytes = Long.toString(bytesCopied);
-                        logger.debug(bytes + " bytes sent");
-                    }
-                    break;
-                case "delete":
-                    if (path.exists()) {
-                        boolean isDeleted = path.delete();
-                        if (isDeleted) {
-                            logger.debug("File Successfully Deleted");
-                        }
-                    }
-                    break;
-                case "append":
+                case "write":
                     if (!path.exists()) {
                         path.createFile();
                         path.refresh();
@@ -126,6 +82,14 @@ public class FileClientConnector implements ClientConnector {
 
                         String bytes = Long.toString(bytesCopied);
                         logger.info(bytes + " bytes appended");
+                    }
+                    break;
+                case "delete":
+                    if (path.exists()) {
+                        boolean isDeleted = path.delete();
+                        if (isDeleted) {
+                            logger.debug("File Successfully Deleted");
+                        }
                     }
                     break;
                 case "copy":
@@ -143,22 +107,25 @@ public class FileClientConnector implements ClientConnector {
                         if (!newPath.exists()) {
                             path.moveTo(newPath);
                         }
-
                     }
                     break;
-                case "archive":
+                case "read":
                     if (path.exists()) {
-                        String destination = map.get("destination");
-                        FileObject newPath = fsManager.resolveFile(destination, opts);
-                        if (!newPath.exists()) {
-                            Utils.fileCompress(path, newPath);
-                        }
+                        is = path.getContent().getInputStream();
+                        StreamingCarbonMessage message = new StreamingCarbonMessage(is);
+                        carbonMessageProcessor.receive(message, carbonCallback);
                     }
+                    break;
+                case "isExist":
+                    TextCarbonMessage message = new TextCarbonMessage(Boolean.toString(path.exists()));
+                    carbonMessageProcessor.receive(message, carbonCallback);
                     break;
                 default: return false;
             }
         } catch (IOException e) {
             throw new ClientConnectorException("Exception occurred while sending the message", e);
+        } catch (Exception e) {
+            throw new ClientConnectorException("Exception occurred while sending the callback", e);
         } finally {
             IOUtils.closeQuietly(is);
             IOUtils.closeQuietly(os);
@@ -173,12 +140,4 @@ public class FileClientConnector implements ClientConnector {
     @Override public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
         this.carbonMessageProcessor = carbonMessageProcessor;
     }
-
-    //                case "read":
-    //                    if (path.exists()) {
-    //                        is = path.getContent().getInputStream();
-    //                        StreamingCarbonMessage message = new StreamingCarbonMessage(is);
-    //                        carbonMessageProcessor.receive(message, carbonCallback);
-    //                    }
-    //                    break;
 }
