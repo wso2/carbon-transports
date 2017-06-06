@@ -28,6 +28,7 @@ import org.wso2.carbon.transport.filesystem.connector.server.util.Constants;
 import org.wso2.carbon.transport.filesystem.test.util.TestMessageProcessor;
 
 import java.io.File;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,10 +42,14 @@ public class FileSystemServerConnectorTestCase {
     public void filePollingTestCase() throws ServerConnectorException, InterruptedException {
         FileSystemServerConnectorProvider provider = new FileSystemServerConnectorProvider();
         ClassLoader classLoader = getClass().getClassLoader();
-        String fileURI = new File(classLoader.getResource("test.txt").getFile()).getAbsolutePath();
+        URL url = classLoader.getResource("test.txt");
+        String file = url.getFile();
+        File testFile = new File(file);
+        String fileURI = testFile.getAbsolutePath();
         Map<String, String> parameters = new HashMap<>();
         parameters.put(Constants.TRANSPORT_FILE_FILE_URI, fileURI);
         parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "1000");
+        parameters.put(Constants.ACTION_AFTER_PROCESS, Constants.ACTION_NONE);
         ServerConnector connector = provider.createConnector("testService", parameters);
 
         TestMessageProcessor messageProcessor = new TestMessageProcessor();

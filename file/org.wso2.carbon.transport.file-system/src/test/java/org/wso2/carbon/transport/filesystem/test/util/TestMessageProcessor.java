@@ -18,10 +18,14 @@
 
 package org.wso2.carbon.transport.filesystem.test.util;
 
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.VFS;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
+import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.TransportSender;
 
 import java.io.BufferedReader;
@@ -40,7 +44,9 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
 
     @Override
     public boolean receive(CarbonMessage carbonMessage, CarbonCallback carbonCallback) throws Exception {
-        fileContent = getStringFromInputStream(carbonMessage.getInputStream());
+        FileSystemManager fileSystemManager = VFS.getManager();
+        FileObject fileObject = fileSystemManager.resolveFile(((TextCarbonMessage) carbonMessage).getText());
+        fileContent = getStringFromInputStream(fileObject.getContent().getInputStream());
         carbonCallback.done(carbonMessage);
         done();
         return false;
