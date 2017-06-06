@@ -26,7 +26,6 @@ import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
-import org.apache.commons.vfs2.provider.zip.ZipFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
@@ -60,7 +59,6 @@ public class FileSystemConsumer {
     private FileObject fileObject;
     private FileSystemOptions fso;
     private boolean fileLock = true;
-    private boolean unzip = false;
     private boolean parallelProcess = false;
     private int threadPoolSize = 10;
     private int fileProcessCount;
@@ -149,10 +147,6 @@ public class FileSystemConsumer {
         String strLocking = fileProperties.get(Constants.LOCKING);
         if (strLocking != null) {
             fileLock = Boolean.parseBoolean(strLocking);
-        }
-        String strUnzip = fileProperties.get(Constants.FILE_UNZIP);
-        if (strUnzip != null) {
-            unzip = Boolean.parseBoolean(strUnzip);
         }
         String strParallel = fileProperties.get(Constants.PARALLEL);
         if (strParallel != null) {
@@ -390,21 +384,6 @@ public class FileSystemConsumer {
                         directoryHandler(c);
                     }
                     postProcess(child, false);
-                } else if (child.getName().getExtension().equals("zip") && unzip) {
-                    try {
-                        if (!fileLock || FileTransportUtils.acquireLock(fsManager, child)) {
-                            FileObject zipFile = fsManager.resolveFile("zip:" + child.getName().getURI());
-                            directoryHandler(zipFile.getChildren());
-                            postProcess(child, false);
-                            if (fileLock) {
-                                FileTransportUtils.releaseLock(fsManager, child, fso);
-                            }
-                        }
-                    } catch (FileSystemException e) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Error occurred while resolving zip file.");
-                        }
-                    }
                 } else {
                     fileHandler(child);
                 }
@@ -466,12 +445,6 @@ public class FileSystemConsumer {
     synchronized void postProcess(FileObject file, boolean processFailed) throws FileSystemServerConnectorException {
         String moveToDirectoryURI = null;
         FileType fileType;
-        if (file.getFileSystem() instanceof ZipFileSystem) {
-            if (log.isDebugEnabled()) {
-                log.debug("Child files of a zip file cannot be moved/deleted.");
-            }
-            return;
-        }
         try {
             fileType = file.getType();
         } catch (FileSystemException e) {
