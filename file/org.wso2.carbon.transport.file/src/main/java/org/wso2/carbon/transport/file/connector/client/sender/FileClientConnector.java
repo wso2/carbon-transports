@@ -27,17 +27,18 @@ import org.apache.commons.vfs2.Selectors;
 import org.apache.commons.vfs2.VFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.messaging.BinaryCarbonMessage;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
-import org.wso2.carbon.messaging.StreamingCarbonMessage;
 import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
@@ -45,7 +46,6 @@ import java.util.Map;
  */
 public class FileClientConnector implements ClientConnector {
     private static final Logger logger = LoggerFactory.getLogger(FileClientConnector.class);
-    private String fileURI;
     private FileSystemManager fsManager;
     private FileSystemOptions opts = new FileSystemOptions();
     private CarbonMessageProcessor carbonMessageProcessor;
@@ -57,9 +57,10 @@ public class FileClientConnector implements ClientConnector {
 
     @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, String> map)
             throws ClientConnectorException {
-        fileURI = map.get("uri");
+        String fileURI = map.get("uri");
         String action = map.get("action");
         FileType fileType;
+        ByteBuffer byteBuffer;
         InputStream is = null;
         OutputStream os = null;
         try {
@@ -75,13 +76,11 @@ public class FileClientConnector implements ClientConnector {
                         fileType = path.getType();
                     }
                     if (fileType == FileType.FILE) {
-                        is = carbonMessage.getInputStream();
+                        byteBuffer = ((BinaryCarbonMessage)carbonMessage).readBytes();
+                        byte[] bytes = byteBuffer.array();
                         os = path.getContent().getOutputStream(true);
-                        long bytesCopied = IOUtils.copy(is, os);
+                        IOUtils.write(bytes, os);
                         os.flush();
-
-                        String bytes = Long.toString(bytesCopied);
-                        logger.info(bytes + " bytes appended");
                     }
                     break;
                 case "delete":
@@ -101,7 +100,6 @@ public class FileClientConnector implements ClientConnector {
                     break;
                 case "move":
                     if (path.exists()) {
-                        is = path.getContent().getInputStream();
                         String destination = map.get("destination");
                         FileObject newPath = fsManager.resolveFile(destination, opts);
                         if (!newPath.exists()) {
@@ -112,7 +110,8 @@ public class FileClientConnector implements ClientConnector {
                 case "read":
                     if (path.exists()) {
                         is = path.getContent().getInputStream();
-                        StreamingCarbonMessage message = new StreamingCarbonMessage(is);
+                        byte[] bytes = IOUtils.toByteArray(is);
+                        BinaryCarbonMessage message = new BinaryCarbonMessage(ByteBuffer.wrap(bytes), true);
                         carbonMessageProcessor.receive(message, carbonCallback);
                     }
                     break;
