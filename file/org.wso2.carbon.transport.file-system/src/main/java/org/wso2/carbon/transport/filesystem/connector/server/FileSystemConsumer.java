@@ -72,6 +72,12 @@ public class FileSystemConsumer {
     private String postProcessAction = Constants.ACTION_DELETE;
     private String postFailureAction = Constants.ACTION_DELETE;
 
+    /**
+     * @param id
+     * @param fileProperties
+     * @param messageProcessor
+     * @throws ServerConnectorException
+     */
     FileSystemConsumer(String id, Map<String, String> fileProperties, CarbonMessageProcessor messageProcessor)
             throws ServerConnectorException {
         this.serviceName = id;
@@ -188,6 +194,10 @@ public class FileSystemConsumer {
         }
     }
 
+    /**
+     * @param fileURI
+     * @return
+     */
     private Map<String, String> parseSchemeFileOptions(String fileURI) {
         String scheme = UriParser.extractScheme(fileURI);
         if (scheme == null) {
@@ -199,6 +209,10 @@ public class FileSystemConsumer {
         return schemeFileOptions;
     }
 
+    /**
+     * @param scheme
+     * @param schemeFileOptions
+     */
     private void addOptions(String scheme, Map<String, String> schemeFileOptions) {
         if (scheme.equals(Constants.SCHEME_SFTP)) {
             for (Constants.SftpFileOption option : Constants.SftpFileOption.values()) {
@@ -212,7 +226,7 @@ public class FileSystemConsumer {
 
     /**
      * Do the file processing operation for the given set of properties. Do the
-     * checks and pass the control to processFile method
+     * checks and pass the control to file system processor thread/threads.
      */
     void consume() throws FileSystemServerConnectorException {
         if (log.isDebugEnabled()) {
@@ -441,6 +455,7 @@ public class FileSystemConsumer {
      * Do the post processing actions.
      *
      * @param file The file object which needs to be post processed
+     * @param processFailed Whether processing of file failed
      */
     synchronized void postProcess(FileObject file, boolean processFailed) throws FileSystemServerConnectorException {
         String moveToDirectoryURI = null;

@@ -31,7 +31,7 @@ import org.wso2.carbon.transport.filesystem.connector.server.util.ThreadPoolFact
 
 
 /**
- * Message receiver for receiving JMS messages synchronously.
+ * File processor to process a single file.
  */
 class FileSystemProcessor implements Runnable {
 
@@ -50,7 +50,19 @@ class FileSystemProcessor implements Runnable {
     private String postProcessAction;
 
     /**
+     * Initializes the message processor with file details.
      *
+     * @param messageProcessor   The message processor instance
+     * @param serviceName        The name of the destination service
+     * @param file               The file to be processed
+     * @param continueIfNotAck   Whether to continue processing if acknowledgement is not received
+     * @param timeOutInterval    Time-out interval in milliseconds for waiting for the acknowledgement
+     * @param fileURI            The URI of the file which is being processed
+     * @param fileSystemConsumer FileSystemConsumer instance of processed file/directory
+     * @param fileLock           Whether a .lock file was created for the current file
+     * @param fsManager          FileSystemManager instance used to release lock
+     * @param fso                Represents file system options used when resolving file from file system manager
+     * @param postProcessAction  Action to be applied to file once it is processed
      */
     FileSystemProcessor(CarbonMessageProcessor messageProcessor, String serviceName, FileObject file,
                         boolean continueIfNotAck, long timeOutInterval, String fileURI,
@@ -70,7 +82,7 @@ class FileSystemProcessor implements Runnable {
     }
 
     /**
-     * The runnable implementation which is invoked when message receiving is started.
+     * The runnable implementation which is invoked when file processing started.
      */
     @Override
     public void run() {
