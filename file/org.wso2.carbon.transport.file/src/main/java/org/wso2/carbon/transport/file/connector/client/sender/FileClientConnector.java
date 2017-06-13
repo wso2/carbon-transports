@@ -20,6 +20,7 @@ package org.wso2.carbon.transport.file.connector.client.sender;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
@@ -85,10 +86,11 @@ public class FileClientConnector implements ClientConnector {
                     break;
                 case "delete":
                     if (path.exists()) {
-                        boolean isDeleted = path.delete();
-                        if (isDeleted) {
-                            logger.debug("File Successfully Deleted");
-                        }
+                        int filesDeleted = path.delete(Selectors.SELECT_ALL);
+                        logger.debug(filesDeleted + "files Successfully Deleted");
+                    } else {
+                        throw new ClientConnectorException("failed to delete file: file " +
+                                                           "not found:" + path.getName());
                     }
                     break;
                 case "copy":
@@ -96,15 +98,25 @@ public class FileClientConnector implements ClientConnector {
                         String destination = map.get("destination");
                         FileObject dest = fsManager.resolveFile(destination, opts);
                         dest.copyFrom(path, Selectors.SELECT_ALL);
+                    } else {
+                        throw new ClientConnectorException("failed to copy file: file " +
+                        "not found:" + path.getName());
                     }
                     break;
                 case "move":
                     if (path.exists()) {
                         String destination = map.get("destination");
                         FileObject newPath = fsManager.resolveFile(destination, opts);
+                        FileObject parent = newPath.getParent();
+                        if (parent != null && !parent.exists()) {
+                            parent.createFolder();
+                        }
                         if (!newPath.exists()) {
                             path.moveTo(newPath);
                         }
+                    } else {
+                        throw new ClientConnectorException("failed to move file: file " +
+                                                           "not found:" + path.getName());
                     }
                     break;
                 case "read":
@@ -113,6 +125,9 @@ public class FileClientConnector implements ClientConnector {
                         byte[] bytes = IOUtils.toByteArray(is);
                         BinaryCarbonMessage message = new BinaryCarbonMessage(ByteBuffer.wrap(bytes), true);
                         carbonMessageProcessor.receive(message, carbonCallback);
+                    } else {
+                        throw new ClientConnectorException("failed to read file: file " +
+                                                           "not found:" + path.getName());
                     }
                     break;
                 case "isExist":
