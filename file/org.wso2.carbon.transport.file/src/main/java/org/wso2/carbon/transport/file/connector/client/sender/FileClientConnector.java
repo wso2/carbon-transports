@@ -35,14 +35,13 @@ import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
- * FileClientConnector
+ * FileClientConnector.
  */
 public class FileClientConnector implements ClientConnector {
     private static final Logger logger = LoggerFactory.getLogger(FileClientConnector.class);
@@ -50,12 +49,14 @@ public class FileClientConnector implements ClientConnector {
     private FileSystemOptions opts = new FileSystemOptions();
     private CarbonMessageProcessor carbonMessageProcessor;
 
-    @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
+    @Override
+    public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
             throws ClientConnectorException {
         return false;
     }
 
-    @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, String> map)
+    @Override
+    public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, String> map)
             throws ClientConnectorException {
         String fileURI = map.get("uri");
         String action = map.get("action");
@@ -88,7 +89,13 @@ public class FileClientConnector implements ClientConnector {
                         fileType = path.getType();
                     }
                     if (fileType == FileType.FILE) {
-                        byteBuffer = ((BinaryCarbonMessage) carbonMessage).readBytes();
+                        if (carbonMessage instanceof BinaryCarbonMessage) {
+                            BinaryCarbonMessage binaryCarbonMessage = (BinaryCarbonMessage) carbonMessage;
+                            byteBuffer = binaryCarbonMessage.readBytes();
+                        } else {
+                            throw new ClientConnectorException(
+                                    "received carbon message " + "isn't a BinaryCarbonMessage");
+                        }
                         byte[] bytes = byteBuffer.array();
                         os = path.getContent().getOutputStream(true);
                         IOUtils.write(bytes, os);
@@ -148,10 +155,10 @@ public class FileClientConnector implements ClientConnector {
                 default:
                     return false;
             }
-        } catch (IOException e) {
-            throw new ClientConnectorException("Exception occurred while sending the message", e);
+        } catch (RuntimeException e) {
+            throw new ClientConnectorException("Runtime Exception occurred : " + e.getMessage(), e);
         } catch (Exception e) {
-            throw new ClientConnectorException("Exception occurred while sending the callback", e);
+            throw new ClientConnectorException("Exception occurred while processing file: " + e.getMessage(), e);
         } finally {
             IOUtils.closeQuietly(is);
             IOUtils.closeQuietly(os);
@@ -159,11 +166,13 @@ public class FileClientConnector implements ClientConnector {
         return true;
     }
 
-    @Override public String getProtocol() {
+    @Override
+    public String getProtocol() {
         return "vfs";
     }
 
-    @Override public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
+    @Override
+    public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
         this.carbonMessageProcessor = carbonMessageProcessor;
     }
 }
