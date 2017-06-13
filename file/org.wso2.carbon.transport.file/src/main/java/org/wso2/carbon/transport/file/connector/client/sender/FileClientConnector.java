@@ -20,7 +20,6 @@ package org.wso2.carbon.transport.file.connector.client.sender;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
@@ -70,6 +69,18 @@ public class FileClientConnector implements ClientConnector {
             fileType = path.getType();
             switch (action) {
 
+                case "create":
+                    boolean isFolder = Boolean.parseBoolean(map.getOrDefault("create-folder", "false"));
+                    if (path.exists()) {
+                        logger.info("Deleting existing file/folder");
+                        path.delete();
+                    }
+                    if (isFolder) {
+                        path.createFolder();
+                    } else {
+                        path.createFile();
+                    }
+                    break;
                 case "write":
                     if (!path.exists()) {
                         path.createFile();
@@ -77,7 +88,7 @@ public class FileClientConnector implements ClientConnector {
                         fileType = path.getType();
                     }
                     if (fileType == FileType.FILE) {
-                        byteBuffer = ((BinaryCarbonMessage)carbonMessage).readBytes();
+                        byteBuffer = ((BinaryCarbonMessage) carbonMessage).readBytes();
                         byte[] bytes = byteBuffer.array();
                         os = path.getContent().getOutputStream(true);
                         IOUtils.write(bytes, os);
@@ -100,7 +111,7 @@ public class FileClientConnector implements ClientConnector {
                         dest.copyFrom(path, Selectors.SELECT_ALL);
                     } else {
                         throw new ClientConnectorException("failed to copy file: file " +
-                        "not found:" + path.getName());
+                                                           "not found:" + path.getName());
                     }
                     break;
                 case "move":
@@ -134,7 +145,8 @@ public class FileClientConnector implements ClientConnector {
                     TextCarbonMessage message = new TextCarbonMessage(Boolean.toString(path.exists()));
                     carbonMessageProcessor.receive(message, carbonCallback);
                     break;
-                default: return false;
+                default:
+                    return false;
             }
         } catch (IOException e) {
             throw new ClientConnectorException("Exception occurred while sending the message", e);
@@ -148,7 +160,7 @@ public class FileClientConnector implements ClientConnector {
     }
 
     @Override public String getProtocol() {
-        return "file";
+        return "vfs";
     }
 
     @Override public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {

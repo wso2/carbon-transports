@@ -73,6 +73,34 @@ public class FileClientConnectorTestCase {
         }
     }
 
+
+    @Test
+    public void fileCreateTestCase() throws ClientConnectorException, IOException {
+        FileClientConnector fileClientConnector = new FileClientConnector();
+        Map<String, String> propertyMap = new HashMap<>();
+        File testFile = new File("temp/test.txt");
+        String fileURI = testFile.getAbsolutePath();
+        propertyMap.put("uri", fileURI);
+        propertyMap.put("action", "create");
+        fileClientConnector.send(null, null, propertyMap);
+        Assert.assertTrue(testFile.exists(), "file not created");
+        Assert.assertTrue(testFile.isFile(), "created directory instead of file");
+    }
+
+    @Test
+    public void dirCreateTestCase() throws ClientConnectorException, IOException {
+        FileClientConnector fileClientConnector = new FileClientConnector();
+        Map<String, String> propertyMap = new HashMap<>();
+        File testFile = new File("temp/dir1/dir2/dir3");
+        String fileURI = testFile.getAbsolutePath();
+        propertyMap.put("uri", fileURI);
+        propertyMap.put("action", "create");
+        propertyMap.put("create-folder", "true");
+        fileClientConnector.send(null, null, propertyMap);
+        Assert.assertTrue(testFile.exists(), "file not created");
+        Assert.assertTrue(testFile.isDirectory(), "created file instead of directory");
+    }
+
     @Test
     public void fileWriteTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
