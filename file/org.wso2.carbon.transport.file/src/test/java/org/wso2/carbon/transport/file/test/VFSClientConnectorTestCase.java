@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Test case that tests the file server connector functionality.
+ * Test case that tests the VFS client connector functionality.
  */
 public class VFSClientConnectorTestCase {
 
@@ -298,6 +298,11 @@ public class VFSClientConnectorTestCase {
                           "returns false when the file does exist");
     }
 
+    /**
+     * Deletes a directory after clearing its contents
+     *
+     * @param dir The directory that should be deleted
+     */
     private void deleteDir(File dir) {
         String[] entries = dir.list();
         if (entries != null && entries.length != 0) {

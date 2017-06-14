@@ -26,6 +26,9 @@ import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.TransportSender;
 
+/**
+ * A Message Processor class to be used for File connector pass through scenarios
+ */
 public class FileMessageProcessor implements CarbonMessageProcessor {
 
     private TextCarbonMessage textCarbonMessage;

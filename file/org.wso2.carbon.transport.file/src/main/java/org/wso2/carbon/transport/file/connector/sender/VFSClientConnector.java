@@ -43,11 +43,10 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
- * FileClientConnector.
+ * VFSClientConnector.
  */
 public class VFSClientConnector implements ClientConnector {
     private static final Logger logger = LoggerFactory.getLogger(VFSClientConnector.class);
-    private FileSystemManager fsManager;
     private FileSystemOptions opts = new FileSystemOptions();
     private CarbonMessageProcessor carbonMessageProcessor;
 
@@ -67,7 +66,7 @@ public class VFSClientConnector implements ClientConnector {
         InputStream is = null;
         OutputStream os = null;
         try {
-            fsManager = VFS.getManager();
+            FileSystemManager fsManager = VFS.getManager();
             FileObject path = fsManager.resolveFile(fileURI, opts);
             fileType = path.getType();
             switch (action) {
@@ -177,7 +176,14 @@ public class VFSClientConnector implements ClientConnector {
         return "vfs";
     }
 
-    public static byte[] toByteArray(InputStream input) throws IOException {
+    /**
+     * Obtain a byte[] from an input stream
+     *
+     * @param input The input stream that the data should be obtained from
+     * @return byte[] The byte array of data obtained from the input stream
+     * @throws IOException
+     */
+    private static byte[] toByteArray(InputStream input) throws IOException {
         long count = 0L;
         byte[] buffer = new byte[4096];
         int n1;
@@ -191,7 +197,11 @@ public class VFSClientConnector implements ClientConnector {
         return bytes;
     }
 
-    public static void closeQuietly(Closeable closeable) {
+    /**
+     * Closes streams quietly
+     * @param closeable The stream that should be closed
+     */
+    private static void closeQuietly(Closeable closeable) {
         try {
             if (closeable != null) {
                 closeable.close();
