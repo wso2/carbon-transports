@@ -258,7 +258,7 @@ public class VFSClientConnectorTestCase {
         VFSClientConnector vfsClientConnector = new VFSClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         ClassLoader classLoader = getClass().getClassLoader();
-        File testFile = new File(classLoader.getResource("test.txt").getFile());
+        File testFile = new File(classLoader.getResource("client-test.txt").getFile());
         String fileURI = testFile.getAbsolutePath();
         propertyMap.put("uri", fileURI);
         propertyMap.put("action", "read");
@@ -287,7 +287,7 @@ public class VFSClientConnectorTestCase {
         VFSClientConnector vfsClientConnector = new VFSClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         ClassLoader classLoader = getClass().getClassLoader();
-        File testFile = new File(classLoader.getResource("test.txt").getFile());
+        File testFile = new File(classLoader.getResource("client-test.txt").getFile());
         String fileURI = testFile.getAbsolutePath();
         propertyMap.put("uri", fileURI);
         propertyMap.put("action", "exists");
