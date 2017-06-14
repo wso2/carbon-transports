@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.file.connector.client.sender;
+package org.wso2.carbon.transport.file.connector.sender;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -45,8 +45,8 @@ import java.util.Map;
 /**
  * FileClientConnector.
  */
-public class FileClientConnector implements ClientConnector {
-    private static final Logger logger = LoggerFactory.getLogger(FileClientConnector.class);
+public class VFSClientConnector implements ClientConnector {
+    private static final Logger logger = LoggerFactory.getLogger(VFSClientConnector.class);
     private FileSystemManager fsManager;
     private FileSystemOptions opts = new FileSystemOptions();
     private CarbonMessageProcessor carbonMessageProcessor;
