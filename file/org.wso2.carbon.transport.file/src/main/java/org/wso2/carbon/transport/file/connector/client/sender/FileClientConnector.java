@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.transport.file.connector.client.sender;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -35,6 +34,9 @@ import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -98,7 +100,7 @@ public class FileClientConnector implements ClientConnector {
                         }
                         byte[] bytes = byteBuffer.array();
                         os = path.getContent().getOutputStream(true);
-                        IOUtils.write(bytes, os);
+                        os.write(bytes);
                         os.flush();
                     }
                     break;
@@ -140,16 +142,20 @@ public class FileClientConnector implements ClientConnector {
                 case "read":
                     if (path.exists()) {
                         is = path.getContent().getInputStream();
-                        byte[] bytes = IOUtils.toByteArray(is);
+                        byte[] bytes = toByteArray(is);
                         BinaryCarbonMessage message = new BinaryCarbonMessage(ByteBuffer.wrap(bytes), true);
+                        message.setProperty(org.wso2.carbon.messaging.Constants.DIRECTION,
+                                            org.wso2.carbon.messaging.Constants.DIRECTION_RESPONSE);
                         carbonMessageProcessor.receive(message, carbonCallback);
                     } else {
                         throw new ClientConnectorException("failed to read file: file " +
                                                            "not found:" + path.getName());
                     }
                     break;
-                case "isExist":
+                case "exists":
                     TextCarbonMessage message = new TextCarbonMessage(Boolean.toString(path.exists()));
+                    message.setProperty(org.wso2.carbon.messaging.Constants.DIRECTION,
+                                     org.wso2.carbon.messaging.Constants.DIRECTION_RESPONSE);
                     carbonMessageProcessor.receive(message, carbonCallback);
                     break;
                 default:
@@ -160,8 +166,8 @@ public class FileClientConnector implements ClientConnector {
         } catch (Exception e) {
             throw new ClientConnectorException("Exception occurred while processing file: " + e.getMessage(), e);
         } finally {
-            IOUtils.closeQuietly(is);
-            IOUtils.closeQuietly(os);
+            closeQuietly(is);
+            closeQuietly(os);
         }
         return true;
     }
@@ -169,6 +175,31 @@ public class FileClientConnector implements ClientConnector {
     @Override
     public String getProtocol() {
         return "vfs";
+    }
+
+    public static byte[] toByteArray(InputStream input) throws IOException {
+        long count = 0L;
+        byte[] buffer = new byte[4096];
+        int n1;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        for (; -1 != (n1 = input.read(buffer)); count += (long) n1) {
+            output.write(buffer, 0, n1);
+        }
+        logger.debug(count + " no. of bytes read");
+        byte[] bytes = output.toByteArray();
+        closeQuietly(output);
+        return bytes;
+    }
+
+    public static void closeQuietly(Closeable closeable) {
+        try {
+            if (closeable != null) {
+                closeable.close();
+            }
+        } catch (IOException e) {
+            logger.error("Error occurred when closing stream", e);
+        }
+
     }
 
     @Override

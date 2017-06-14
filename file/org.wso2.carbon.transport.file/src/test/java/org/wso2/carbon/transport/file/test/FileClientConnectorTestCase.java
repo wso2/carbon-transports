@@ -43,7 +43,8 @@ public class FileClientConnectorTestCase {
 
     private final byte[] bytes = "This is a Sample Text".getBytes();
 
-    @BeforeMethod public void createTempDir() {
+    @BeforeMethod
+    public void createTempDir() {
         File temp = new File("temp");
         if (temp.exists()) {
             deleteDir(temp);
@@ -52,7 +53,8 @@ public class FileClientConnectorTestCase {
         }
     }
 
-    @AfterMethod public void deleteTempDir() {
+    @AfterMethod
+    public void deleteTempDir() {
         File temp = new File("temp");
         if (temp.exists()) {
             deleteDir(temp);
@@ -64,7 +66,8 @@ public class FileClientConnectorTestCase {
         }
     }
 
-    @Test public void fileCreateTestCase() throws ClientConnectorException, IOException {
+    @Test
+    public void fileCreateTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         File testFile = new File("temp/test.txt");
@@ -76,7 +79,8 @@ public class FileClientConnectorTestCase {
         Assert.assertTrue(testFile.isFile(), "created directory instead of file");
     }
 
-    @Test public void dirCreateTestCase() throws ClientConnectorException, IOException {
+    @Test
+    public void dirCreateTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         File testFile = new File("temp/dir1/dir2/dir3");
@@ -89,7 +93,8 @@ public class FileClientConnectorTestCase {
         Assert.assertTrue(testFile.isDirectory(), "created file instead of directory");
     }
 
-    @Test public void fileWriteTestCase() throws ClientConnectorException, IOException {
+    @Test
+    public void fileWriteTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         File testFile = new File("temp/test.txt");
@@ -101,7 +106,8 @@ public class FileClientConnectorTestCase {
         Assert.assertEquals(bytes, IOUtils.toByteArray(new FileInputStream(testFile)), "Wrong Content written to File");
     }
 
-    @Test public void fileCopyTestCase() throws ClientConnectorException, IOException {
+    @Test
+    public void fileCopyTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         File testFile = new File("temp/test.txt");
@@ -118,7 +124,8 @@ public class FileClientConnectorTestCase {
         Assert.assertEquals(bytes, IOUtils.toByteArray(new FileInputStream(destFile)), "Wrong Content copied to File");
     }
 
-    @Test(expectedExceptions = ClientConnectorException.class) public void copyNonExistentFile()
+    @Test(expectedExceptions = ClientConnectorException.class)
+    public void copyNonExistentFile()
             throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
@@ -131,7 +138,8 @@ public class FileClientConnectorTestCase {
         fileClientConnector.send(null, null, propertyMap);
     }
 
-    @Test public void dirCopyTestCase() throws ClientConnectorException, IOException {
+    @Test
+    public void dirCopyTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         File testDir = new File("temp/dir");
@@ -151,7 +159,8 @@ public class FileClientConnectorTestCase {
         Assert.assertEquals(bytes, IOUtils.toByteArray(new FileInputStream(testFile)), "Wrong Content copied to File");
     }
 
-    @Test public void fileMoveTestCase() throws ClientConnectorException, IOException {
+    @Test
+    public void fileMoveTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         File testFile = new File("temp/test.txt");
@@ -170,7 +179,8 @@ public class FileClientConnectorTestCase {
                             "Wrong Content in moved to File");
     }
 
-    @Test(expectedExceptions = ClientConnectorException.class) public void moveNonExistentFile()
+    @Test(expectedExceptions = ClientConnectorException.class)
+    public void moveNonExistentFile()
             throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
@@ -183,7 +193,8 @@ public class FileClientConnectorTestCase {
         fileClientConnector.send(null, null, propertyMap);
     }
 
-    @Test public void dirMoveTestCase() throws ClientConnectorException, IOException {
+    @Test
+    public void dirMoveTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         File testDir = new File("temp/dir");
@@ -203,7 +214,8 @@ public class FileClientConnectorTestCase {
         Assert.assertEquals(bytes, IOUtils.toByteArray(new FileInputStream(destFile)), "Wrong Content moved to File");
     }
 
-    @Test public void fileDeleteTestCase() throws ClientConnectorException, IOException {
+    @Test
+    public void fileDeleteTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         File testFile = new File("temp/test.txt");
@@ -215,7 +227,8 @@ public class FileClientConnectorTestCase {
         Assert.assertFalse(testFile.exists(), "File not Deleted");
     }
 
-    @Test(expectedExceptions = ClientConnectorException.class) public void deleteNonExistentFile()
+    @Test(expectedExceptions = ClientConnectorException.class)
+    public void deleteNonExistentFile()
             throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
@@ -226,7 +239,8 @@ public class FileClientConnectorTestCase {
         fileClientConnector.send(null, null, propertyMap);
     }
 
-    @Test public void dirDeleteTestCase() throws ClientConnectorException, IOException {
+    @Test
+    public void dirDeleteTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         File testDir = new File("temp/dir");
@@ -239,7 +253,8 @@ public class FileClientConnectorTestCase {
         Assert.assertFalse(testDir.exists(), "Folder not Deleted");
     }
 
-    @Test public void fileReadTestCase() throws ClientConnectorException, IOException {
+    @Test
+    public void fileReadTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         ClassLoader classLoader = getClass().getClassLoader();
@@ -255,7 +270,8 @@ public class FileClientConnectorTestCase {
                             "Wrong Content written to File");
     }
 
-    @Test(expectedExceptions = ClientConnectorException.class) public void readNonExistentFile()
+    @Test(expectedExceptions = ClientConnectorException.class)
+    public void readNonExistentFile()
             throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
@@ -266,14 +282,15 @@ public class FileClientConnectorTestCase {
         fileClientConnector.send(null, null, propertyMap);
     }
 
-    @Test public void fileIsExistTestCase() throws ClientConnectorException, IOException {
+    @Test
+    public void fileExistTestCase() throws ClientConnectorException, IOException {
         FileClientConnector fileClientConnector = new FileClientConnector();
         Map<String, String> propertyMap = new HashMap<>();
         ClassLoader classLoader = getClass().getClassLoader();
         File testFile = new File(classLoader.getResource("test.txt").getFile());
         String fileURI = testFile.getAbsolutePath();
         propertyMap.put("uri", fileURI);
-        propertyMap.put("action", "isExist");
+        propertyMap.put("action", "exists");
         FileMessageProcessor messageProcessor = new FileMessageProcessor();
         fileClientConnector.setMessageProcessor(messageProcessor);
         fileClientConnector.send(null, null, propertyMap);
