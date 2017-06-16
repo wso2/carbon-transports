@@ -17,54 +17,71 @@
  */
 package org.wso2.carbon.connector.framework.server.polling;
 
+import org.quartz.CronScheduleBuilder;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SimpleScheduleBuilder;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
+import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.Random;
 
 /**
- * The {@link PollingTaskRunner} which executes a periodic poll.
+ * The {@link PollingTaskRunner} which executes a poll based on provided CRON expression or polling interval.
  */
-public class PollingTaskRunner implements Runnable {
+public class PollingTaskRunner {
     private static final Logger log = LoggerFactory.getLogger(PollingTaskRunner.class);
+    private static final Random RANDOM = new Random();
 
-    private final long interval;
     private final PollingServerConnector connector;
-    private ScheduledFuture future;
+    private Scheduler scheduler;
 
     public PollingTaskRunner(PollingServerConnector connector) {
         this.connector = connector;
-        this.interval = connector.interval;
     }
 
     public void start() {
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        future = executor.scheduleAtFixedRate
-                (this, interval, interval, TimeUnit.MILLISECONDS);
-    }
+        String group = "carbon.connector.quartz";
+        JobDetail job = JobBuilder.newJob(PollingJob.class)
+                                  .withIdentity("Job - " + RANDOM.nextLong(), group).build();
 
-    @Override
-    public void run() {
-        // Run the poll cycles
-        log.debug("Executing the polling task for server connector ID: " + connector.getId());
-        try {
-            connector.poll();
-        } catch (Exception e) {
-            log.error("Error executing the polling cycle for " +
-                    "server connector ID: " + connector.getId(), e);
+        Trigger trigger;
+        if (connector.cronExpression != null) {
+            // Trigger the job to run on the next round minute
+            trigger = TriggerBuilder.newTrigger().withIdentity("Trigger - " + RANDOM.nextLong(), group)
+                                    .withSchedule(CronScheduleBuilder.cronSchedule(connector.cronExpression)).build();
+        } else {
+            // Trigger the job to run on the next round minute
+            trigger = TriggerBuilder.newTrigger().withIdentity("scheduledPoll", "group1").withSchedule(
+                    SimpleScheduleBuilder.simpleSchedule().withIntervalInMilliseconds(connector.interval)
+                                         .repeatForever()).build();
         }
-        log.debug("Exit the polling task running loop for server connector ID: " + connector.getId());
+
+        // Schedule the job
+        try {
+            scheduler = new StdSchedulerFactory().getScheduler();
+            scheduler.getContext().put("connector", connector);
+            scheduler.start();
+            scheduler.scheduleJob(job, trigger);
+        } catch (SchedulerException e) {
+            log.error("Exception occurred while scheduling job");
+        }
+
     }
 
     /**
-     * Exit the running while loop and terminate the thread
+     * Exit the running while loop and terminate the thread.
      */
     protected void terminate() {
-        if (future != null) {
-            future.cancel(true);
+        try {
+            scheduler.shutdown();
+        } catch (SchedulerException e) {
+            log.error("Exception occurred when shutting down scheduler");
         }
     }
 }
