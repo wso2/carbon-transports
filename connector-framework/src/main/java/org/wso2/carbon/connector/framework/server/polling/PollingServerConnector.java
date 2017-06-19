@@ -27,6 +27,7 @@ import java.util.Map;
  */
 public abstract class PollingServerConnector extends ServerConnector {
     protected long interval = 1000L;  //default polling interval
+    protected String cronExpression = null;  //default polling interval
     private PollingTaskRunner pollingTaskRunner;
 
     public PollingServerConnector(String id, Map<String, String> properties) {
@@ -35,16 +36,21 @@ public abstract class PollingServerConnector extends ServerConnector {
 
     /**
      * The start polling method which should be called when starting the polling with given interval.
+     * @throws ServerConnectorException if a error happen while starting the connector.
      */
     @Override
     public void start() throws ServerConnectorException {
+        String strCronExpression = getProperties().get(Constants.CRON_EXPRESSION);
+        if (strCronExpression != null) {
+            cronExpression = strCronExpression;
+        }
         String pollingInterval = getProperties().get(Constants.POLLING_INTERVAL);
         if (pollingInterval != null) {
             try {
                 this.interval = Long.parseLong(pollingInterval);
             } catch (NumberFormatException e) {
-                throw new ServerConnectorException("Could not parse parameter: " + Constants.POLLING_INTERVAL
-                                                           + " to numeric type: Long", e);
+                throw new ServerConnectorException(
+                        "Could not parse parameter: " + Constants.POLLING_INTERVAL + " to numeric type: Long", e);
             }
         }
         pollingTaskRunner = new PollingTaskRunner(this);
