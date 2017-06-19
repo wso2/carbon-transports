@@ -18,8 +18,7 @@
 package org.wso2.carbon.transport.filesystem.connector.server;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.FileSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
@@ -44,9 +43,6 @@ class FileSystemProcessor implements Runnable {
     private String serviceName;
     private String fileURI;
     private FileSystemConsumer fileSystemConsumer;
-    private boolean fileLock;
-    private FileSystemManager fsManager;
-    private FileSystemOptions fso;
     private String postProcessAction;
 
     /**
@@ -59,15 +55,11 @@ class FileSystemProcessor implements Runnable {
      * @param timeOutInterval    Time-out interval in milliseconds for waiting for the acknowledgement
      * @param fileURI            The URI of the file which is being processed
      * @param fileSystemConsumer FileSystemConsumer instance of processed file/directory
-     * @param fileLock           Whether a .lock file was created for the current file
-     * @param fsManager          FileSystemManager instance used to release lock
-     * @param fso                Represents file system options used when resolving file from file system manager
      * @param postProcessAction  Action to be applied to file once it is processed
      */
     FileSystemProcessor(CarbonMessageProcessor messageProcessor, String serviceName, FileObject file,
                         boolean continueIfNotAck, long timeOutInterval, String fileURI,
-                        FileSystemConsumer fileSystemConsumer, boolean fileLock, FileSystemManager fsManager,
-                        FileSystemOptions fso, String postProcessAction) {
+                        FileSystemConsumer fileSystemConsumer, String postProcessAction) {
         this.messageProcessor = messageProcessor;
         this.file = file;
         this.continueIfNotAck = continueIfNotAck;
@@ -75,9 +67,6 @@ class FileSystemProcessor implements Runnable {
         this.serviceName = serviceName;
         this.fileURI = fileURI;
         this.fileSystemConsumer = fileSystemConsumer;
-        this.fileLock = fileLock;
-        this.fsManager = fsManager;
-        this.fso = fso;
         this.postProcessAction = postProcessAction;
     }
 
@@ -118,12 +107,16 @@ class FileSystemProcessor implements Runnable {
             }
         }
 
-        if (fileLock) {
-            FileTransportUtils.releaseLock(fsManager, file, fso);
-            if (logger.isDebugEnabled()) {
-                logger.debug("Removed the lock file '" + FileTransportUtils.maskURLPassword(file.toString()) +
-                          ".lock' of the file '" + FileTransportUtils.maskURLPassword(file.toString()));
-            }
+        FileTransportUtils.releaseLock(file, postProcessAction);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Removed the lock file '" + FileTransportUtils.maskURLPassword(file.toString()) +
+                         ".lock' of the file '" + FileTransportUtils.maskURLPassword(file.toString()));
+        }
+        //close the file system after processing
+        try {
+            file.close();
+        } catch (FileSystemException e) {
+            logger.warn("Could not close the file: " + file.getName().getPath(), e);
         }
     }
 

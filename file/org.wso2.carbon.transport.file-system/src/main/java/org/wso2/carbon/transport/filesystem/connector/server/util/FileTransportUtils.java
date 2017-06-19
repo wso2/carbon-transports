@@ -29,17 +29,14 @@ import org.wso2.carbon.transport.filesystem.connector.server.FileSystemConsumer;
 import org.wso2.carbon.transport.filesystem.connector.server.exception.FileSystemServerConnectorException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,6 +46,9 @@ import java.util.regex.Pattern;
 public class FileTransportUtils {
 
     private static final Logger log = LoggerFactory.getLogger(FileSystemConsumer.class);
+    private static List<String> processing = new ArrayList<>();
+    private static List<String> processed = new ArrayList<>();
+    //private static List<String> failed = new ArrayList<>();
 
     private static final Pattern URL_PATTERN = Pattern.compile("[a-z]+://.*");
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(":(?:[^/]+)@");
@@ -127,7 +127,7 @@ public class FileTransportUtils {
             if (pos != -1) {
                 fullPath = fullPath.substring(0, pos);
             }
-            FileObject failObject = fsManager.resolveFile(fullPath + ".fail");
+            FileObject failObject = fsManager.resolveFile(fullPath + "fail");
             if (!failObject.exists()) {
                 failObject.createFile();
             }
@@ -188,12 +188,17 @@ public class FileTransportUtils {
     /**
      * Acquire the file level locking.
      *
-     * @param fsManager
-     * @param fileObject
-     * @return
+     * @param fsManager     The file system manager instance
+     * @param fileObject    The file object to get the lock from
+     * @return              Boolean value whether lock was successful
      */
-    public static boolean acquireLock(FileSystemManager fsManager, FileObject fileObject) {
+    public static synchronized boolean acquireLock(FileSystemManager fsManager, FileObject fileObject) {
         String strContext = fileObject.getName().getURI();
+
+        if (processed.contains(strContext)) {
+            log.debug("The file: " + maskURLPassword(fileObject.getName().getURI()) + "is already processed");
+            return false;
+        }
 
         // When processing a directory list is fetched initially. Therefore
         // there is still a chance of file processed by another process.
@@ -212,22 +217,6 @@ public class FileTransportUtils {
             return false;
         }
 
-        String stringSplitter = ":";
-        // generate a random lock value to ensure that there are no two parties
-        // processing the same file
-        Random random = new Random();
-        // Lock format random:hostname:hostip:time
-        String strLockValue = String.valueOf(random.nextLong());
-        try {
-            strLockValue += stringSplitter + InetAddress.getLocalHost().getHostName();
-            strLockValue += stringSplitter + InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException ue) {
-            if (log.isDebugEnabled()) {
-                log.debug("Unable to get the Hostname or IP.");
-            }
-        }
-        strLockValue += stringSplitter + (new Date()).getTime();
-        byte[] lockValue = strLockValue.getBytes(Charset.defaultCharset());
         FileObject lockObject = null;
 
         try {
@@ -245,38 +234,16 @@ public class FileTransportUtils {
                           maskURLPassword(fileObject.getName().getURI()) +
                           ". This could possibly be due to some other party already " +
                           "processing this file or the file is still being uploaded");
+            } else if (processing.contains(fullPath)) {
+                log.debug(maskURLPassword(fileObject.getName().getURI()) + "is already processed.");
             } else {
                 //Check the original file existence before the lock file to handle concurrent access scenario
                 FileObject originalFileObject = fsManager.resolveFile(fullPath);
                 if (!originalFileObject.exists()) {
                     return false;
                 }
-                // write a lock file before starting of the processing, to ensure that the
-                // item is not processed by any other parties
-                lockObject.createFile();
-                OutputStream stream = lockObject.getContent().getOutputStream();
-                try {
-                    stream.write(lockValue);
-                    stream.flush();
-                    stream.close();
-                } catch (IOException e) {
-                    lockObject.delete();
-                    log.error("Couldn't create the lock file before processing the file " + maskURLPassword(fullPath),
-                              e);
-                    return false;
-                } finally {
-                    lockObject.close();
-                }
-
-                // check whether the lock is in place and is it me who holds the lock. This is
-                // required because it is possible to write the lock file simultaneously by
-                // two processing parties. It checks whether the lock file content is the same
-                // as the written random lock value.
-                // NOTE: this may not be optimal but is sub optimal
-                FileObject verifyingLockObject = fsManager.resolveFile(fullPath + ".lock");
-                if (verifyingLockObject.exists() && verifyLock(lockValue, verifyingLockObject)) {
-                    return true;
-                }
+                processing.add(fullPath);
+                return true;
             }
         } catch (FileSystemException fse) {
             log.error("Cannot get the lock for the file : " + maskURLPassword(fileObject.getName().getURI()) +
@@ -295,49 +262,14 @@ public class FileTransportUtils {
     /**
      * Release a file item lock acquired either by the VFS listener or a sender.
      *
-     * @param fsManager which is used to resolve the processed file
-     * @param fo        representing the processed file
-     * @param fso       represents file system options used when resolving file from file system manager.
+     * @param fo                    representing the processed file
+     * @param actionAfterProcess    representing action after processing the file
      */
-    public static void releaseLock(FileSystemManager fsManager, FileObject fo, FileSystemOptions fso) {
+    public static synchronized void releaseLock(FileObject fo, String actionAfterProcess) {
         String fullPath = fo.getName().getURI();
-
-        try {
-            int pos = fullPath.indexOf("?");
-            if (pos > -1) {
-                fullPath = fullPath.substring(0, pos);
-            }
-            FileObject lockObject = fsManager.resolveFile(fullPath + ".lock", fso);
-            if (lockObject.exists()) {
-                lockObject.delete();
-            }
-        } catch (FileSystemException e) {
-            log.error("Couldn't release the lock for the file : " + maskURLPassword(fo.getName().getURI()) +
-                      " after processing");
+        processing.remove(fullPath);
+        if (actionAfterProcess.equals(Constants.ACTION_NONE)) {
+            processed.add(fullPath);
         }
-    }
-
-    public static boolean verifyLock(byte[] lockValue, FileObject lockObject) {
-        try {
-            InputStream is = lockObject.getContent().getInputStream();
-            byte[] val = new byte[lockValue.length];
-            int data;
-            int i = 0;
-            while ((data = is.read()) != -1) {
-                val[i++] = (byte) data;
-            }
-            if (lockValue.length == val.length && Arrays.equals(lockValue, val)) {
-                return true;
-            } else {
-                log.debug("The lock has been acquired by an another party");
-            }
-        } catch (FileSystemException e) {
-            log.error("Couldn't verify the lock", e);
-            return false;
-        } catch (IOException e) {
-            log.error("Couldn't verify the lock", e);
-            return false;
-        }
-        return false;
     }
 }

@@ -58,7 +58,6 @@ public class FileSystemConsumer {
     private String fileURI;
     private FileObject fileObject;
     private FileSystemOptions fso;
-    private boolean fileLock = true;
     private boolean parallelProcess = false;
     private int threadPoolSize = 10;
     private int fileProcessCount;
@@ -107,16 +106,6 @@ public class FileSystemConsumer {
             throw new FileSystemServerConnectorException("Failed to resolve fileURI: "
                                                          + FileTransportUtils.maskURLPassword(fileURI), e);
         }
-        try {
-            if (!fileObject.isWriteable()) {
-                //todo find an efficient way to do this
-                throw new FileSystemServerConnectorException(
-                        "File cannot be processed since the file system is read only");
-            }
-        } catch (FileSystemException e) {
-            throw new FileSystemServerConnectorException(
-                    "Failed to resolve fileURI: " + FileTransportUtils.maskURLPassword(fileURI), e);
-        }
         //Initialize the thread executor based on properties
         ThreadPoolFactory.createInstance(threadPoolSize, parallelProcess);
     }
@@ -148,11 +137,6 @@ public class FileSystemConsumer {
         String strContIfNotAck = fileProperties.get(Constants.FILE_CONT_IF_NOT_ACKNOWLEDGED);
         if (strContIfNotAck != null) {
             continueIfNotAck = Boolean.parseBoolean(strContIfNotAck);
-        }
-        fileNamePattern = fileProperties.get(Constants.FILE_NAME_PATTERN);
-        String strLocking = fileProperties.get(Constants.LOCKING);
-        if (strLocking != null) {
-            fileLock = Boolean.parseBoolean(strLocking);
         }
         String strParallel = fileProperties.get(Constants.PARALLEL);
         if (strParallel != null) {
@@ -402,12 +386,6 @@ public class FileSystemConsumer {
                     fileHandler(child);
                 }
             }
-            //close the file system after processing
-            try {
-                child.close();
-            } catch (FileSystemException e) {
-                log.warn("Could not close the file: " + child.getName().getPath(), e);
-            }
         }
     }
 
@@ -425,24 +403,13 @@ public class FileSystemConsumer {
                 log.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().getURI())
                           + "'cloud not be moved, will remain in \"fail\" state", e);
             }
-            if (fileLock) {
-                // TODO: passing null to avoid build break. Fix properly
-                FileTransportUtils.releaseLock(fsManager, file, fso);
-            }
+            FileTransportUtils.releaseLock(file, postProcessAction);
         }
-        try {
-            isWritable = file.isWriteable();
-        } catch (FileSystemException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error occurred while determining whether file is writable");
-            }
-        }
-        if (!fileLock || !isWritable || FileTransportUtils.acquireLock(fsManager, file)) {
+        if (FileTransportUtils.acquireLock(fsManager, file)) {
             log.info("Processingfile :"
                      + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
             FileSystemProcessor fsp = new FileSystemProcessor(messageProcessor, serviceName, file, continueIfNotAck,
-                                                              timeOutInterval, fileURI, this, fileLock, fsManager, fso
-                                                                , postProcessAction);
+                                                              timeOutInterval, fileURI, this, postProcessAction);
             fsp.startProcessThread();
             processCount++;
         } else {
