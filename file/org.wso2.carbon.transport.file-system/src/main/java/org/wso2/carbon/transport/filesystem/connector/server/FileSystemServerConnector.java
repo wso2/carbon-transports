@@ -58,6 +58,11 @@ class FileSystemServerConnector extends PollingServerConnector {
         stop();
     }
 
+    @Override
+    public void stop() throws ServerConnectorException {
+
+        super.stop();
+    }
 
     @Override
     public void start() throws ServerConnectorException {

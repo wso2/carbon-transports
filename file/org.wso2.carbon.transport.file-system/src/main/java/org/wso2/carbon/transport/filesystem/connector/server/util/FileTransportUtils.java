@@ -28,11 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.filesystem.connector.server.FileSystemConsumer;
 import org.wso2.carbon.transport.filesystem.connector.server.exception.FileSystemServerConnectorException;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -48,11 +44,18 @@ public class FileTransportUtils {
     private static final Logger log = LoggerFactory.getLogger(FileSystemConsumer.class);
     private static List<String> processing = new ArrayList<>();
     private static List<String> processed = new ArrayList<>();
-    //private static List<String> failed = new ArrayList<>();
+    private static List<String> failed = new ArrayList<>();
 
     private static final Pattern URL_PATTERN = Pattern.compile("[a-z]+://.*");
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(":(?:[^/]+)@");
 
+    /**
+     *
+     * @param options
+     * @param fsManager
+     * @return
+     * @throws FileSystemServerConnectorException
+     */
     public static FileSystemOptions attachFileSystemOptions(
             Map<String, String> options, FileSystemManager fsManager) throws FileSystemServerConnectorException {
         if (options == null) {
@@ -96,6 +99,11 @@ public class FileTransportUtils {
         return opts;
     }
 
+    /**
+     *
+     * @param url
+     * @return
+     */
     public static String maskURLPassword(String url) {
         Matcher urlMatcher = URL_PATTERN.matcher(url);
         if (urlMatcher.find()) {
@@ -107,6 +115,11 @@ public class FileTransportUtils {
         }
     }
 
+    /**
+     *
+     * @param fileType
+     * @return
+     */
     private static Integer getFileType(String fileType) {
         fileType = fileType.toUpperCase(Locale.US);
         return Constants.ASCII_TYPE.equals(fileType) ? Integer.valueOf(0) : (
@@ -115,74 +128,35 @@ public class FileTransportUtils {
                                 Constants.LOCAL_TYPE.equals(fileType) ? Integer.valueOf(3) : Integer.valueOf(2))));
     }
 
-    public static synchronized void markFailRecord(FileSystemManager fsManager, FileObject fo) {
-
-        // generate a random fail value to ensure that there are no two parties
-        // processing the same file
-        byte[] failValue = (Long.toString((new Date()).getTime())).getBytes(Charset.defaultCharset());
-
-        try {
-            String fullPath = fo.getName().getURI();
-            int pos = fullPath.indexOf("?");
-            if (pos != -1) {
-                fullPath = fullPath.substring(0, pos);
-            }
-            FileObject failObject = fsManager.resolveFile(fullPath + "fail");
-            if (!failObject.exists()) {
-                failObject.createFile();
-            }
-
-            // write a lock file before starting of the processing, to ensure that the
-            // item is not processed by any other parties
-
-            OutputStream stream = failObject.getContent().getOutputStream();
-            try {
-                stream.write(failValue);
-                stream.flush();
-                stream.close();
-            } catch (IOException e) {
-                failObject.delete();
-                log.error("Couldn't create the fail file before processing the file " + maskURLPassword(fullPath), e);
-            } finally {
-                failObject.close();
-            }
-        } catch (FileSystemException fse) {
-            log.error("Cannot get the lock for the file : " + maskURLPassword(fo.getName().getURI()) +
-                      " before processing");
+    /**
+     *
+     * @param fo
+     */
+    public static synchronized void markFailRecord(FileObject fo) {
+        String fullPath = fo.getName().getURI();
+        if (failed.contains(fullPath)) {
+            log.debug("File : " + maskURLPassword(fullPath) + " is already marked as a failed record.");
+            return;
         }
+        failed.add(fullPath);
     }
 
-    public static boolean isFailRecord(FileSystemManager fsManager, FileObject fo) {
-        try {
-            String fullPath = fo.getName().getURI();
-            int pos = fullPath.indexOf("?");
-            if (pos > -1) {
-                fullPath = fullPath.substring(0, pos);
-            }
-            FileObject failObject = fsManager.resolveFile(fullPath + ".fail");
-            if (failObject.exists()) {
-                return true;
-            }
-        } catch (FileSystemException e) {
-            log.error("Couldn't release the fail for the file : " + maskURLPassword(fo.getName().getURI()));
-        }
-        return false;
+    /**
+     *
+     * @param fo
+     * @return
+     */
+    public static boolean isFailRecord(FileObject fo) {
+        return failed.contains(fo.getName().getURI());
     }
 
-    public static void releaseFail(FileSystemManager fsManager, FileObject fo) {
-        try {
-            String fullPath = fo.getName().getURI();
-            int pos = fullPath.indexOf("?");
-            if (pos > -1) {
-                fullPath = fullPath.substring(0, pos);
-            }
-            FileObject failObject = fsManager.resolveFile(fullPath + ".fail");
-            if (failObject.exists()) {
-                failObject.delete();
-            }
-        } catch (FileSystemException e) {
-            log.error("Couldn't release the fail for the file : " + maskURLPassword(fo.getName().getURI()));
-        }
+    /**
+     *
+     * @param fo
+     */
+    public static void releaseFail(FileObject fo) {
+        String fullPath = fo.getName().getURI();
+        processing.remove(fullPath);
     }
 
     /**
@@ -235,7 +209,7 @@ public class FileTransportUtils {
                           ". This could possibly be due to some other party already " +
                           "processing this file or the file is still being uploaded");
             } else if (processing.contains(fullPath)) {
-                log.debug(maskURLPassword(fileObject.getName().getURI()) + "is already processed.");
+                log.debug(maskURLPassword(fileObject.getName().getURI()) + "is already being processed.");
             } else {
                 //Check the original file existence before the lock file to handle concurrent access scenario
                 FileObject originalFileObject = fsManager.resolveFile(fullPath);

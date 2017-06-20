@@ -72,10 +72,11 @@ public class FileSystemConsumer {
     private String postFailureAction = Constants.ACTION_DELETE;
 
     /**
-     * @param id
-     * @param fileProperties
-     * @param messageProcessor
-     * @throws ServerConnectorException
+     * Constructor for the FileSystemConsumer.
+     *
+     * @param id                Name of the service that creates the consumer
+     * @param fileProperties    Map of property values
+     * @param messageProcessor  Message processor instance
      */
     FileSystemConsumer(String id, Map<String, String> fileProperties, CarbonMessageProcessor messageProcessor)
             throws ServerConnectorException {
@@ -106,12 +107,21 @@ public class FileSystemConsumer {
             throw new FileSystemServerConnectorException("Failed to resolve fileURI: "
                                                          + FileTransportUtils.maskURLPassword(fileURI), e);
         }
+        try {
+            if (!fileObject.isWriteable()) {
+                postProcessAction = Constants.ACTION_NONE;
+            }
+        } catch (FileSystemException e) {
+            throw new FileSystemServerConnectorException(
+                    "Exception while determining file: " + FileTransportUtils.maskURLPassword(fileURI) + " is readable",
+                    e);
+        }
         //Initialize the thread executor based on properties
         ThreadPoolFactory.createInstance(threadPoolSize, parallelProcess);
     }
 
     /**
-     * Setup the required transport parameters.
+     * Setup the required transport parameters from properties provided.
      */
     private void setupParams() throws ServerConnectorException {
         fileURI = fileProperties.get(Constants.TRANSPORT_FILE_FILE_URI);
@@ -179,8 +189,10 @@ public class FileSystemConsumer {
     }
 
     /**
-     * @param fileURI
-     * @return
+     * Get file options specific to a particular scheme.
+     *
+     * @param fileURI   URI of file to get file options
+     * @return          File options related to scheme.
      */
     private Map<String, String> parseSchemeFileOptions(String fileURI) {
         String scheme = UriParser.extractScheme(fileURI);
@@ -189,15 +201,6 @@ public class FileSystemConsumer {
         }
         HashMap<String, String> schemeFileOptions = new HashMap<>();
         schemeFileOptions.put(Constants.SCHEME, scheme);
-        addOptions(scheme, schemeFileOptions);
-        return schemeFileOptions;
-    }
-
-    /**
-     * @param scheme
-     * @param schemeFileOptions
-     */
-    private void addOptions(String scheme, Map<String, String> schemeFileOptions) {
         if (scheme.equals(Constants.SCHEME_SFTP)) {
             for (Constants.SftpFileOption option : Constants.SftpFileOption.values()) {
                 String strValue = fileProperties.get(Constants.SFTP_PREFIX + option.toString());
@@ -206,6 +209,7 @@ public class FileSystemConsumer {
                 }
             }
         }
+        return schemeFileOptions;
     }
 
     /**
@@ -233,14 +237,7 @@ public class FileSystemConsumer {
             }
 
             if (isFileExists && isFileReadable) {
-                FileType fileType;
-                try {
-                    fileType = fileObject.getType();
-                } catch (FileSystemException e) {
-                    throw new FileSystemServerConnectorException("Error occurred when determining whether file: " +
-                                                                 FileTransportUtils.maskURLPassword(fileURI)
-                                                                 + " is a file or a folder", e);
-                }
+                FileType fileType = getFileType(fileObject);
                 if (fileType == FileType.FILE) {
                     fileHandler(fileObject);
                 } else if (fileType == FileType.FOLDER) {
@@ -254,7 +251,6 @@ public class FileSystemConsumer {
                                       FileTransportUtils.maskURLPassword(fileURI), ignored);
                         }
                     }
-                    // if this is a file that would translate to a single message
                     if (children == null || children.length == 0) {
                         if (log.isDebugEnabled()) {
                             log.debug("Folder at " + FileTransportUtils.maskURLPassword(fileURI) + " is empty.");
@@ -290,7 +286,7 @@ public class FileSystemConsumer {
      * @param children The array containing child elements of a folder
      */
     private void directoryHandler(FileObject[] children) throws FileSystemServerConnectorException {
-        // Sort the files
+        // Sort the files according to given properties
         String strSortParam = fileProperties.get(Constants.FILE_SORT_PARAM);
 
         if (strSortParam != null && !"NONE".equals(strSortParam)) {
@@ -352,14 +348,7 @@ public class FileSystemConsumer {
                               " is not processed because it did not match the specified pattern.");
                 }
             } else {
-                FileType childType;
-                try {
-                    childType = child.getType();
-                } catch (FileSystemException e) {
-                    throw new FileSystemServerConnectorException("Error occurred when determining whether child: " +
-                                                                 FileTransportUtils.maskURLPassword(fileURI)
-                                                                 + " is a file or a folder", e);
-                }
+                FileType childType = getFileType(child);
                 if (childType == FileType.FOLDER) {
                     FileObject[] c = null;
                     try {
@@ -375,8 +364,8 @@ public class FileSystemConsumer {
                     // if this is a file that would translate to a single message
                     if (c == null || c.length == 0) {
                         if (log.isDebugEnabled()) {
-                            log.debug("Folder at "
-                                      + FileTransportUtils.maskURLPassword(child.getName().getURI()) + " is empty.");
+                            log.debug("Folder at " + FileTransportUtils.maskURLPassword(child.getName().getURI()) +
+                                      " is empty.");
                         }
                     } else {
                         directoryHandler(c);
@@ -391,30 +380,30 @@ public class FileSystemConsumer {
 
     /**
      * Process a single file.
+     *
      * @param file A single file to be processed
      */
     private void fileHandler(FileObject file) {
-        boolean isWritable = true;
-        if (FileTransportUtils.isFailRecord(fsManager, file)) {
+        if (FileTransportUtils.isFailRecord(file)) {
             // it is a failed record
             try {
                 postProcess(file, true);
             } catch (FileSystemServerConnectorException e) {
-                log.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().getURI())
-                          + "'cloud not be moved, will remain in \"fail\" state", e);
+                log.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().getURI()) +
+                          "'cloud not be moved, will remain in \"fail\" state", e);
             }
             FileTransportUtils.releaseLock(file, postProcessAction);
         }
         if (FileTransportUtils.acquireLock(fsManager, file)) {
-            log.info("Processingfile :"
-                     + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
-            FileSystemProcessor fsp = new FileSystemProcessor(messageProcessor, serviceName, file, continueIfNotAck,
-                                                              timeOutInterval, fileURI, this, postProcessAction);
+            log.info("Processingfile :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+            FileSystemProcessor fsp =
+                    new FileSystemProcessor(messageProcessor, serviceName, file, continueIfNotAck, timeOutInterval,
+                                            fileURI, this, postProcessAction);
             fsp.startProcessThread();
             processCount++;
         } else {
             log.warn("Couldn't get the lock for processing the file : " +
-                      FileTransportUtils.maskURLPassword(file.getName().toString()));
+                     FileTransportUtils.maskURLPassword(file.getName().toString()));
         }
     }
 
@@ -426,14 +415,7 @@ public class FileSystemConsumer {
      */
     synchronized void postProcess(FileObject file, boolean processFailed) throws FileSystemServerConnectorException {
         String moveToDirectoryURI = null;
-        FileType fileType;
-        try {
-            fileType = file.getType();
-        } catch (FileSystemException e) {
-            throw new FileSystemServerConnectorException("Error occurred when determining whether file: " +
-                                                         FileTransportUtils.maskURLPassword(fileURI)
-                                                         + " is a file or a folder", e);
-        }
+        FileType fileType = getFileType(file);
         if (!processFailed) {
             if (postProcessAction.equals(Constants.ACTION_MOVE)) {
                 moveToDirectoryURI = fileProperties.get(Constants.MOVE_AFTER_PROCESS);
@@ -446,21 +428,20 @@ public class FileSystemConsumer {
 
         if (moveToDirectoryURI != null) {
             try {
-                if ((fsManager.resolveFile(moveToDirectoryURI)).getType() == FileType.FILE) {
+                if (getFileType(fsManager.resolveFile(moveToDirectoryURI)) == FileType.FILE) {
                     moveToDirectoryURI = null;
                     if (processFailed) {
-                        postFailureAction = Constants.ACTION_DELETE;
+                        postFailureAction = Constants.ACTION_NONE;
                     } else {
-                        postProcessAction = Constants.ACTION_DELETE;
+                        postProcessAction = Constants.ACTION_NONE;
                     }
                     if (log.isDebugEnabled()) {
-                        log.debug("Cannot move file because provided location is not a folder");
+                        log.debug("Cannot move file because provided location is not a folder. File is kept at source");
                     }
                 }
             } catch (FileSystemException e) {
-                throw new FileSystemServerConnectorException("Error occurred when determining whether file: " +
-                                                             FileTransportUtils.maskURLPassword(fileURI)
-                                                             + " is a file or a folder", e);
+                throw new FileSystemServerConnectorException("Error occurred when resolving move destination file: " +
+                                                             FileTransportUtils.maskURLPassword(fileURI), e);
             }
         }
 
@@ -490,16 +471,15 @@ public class FileSystemConsumer {
                 if (log.isDebugEnabled()) {
                     log.debug("Moving to file :" + FileTransportUtils.maskURLPassword(dest.getName().getURI()));
                 }
-                log.info("Moving file :"
-                         + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                log.info("Moving file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 try {
                     file.moveTo(dest);
-                    if (FileTransportUtils.isFailRecord(fsManager, file)) {
-                        FileTransportUtils.releaseFail(fsManager, file);
+                    if (FileTransportUtils.isFailRecord(file)) {
+                        FileTransportUtils.releaseFail(file);
                     }
                 } catch (FileSystemException e) {
-                    if (!FileTransportUtils.isFailRecord(fsManager, file)) {
-                        FileTransportUtils.markFailRecord(fsManager, file);
+                    if (!FileTransportUtils.isFailRecord(file)) {
+                        FileTransportUtils.markFailRecord(file);
                     }
                     log.error("Error moving file : " + FileTransportUtils.maskURLPassword(file.toString()) +
                               " to " + FileTransportUtils.maskURLPassword(moveToDirectoryURI), e);
@@ -507,30 +487,44 @@ public class FileSystemConsumer {
 
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("Deleting file :"
-                              + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                    log.debug("Deleting file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 }
-                log.info("Deleting file :"
-                          + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                log.info("Deleting file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 try {
                     if (!file.delete()) {
                         if (log.isDebugEnabled()) {
-                            log.debug("Could not delete file : "
-                                      + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                            log.debug("Could not delete file : " +
+                                      FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                         }
                     }
                 } catch (FileSystemException e) {
-                    throw new FileSystemServerConnectorException(
-                            "Could not delete file : "
-                            + FileTransportUtils.maskURLPassword(file.getName().getBaseName()), e);
+                    throw new FileSystemServerConnectorException("Could not delete file : " + FileTransportUtils
+                            .maskURLPassword(file.getName().getBaseName()), e);
                 }
             }
         } catch (FileSystemException e) {
-            if (!FileTransportUtils.isFailRecord(fsManager, file)) {
-                FileTransportUtils.markFailRecord(fsManager, file);
-                log.error("Error resolving directory to move file : "
-                          + FileTransportUtils.maskURLPassword(moveToDirectoryURI), e);
+            if (!FileTransportUtils.isFailRecord(file)) {
+                FileTransportUtils.markFailRecord(file);
+                log.error("Error resolving directory to move file : " +
+                          FileTransportUtils.maskURLPassword(moveToDirectoryURI), e);
             }
+        }
+    }
+
+    /**
+     * Determine whether file object is a file or a folder.
+     *
+     * @param fileObject    File to get the type of
+     * @return              FileType of given file
+     */
+    private FileType getFileType(FileObject fileObject) throws FileSystemServerConnectorException {
+        try {
+            return fileObject.getType();
+        } catch (FileSystemException e) {
+            throw new FileSystemServerConnectorException("Error occurred when determining whether file: " +
+                                                         FileTransportUtils
+                                                                 .maskURLPassword(fileObject.getName().getURI()) +
+                                                         " is a file or a folder", e);
         }
     }
 
@@ -541,7 +535,8 @@ public class FileSystemConsumer {
 
         private static final long serialVersionUID = 1;
 
-        @Override public int compare(FileObject o1, FileObject o2) {
+        @Override
+        public int compare(FileObject o1, FileObject o2) {
             return o1.getName().compareTo(o2.getName());
         }
     }
@@ -550,7 +545,8 @@ public class FileSystemConsumer {
 
         private static final long serialVersionUID = 1;
 
-        @Override public int compare(FileObject o1, FileObject o2) {
+        @Override
+        public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;
             try {
                 lDiff = o1.getContent().getLastModifiedTime() - o2.getContent().getLastModifiedTime();
@@ -565,7 +561,8 @@ public class FileSystemConsumer {
 
         private static final long serialVersionUID = 1;
 
-        @Override public int compare(FileObject o1, FileObject o2) {
+        @Override
+        public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;
             try {
                 lDiff = o1.getContent().getSize() - o2.getContent().getSize();
@@ -580,7 +577,8 @@ public class FileSystemConsumer {
 
         private static final long serialVersionUID = 1;
 
-        @Override public int compare(FileObject o1, FileObject o2) {
+        @Override
+        public int compare(FileObject o1, FileObject o2) {
             return o2.getName().compareTo(o1.getName());
         }
     }
@@ -589,7 +587,8 @@ public class FileSystemConsumer {
 
         private static final long serialVersionUID = 1;
 
-        @Override public int compare(FileObject o1, FileObject o2) {
+        @Override
+        public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;
             try {
                 lDiff = o2.getContent().getLastModifiedTime() - o1.getContent().getLastModifiedTime();
@@ -604,7 +603,8 @@ public class FileSystemConsumer {
 
         private static final long serialVersionUID = 1;
 
-        @Override public int compare(FileObject o1, FileObject o2) {
+        @Override
+        public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;
             try {
                 lDiff = o2.getContent().getSize() - o1.getContent().getSize();
@@ -614,5 +614,4 @@ public class FileSystemConsumer {
             return lDiff.intValue();
         }
     }
-
 }
