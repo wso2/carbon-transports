@@ -107,6 +107,24 @@ public class VFSClientConnectorTestCase {
     }
 
     @Test
+    public void fileAppendTestCase() throws ClientConnectorException, IOException {
+        VFSClientConnector vfsClientConnector = new VFSClientConnector();
+        Map<String, String> propertyMap = new HashMap<>();
+        File testFile = new File("temp/test.txt");
+        OutputStream outputStream = new FileOutputStream(testFile);
+        outputStream.write("Initial text".getBytes());
+        outputStream.close();
+        String fileURI = testFile.getAbsolutePath();
+        propertyMap.put("uri", fileURI);
+        propertyMap.put("action", "write");
+        propertyMap.put("append", "true");
+        BinaryCarbonMessage binaryCarbonMessage = new BinaryCarbonMessage(ByteBuffer.wrap(bytes), true);
+        vfsClientConnector.send(binaryCarbonMessage, null, propertyMap);
+        Assert.assertEquals("Initial textThis is a Sample Text".getBytes(),
+                            IOUtils.toByteArray(new FileInputStream(testFile)), "Wrong Content written to File");
+    }
+
+    @Test
     public void fileCopyTestCase() throws ClientConnectorException, IOException {
         VFSClientConnector vfsClientConnector = new VFSClientConnector();
         Map<String, String> propertyMap = new HashMap<>();

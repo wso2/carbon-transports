@@ -33,6 +33,7 @@ import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
+import org.wso2.carbon.transport.file.connector.server.util.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -59,8 +60,8 @@ public class VFSClientConnector implements ClientConnector {
     @Override
     public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, String> map)
             throws ClientConnectorException {
-        String fileURI = map.get("uri");
-        String action = map.get("action");
+        String fileURI = map.get(Constants.FILE_URI);
+        String action = map.get(Constants.ACTION);
         FileType fileType;
         ByteBuffer byteBuffer;
         InputStream is = null;
@@ -71,7 +72,7 @@ public class VFSClientConnector implements ClientConnector {
             fileType = path.getType();
             switch (action) {
 
-                case "create":
+                case Constants.CREATE:
                     boolean isFolder = Boolean.parseBoolean(map.getOrDefault("create-folder", "false"));
                     if (path.exists()) {
                         logger.info("Deleting existing file/folder");
@@ -83,7 +84,7 @@ public class VFSClientConnector implements ClientConnector {
                         path.createFile();
                     }
                     break;
-                case "write":
+                case Constants.WRITE:
                     if (!path.exists()) {
                         path.createFile();
                         path.refresh();
@@ -98,12 +99,17 @@ public class VFSClientConnector implements ClientConnector {
                                     "received carbon message " + "isn't a BinaryCarbonMessage");
                         }
                         byte[] bytes = byteBuffer.array();
-                        os = path.getContent().getOutputStream(true);
+                        if (map.get(Constants.APPEND) != null) {
+                            os = path.getContent().
+                                    getOutputStream(Boolean.parseBoolean(map.get(Constants.APPEND)));
+                        } else {
+                            os = path.getContent().getOutputStream();
+                        }
                         os.write(bytes);
                         os.flush();
                     }
                     break;
-                case "delete":
+                case Constants.DELETE:
                     if (path.exists()) {
                         int filesDeleted = path.delete(Selectors.SELECT_ALL);
                         logger.debug(filesDeleted + "files Successfully Deleted");
@@ -112,7 +118,7 @@ public class VFSClientConnector implements ClientConnector {
                                                            "not found:" + path.getName());
                     }
                     break;
-                case "copy":
+                case Constants.COPY:
                     if (path.exists()) {
                         String destination = map.get("destination");
                         FileObject dest = fsManager.resolveFile(destination, opts);
@@ -122,7 +128,7 @@ public class VFSClientConnector implements ClientConnector {
                                                            "not found:" + path.getName());
                     }
                     break;
-                case "move":
+                case Constants.MOVE:
                     if (path.exists()) {
                         String destination = map.get("destination");
                         FileObject newPath = fsManager.resolveFile(destination, opts);
@@ -138,7 +144,7 @@ public class VFSClientConnector implements ClientConnector {
                                                            "not found:" + path.getName());
                     }
                     break;
-                case "read":
+                case Constants.READ:
                     if (path.exists()) {
                         is = path.getContent().getInputStream();
                         byte[] bytes = toByteArray(is);
@@ -151,7 +157,7 @@ public class VFSClientConnector implements ClientConnector {
                                                            "not found:" + path.getName());
                     }
                     break;
-                case "exists":
+                case Constants.EXISTS:
                     TextCarbonMessage message = new TextCarbonMessage(Boolean.toString(path.exists()));
                     message.setProperty(org.wso2.carbon.messaging.Constants.DIRECTION,
                                      org.wso2.carbon.messaging.Constants.DIRECTION_RESPONSE);
@@ -173,7 +179,7 @@ public class VFSClientConnector implements ClientConnector {
 
     @Override
     public String getProtocol() {
-        return "vfs";
+        return Constants.PROTOCOL_NAME;
     }
 
     /**
