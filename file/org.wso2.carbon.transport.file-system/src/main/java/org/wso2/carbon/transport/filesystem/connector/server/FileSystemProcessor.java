@@ -98,6 +98,10 @@ class FileSystemProcessor implements Runnable {
             processFailed = true;
         }
 
+        if (postProcessAction.equals(Constants.ACTION_NONE)) {
+            fileSystemConsumer.markProcessed(fileURI);
+        }
+
         if (!postProcessAction.equals(Constants.ACTION_NONE)) {
             try {
                 fileSystemConsumer.postProcess(file, processFailed);
@@ -107,7 +111,7 @@ class FileSystemProcessor implements Runnable {
             }
         }
 
-        FileTransportUtils.releaseLock(file, postProcessAction);
+        FileTransportUtils.releaseLock(file);
         if (logger.isDebugEnabled()) {
             logger.debug("Removed the lock file '" + FileTransportUtils.maskURLPassword(file.toString()) +
                          ".lock' of the file '" + FileTransportUtils.maskURLPassword(file.toString()));

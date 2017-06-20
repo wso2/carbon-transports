@@ -43,8 +43,6 @@ public class FileTransportUtils {
 
     private static final Logger log = LoggerFactory.getLogger(FileSystemConsumer.class);
     private static List<String> processing = new ArrayList<>();
-    private static List<String> processed = new ArrayList<>();
-    private static List<String> failed = new ArrayList<>();
 
     private static final Pattern URL_PATTERN = Pattern.compile("[a-z]+://.*");
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(":(?:[^/]+)@");
@@ -129,37 +127,6 @@ public class FileTransportUtils {
     }
 
     /**
-     *
-     * @param fo
-     */
-    public static synchronized void markFailRecord(FileObject fo) {
-        String fullPath = fo.getName().getURI();
-        if (failed.contains(fullPath)) {
-            log.debug("File : " + maskURLPassword(fullPath) + " is already marked as a failed record.");
-            return;
-        }
-        failed.add(fullPath);
-    }
-
-    /**
-     *
-     * @param fo
-     * @return
-     */
-    public static boolean isFailRecord(FileObject fo) {
-        return failed.contains(fo.getName().getURI());
-    }
-
-    /**
-     *
-     * @param fo
-     */
-    public static void releaseFail(FileObject fo) {
-        String fullPath = fo.getName().getURI();
-        processing.remove(fullPath);
-    }
-
-    /**
      * Acquire the file level locking.
      *
      * @param fsManager     The file system manager instance
@@ -168,11 +135,6 @@ public class FileTransportUtils {
      */
     public static synchronized boolean acquireLock(FileSystemManager fsManager, FileObject fileObject) {
         String strContext = fileObject.getName().getURI();
-
-        if (processed.contains(strContext)) {
-            log.debug("The file: " + maskURLPassword(fileObject.getName().getURI()) + "is already processed");
-            return false;
-        }
 
         // When processing a directory list is fetched initially. Therefore
         // there is still a chance of file processed by another process.
@@ -234,16 +196,12 @@ public class FileTransportUtils {
     }
 
     /**
-     * Release a file item lock acquired either by the VFS listener or a sender.
+     * Release a file item lock acquired at the start of processing.
      *
-     * @param fo                    representing the processed file
-     * @param actionAfterProcess    representing action after processing the file
+     * @param fo    File that needs the lock to be removed
      */
-    public static synchronized void releaseLock(FileObject fo, String actionAfterProcess) {
+    public static synchronized void releaseLock(FileObject fo) {
         String fullPath = fo.getName().getURI();
         processing.remove(fullPath);
-        if (actionAfterProcess.equals(Constants.ACTION_NONE)) {
-            processed.add(fullPath);
-        }
     }
 }

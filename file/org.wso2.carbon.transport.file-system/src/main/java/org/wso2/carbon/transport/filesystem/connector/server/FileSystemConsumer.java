@@ -38,10 +38,12 @@ import org.wso2.carbon.transport.filesystem.connector.server.util.ThreadPoolFact
 import java.io.File;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -63,13 +65,16 @@ public class FileSystemConsumer {
     private int fileProcessCount;
     private int processCount;
     /**
-     * Time-out interval (in mill-seconds) to wait for the callback.
+     * Time-out interval (in milli-seconds) to wait for the callback.
      */
     private long timeOutInterval = 30000;
     private boolean continueIfNotAck = false;
     private String fileNamePattern = null;
     private String postProcessAction = Constants.ACTION_DELETE;
     private String postFailureAction = Constants.ACTION_DELETE;
+
+    private List<String> processed = new ArrayList<>();
+    private List<String> failed = new ArrayList<>();
 
     /**
      * Constructor for the FileSystemConsumer.
@@ -384,21 +389,27 @@ public class FileSystemConsumer {
      * @param file A single file to be processed
      */
     private void fileHandler(FileObject file) {
-        if (FileTransportUtils.isFailRecord(file)) {
+        String uri = file.getName().getURI();
+        if (isFailRecord(file)) {
             // it is a failed record
             try {
                 postProcess(file, true);
             } catch (FileSystemServerConnectorException e) {
-                log.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().getURI()) +
+                log.error("File object '" + FileTransportUtils.maskURLPassword(uri) +
                           "'cloud not be moved, will remain in \"fail\" state", e);
             }
-            FileTransportUtils.releaseLock(file, postProcessAction);
+            FileTransportUtils.releaseLock(file);
+        }
+
+        if (postProcessAction.equals(Constants.ACTION_NONE) && processed.contains(uri)) {
+            log.debug("The file: " + FileTransportUtils.maskURLPassword(uri) + "is already processed");
+            return;
         }
         if (FileTransportUtils.acquireLock(fsManager, file)) {
-            log.info("Processingfile :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+            log.info("Processing file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
             FileSystemProcessor fsp =
                     new FileSystemProcessor(messageProcessor, serviceName, file, continueIfNotAck, timeOutInterval,
-                                            fileURI, this, postProcessAction);
+                                            uri, this, postProcessAction);
             fsp.startProcessThread();
             processCount++;
         } else {
@@ -474,12 +485,12 @@ public class FileSystemConsumer {
                 log.info("Moving file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 try {
                     file.moveTo(dest);
-                    if (FileTransportUtils.isFailRecord(file)) {
-                        FileTransportUtils.releaseFail(file);
+                    if (isFailRecord(file)) {
+                        releaseFail(file);
                     }
                 } catch (FileSystemException e) {
-                    if (!FileTransportUtils.isFailRecord(file)) {
-                        FileTransportUtils.markFailRecord(file);
+                    if (!isFailRecord(file)) {
+                        markFailRecord(file);
                     }
                     log.error("Error moving file : " + FileTransportUtils.maskURLPassword(file.toString()) +
                               " to " + FileTransportUtils.maskURLPassword(moveToDirectoryURI), e);
@@ -503,8 +514,8 @@ public class FileSystemConsumer {
                 }
             }
         } catch (FileSystemException e) {
-            if (!FileTransportUtils.isFailRecord(file)) {
-                FileTransportUtils.markFailRecord(file);
+            if (!isFailRecord(file)) {
+                markFailRecord(file);
                 log.error("Error resolving directory to move file : " +
                           FileTransportUtils.maskURLPassword(moveToDirectoryURI), e);
             }
@@ -526,6 +537,50 @@ public class FileSystemConsumer {
                                                                  .maskURLPassword(fileObject.getName().getURI()) +
                                                          " is a file or a folder", e);
         }
+    }
+
+    /**
+     * Mark a record as a failed record.
+     *
+     * @param fo    File to be marked as failed
+     */
+    private synchronized void markFailRecord(FileObject fo) {
+        String fullPath = fo.getName().getURI();
+        if (failed.contains(fullPath)) {
+            log.debug("File : " + FileTransportUtils.maskURLPassword(fullPath)
+                      + " is already marked as a failed record.");
+            return;
+        }
+        failed.add(fullPath);
+    }
+
+    /**
+     * Determine whether a file is a failed record.
+     *
+     * @param fo    File to determine whether failed
+     * @return      true if file is a failed file
+     */
+    private boolean isFailRecord(FileObject fo) {
+        return failed.contains(fo.getName().getURI());
+    }
+
+    /**
+     * Releases a file from its failed state.
+     *
+     * @param fo    File to release from failed state
+     */
+    private void releaseFail(FileObject fo) {
+        String fullPath = fo.getName().getURI();
+        failed.remove(fullPath);
+    }
+
+    /**
+     * Mark a file as processed.
+     *
+     * @param uri URI of the file to be named as processed
+     */
+    synchronized void markProcessed(String uri) {
+        processed.add(uri);
     }
 
     /**
