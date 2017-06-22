@@ -33,7 +33,6 @@ import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
-import org.wso2.carbon.transport.file.connector.server.util.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -160,7 +159,7 @@ public class VFSClientConnector implements ClientConnector {
                 case Constants.EXISTS:
                     TextCarbonMessage message = new TextCarbonMessage(Boolean.toString(path.exists()));
                     message.setProperty(org.wso2.carbon.messaging.Constants.DIRECTION,
-                                     org.wso2.carbon.messaging.Constants.DIRECTION_RESPONSE);
+                                        org.wso2.carbon.messaging.Constants.DIRECTION_RESPONSE);
                     carbonMessageProcessor.receive(message, carbonCallback);
                     break;
                 default:
