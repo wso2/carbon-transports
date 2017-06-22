@@ -36,7 +36,11 @@ import org.wso2.carbon.transport.filesystem.connector.server.util.FileTransportU
 import org.wso2.carbon.transport.filesystem.connector.server.util.ThreadPoolFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -390,31 +394,32 @@ public class FileSystemConsumer {
      */
     private void fileHandler(FileObject file) {
         String uri = file.getName().getURI();
+        synchronized (this) {
+            if (postProcessAction.equals(Constants.ACTION_NONE) && processed.contains(uri)) {
+                log.debug("The file: " + FileTransportUtils.maskURLPassword(uri) + "is already processed");
+                return;
+            }
+        }
         if (isFailRecord(file)) {
             // it is a failed record
             try {
-                postProcess(file, true);
+                postProcess(file, false);
             } catch (FileSystemServerConnectorException e) {
                 log.error("File object '" + FileTransportUtils.maskURLPassword(uri) +
                           "'cloud not be moved, will remain in \"fail\" state", e);
             }
-            FileTransportUtils.releaseLock(file);
-        }
-
-        if (postProcessAction.equals(Constants.ACTION_NONE) && processed.contains(uri)) {
-            log.debug("The file: " + FileTransportUtils.maskURLPassword(uri) + "is already processed");
-            return;
-        }
-        if (FileTransportUtils.acquireLock(fsManager, file)) {
-            log.info("Processing file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
-            FileSystemProcessor fsp =
-                    new FileSystemProcessor(messageProcessor, serviceName, file, continueIfNotAck, timeOutInterval,
-                                            uri, this, postProcessAction);
-            fsp.startProcessThread();
-            processCount++;
         } else {
-            log.warn("Couldn't get the lock for processing the file : " +
-                     FileTransportUtils.maskURLPassword(file.getName().toString()));
+            if (FileTransportUtils.acquireLock(fsManager, file)) {
+                log.info("Processing file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                FileSystemProcessor fsp =
+                        new FileSystemProcessor(messageProcessor, serviceName, file, continueIfNotAck, timeOutInterval,
+                                                uri, this, postProcessAction);
+                fsp.startProcessThread();
+                processCount++;
+            } else {
+                log.warn("Couldn't get the lock for processing the file : " +
+                         FileTransportUtils.maskURLPassword(file.getName().toString()));
+            }
         }
     }
 
@@ -507,6 +512,10 @@ public class FileSystemConsumer {
                             log.debug("Could not delete file : " +
                                       FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                         }
+                    } else {
+                        if (isFailRecord(file)) {
+                            releaseFail(file);
+                        }
                     }
                 } catch (FileSystemException e) {
                     throw new FileSystemServerConnectorException("Could not delete file : " + FileTransportUtils
@@ -569,7 +578,7 @@ public class FileSystemConsumer {
      *
      * @param fo    File to release from failed state
      */
-    private void releaseFail(FileObject fo) {
+    private synchronized void releaseFail(FileObject fo) {
         String fullPath = fo.getName().getURI();
         failed.remove(fullPath);
     }
@@ -581,6 +590,59 @@ public class FileSystemConsumer {
      */
     synchronized void markProcessed(String uri) {
         processed.add(uri);
+    }
+
+    synchronized void saveFileData() throws FileSystemServerConnectorException {
+        try {
+            if (processed.size() > 0) {
+                Path processedPath =
+                        Paths.get(".." + File.separator + "tmp" + File.separator + serviceName + File.separator +
+                                  "processed.txt");
+                if (!Files.exists(processedPath)) {
+                    Path parent = processedPath.getParent();
+                    if (parent != null) {
+                        Files.createDirectories(parent);
+                    }
+                    Files.createFile(processedPath);
+                }
+                Files.write(processedPath, processed);
+            }
+            if (failed.size() > 0) {
+                Path failedPath = Paths.get(
+                        ".." + File.separator + "tmp" + File.separator + serviceName + File.separator + "failed.txt");
+                if (!Files.exists(failedPath)) {
+                    Path parent = failedPath.getParent();
+                    if (parent != null) {
+                        Files.createDirectories(parent);
+                    }
+                    Files.createFile(failedPath);
+                }
+                Files.write(failedPath, failed);
+            }
+        } catch (IOException e) {
+            throw new FileSystemServerConnectorException("Exception occurred while writing files.");
+        }
+    }
+
+    synchronized void loadFileData() throws FileSystemServerConnectorException {
+        Path processedPath =
+                Paths.get(".." + File.separator + "tmp" + File.separator + serviceName + File.separator +
+                          "processed.txt");
+        Path failedPath = Paths.get(
+                ".." + File.separator + "tmp" + File.separator + serviceName + File.separator + "failed.txt");
+        try {
+            if (postProcessAction.equals(Constants.ACTION_NONE)) {
+                if (Files.isReadable(processedPath)) {
+                    processed = Files.readAllLines(processedPath);
+                }
+            }
+            if (Files.isReadable(failedPath)) {
+                failed = Files.readAllLines(failedPath);
+                Files.delete(failedPath);
+            }
+        } catch (IOException e) {
+            throw new FileSystemServerConnectorException("Exception occurred while writing file.");
+        }
     }
 
     /**
