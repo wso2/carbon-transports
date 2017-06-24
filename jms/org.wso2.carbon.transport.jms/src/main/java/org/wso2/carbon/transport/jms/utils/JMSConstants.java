@@ -207,15 +207,15 @@ public class JMSConstants {
 
     public static final String JMS_SPEC_VERSION_2_0 = "2.0";
 
-    // JMS Message Properties
+    // JMS Message Headers
     public static final String JMS_MESSAGE_ID = "JMS_MESSAGE_ID";
-    public static final String JMS_TIME_STAMP = "JMS_TIME_STAMP";
+    public static final String JMS_TIMESTAMP = "JMS_TIMESTAMP";
     public static final String JMS_CORRELATION_ID_AS_BYTES = "JMS_CORRELATION_ID_AS_BYTES";
     public static final String JMS_CORRELATION_ID = "JMS_CORRELATION_ID";
     public static final String JMS_REPLY_TO = "JMS_REPLY_TO";
     public static final String JMS_DESTINATION = "JMS_DESTINATION";
     public static final String JMS_DELIVERY_MODE = "JMS_DELIVERY_MODE";
-    public static final String JMS_RE_DELIVERED = "JMS_RE_DELIVERED";
+    public static final String JMS_REDELIVERED = "JMS_REDELIVERED";
     public static final String JMS_TYPE = "JMS_TYPE";
     public static final String JMS_EXPIRATION = "JMS_EXPIRATION";
     public static final String JMS_DELIVERY_TIME = "JMS_DELIVERY_TIME";
@@ -224,10 +224,15 @@ public class JMSConstants {
     public static final String RETRY_INTERVAL = "retryInterval";
     public static final String MAX_RETRY_COUNT = "maxRetryCount";
 
+    public static final int DEFAULT_PRIORITY = 4;
+
     /**
      * Parameter to be passed in to select default connection factory nature.
      */
     public static final String DEFAULT_CONNECTION_FACTORY = "default";
+
+    public static final String PERSISTENT_DELIVERY_MODE = "1";
+    public static final String NON_PERSISTENT_DELIVERY_MODE = "2";
 
     /**
      * Parameter to be passed in to select cached connection factory nature.
