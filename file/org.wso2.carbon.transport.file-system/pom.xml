@@ -18,12 +18,12 @@
   ~ under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <parent>
         <groupId>org.wso2.carbon.transport</groupId>
         <artifactId>org.wso2.carbon.transport.file.parent</artifactId>
-        <version>4.3.1-SNAPSHOT</version>
+        <version>4.4.7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -76,7 +76,10 @@
             org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}",
             org.apache.commons.vfs2.*;version="${commons-vfs2.wso2.version.range}"
         </import.package>
+        <bundle.activator>org.wso2.carbon.transport.file.connector.server.internal.FileConnectorBundleActivator</bundle.activator>
+        <carbon.component>
+            osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"
+        </carbon.component>
     </properties>
-
 
 </project>
