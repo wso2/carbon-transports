@@ -76,7 +76,7 @@
             org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}",
             org.apache.commons.vfs2.*;version="${commons-vfs2.wso2.version.range}"
         </import.package>
-        <bundle.activator>org.wso2.carbon.transport.file.connector.server.internal.FileConnectorBundleActivator</bundle.activator>
+        <bundle.activator>org.wso2.carbon.transport.filesystem.connector.server.internal.FileSystemConnectorBundleActivator</bundle.activator>
         <carbon.component>
             osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"
         </carbon.component>
