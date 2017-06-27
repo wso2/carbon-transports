@@ -76,6 +76,7 @@ public class FileSystemConsumer {
     private String fileNamePattern = null;
     private String postProcessAction = Constants.ACTION_DELETE;
     private String postFailureAction = Constants.ACTION_DELETE;
+    private boolean createRecoveryFiles = true;
 
     private List<String> processed = new ArrayList<>();
     private List<String> failed = new ArrayList<>();
@@ -124,6 +125,11 @@ public class FileSystemConsumer {
             throw new FileSystemServerConnectorException(
                     "Exception while determining file: " + FileTransportUtils.maskURLPassword(fileURI) + " is readable",
                     e);
+        }
+        FileType fileType = getFileType(fileObject);
+        if (fileType != FileType.FOLDER) {
+            throw new FileSystemServerConnectorException("File system server connector is used to listen to a" +
+                                                         " folder. But the given path does not refer to a folder.");
         }
         //Initialize the thread executor based on properties
         ThreadPoolFactory.createInstance(threadPoolSize, parallelProcess);
@@ -195,6 +201,10 @@ public class FileSystemConsumer {
                     postProcessAction = Constants.ACTION_DELETE;
             }
         }
+        String strRecovery = fileProperties.get(Constants.CREATE_RECOVERY_FILES);
+        if (strRecovery != null) {
+            createRecoveryFiles = Boolean.parseBoolean(strRecovery);
+        }
     }
 
     /**
@@ -246,31 +256,22 @@ public class FileSystemConsumer {
             }
 
             if (isFileExists && isFileReadable) {
-                FileType fileType = getFileType(fileObject);
-                if (fileType == FileType.FILE) {
-                    fileHandler(fileObject);
-                } else if (fileType == FileType.FOLDER) {
-                    FileObject[] children = null;
-                    try {
-                        children = fileObject.getChildren();
-                    } catch (FileSystemException ignored) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("The file does not exist, or is not a folder, or an error " +
-                                      "has occurred when trying to list the children. File URI : " +
-                                      FileTransportUtils.maskURLPassword(fileURI), ignored);
-                        }
+                FileObject[] children = null;
+                try {
+                    children = fileObject.getChildren();
+                } catch (FileSystemException ignored) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("The file does not exist, or is not a folder, or an error " +
+                                  "has occurred when trying to list the children. File URI : " +
+                                  FileTransportUtils.maskURLPassword(fileURI), ignored);
                     }
-                    if (children == null || children.length == 0) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Folder at " + FileTransportUtils.maskURLPassword(fileURI) + " is empty.");
-                        }
-                    } else {
-                        directoryHandler(children);
+                }
+                if (children == null || children.length == 0) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Folder at " + FileTransportUtils.maskURLPassword(fileURI) + " is empty.");
                     }
                 } else {
-                    throw new FileSystemServerConnectorException(
-                            "File: " + FileTransportUtils.maskURLPassword(fileURI) + " is neither a file or " +
-                            "a folder" + (fileType == null ? "" : ". Found file type: " + fileType.toString()));
+                    directoryHandler(children);
                 }
             } else {
                 throw new FileSystemServerConnectorException(
@@ -400,13 +401,13 @@ public class FileSystemConsumer {
                 return;
             }
         }
-        if (isFailRecord(file)) {
+        if (!postProcessAction.equals(Constants.ACTION_NONE) && isFailRecord(file)) {
             // it is a failed record
             try {
                 postProcess(file, false);
             } catch (FileSystemServerConnectorException e) {
                 log.error("File object '" + FileTransportUtils.maskURLPassword(uri) +
-                          "'cloud not be moved, will remain in \"fail\" state", e);
+                          "'cloud not complete action " + postProcessAction + ", will remain in \"fail\" state", e);
             }
         } else {
             if (FileTransportUtils.acquireLock(fsManager, file)) {
@@ -593,34 +594,37 @@ public class FileSystemConsumer {
     }
 
     synchronized void saveFileData() throws FileSystemServerConnectorException {
-        try {
-            if (processed.size() > 0) {
-                Path processedPath =
-                        Paths.get(".." + File.separator + "tmp" + File.separator + serviceName + File.separator +
-                                  "processed.txt");
-                if (!Files.exists(processedPath)) {
-                    Path parent = processedPath.getParent();
-                    if (parent != null) {
-                        Files.createDirectories(parent);
+        if (createRecoveryFiles) {
+            try {
+                if (processed.size() > 0) {
+                    Path processedPath =
+                            Paths.get(".." + File.separator + "tmp" + File.separator + serviceName + File.separator +
+                                      "processed.txt");
+                    if (!Files.exists(processedPath)) {
+                        Path parent = processedPath.getParent();
+                        if (parent != null) {
+                            Files.createDirectories(parent);
+                        }
+                        Files.createFile(processedPath);
                     }
-                    Files.createFile(processedPath);
+                    Files.write(processedPath, processed);
                 }
-                Files.write(processedPath, processed);
-            }
-            if (failed.size() > 0) {
-                Path failedPath = Paths.get(
-                        ".." + File.separator + "tmp" + File.separator + serviceName + File.separator + "failed.txt");
-                if (!Files.exists(failedPath)) {
-                    Path parent = failedPath.getParent();
-                    if (parent != null) {
-                        Files.createDirectories(parent);
+                if (failed.size() > 0) {
+                    Path failedPath =
+                            Paths.get(".." + File.separator + "tmp" + File.separator + serviceName + File.separator +
+                                      "failed.txt");
+                    if (!Files.exists(failedPath)) {
+                        Path parent = failedPath.getParent();
+                        if (parent != null) {
+                            Files.createDirectories(parent);
+                        }
+                        Files.createFile(failedPath);
                     }
-                    Files.createFile(failedPath);
+                    Files.write(failedPath, failed);
                 }
-                Files.write(failedPath, failed);
+            } catch (IOException e) {
+                throw new FileSystemServerConnectorException("Exception occurred while writing files.");
             }
-        } catch (IOException e) {
-            throw new FileSystemServerConnectorException("Exception occurred while writing files.");
         }
     }
 
