@@ -205,6 +205,10 @@ public class FileSystemConsumer {
         if (strRecovery != null) {
             createRecoveryFiles = Boolean.parseBoolean(strRecovery);
         }
+        String strPattern = fileProperties.get(Constants.FILE_NAME_PATTERN);
+        if (strPattern != null) {
+            fileNamePattern = strPattern;
+        }
     }
 
     /**

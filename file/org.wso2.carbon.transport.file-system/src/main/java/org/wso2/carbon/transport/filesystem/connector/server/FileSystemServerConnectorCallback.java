@@ -65,7 +65,7 @@ class FileSystemServerConnectorCallback implements CarbonCallback {
         if (!isCallbackReceived) {
             if (continueIfNotAck) {
                 log.warn("The time for waiting for the acknowledgement exceeded " + timeOutInterval + "ms. Proceeding "
-                        + "to deleting the file: " + FileTransportUtils.maskURLPassword(fileURI));
+                        + "to post processing the file: " + FileTransportUtils.maskURLPassword(fileURI));
             } else {
                 throw new FileSystemServerConnectorException("Message processor did not acknowledge. " +
                                                              "Wait timed out  after  " + timeOutInterval +

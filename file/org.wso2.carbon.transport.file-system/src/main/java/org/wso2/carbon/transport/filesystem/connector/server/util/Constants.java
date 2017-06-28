@@ -42,7 +42,6 @@ public final class Constants {
     public static final String FILE_SORT_ORDER = "fileSortAscending";
     public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "acknowledgementTimeOut";
     public static final String FILE_CONT_IF_NOT_ACKNOWLEDGED = "continueIfNotAcknowledged";
-    public static final String FILE_UNZIP = "unzip";
     public static final String FILE_NAME_PATTERN = "fileNamePattern";
     public static final String ACTION_AFTER_PROCESS = "actionAfterProcess";
     public static final String ACTION_AFTER_FAILURE = "actionAfterFailure";
@@ -50,7 +49,6 @@ public final class Constants {
     public static final String MOVE_AFTER_PROCESS = "moveAfterProcess";
     public static final String MOVE_AFTER_FAILURE = "moveAfterFailure";
     public static final String FORCE_CREATE_FOLDER = "createFolder";
-    public static final String LOCKING = "locking";
     public static final String PARALLEL = "parallel";
     public static final String THREAD_POOL_SIZE = "threadPoolSize";
     public static final String FILE_PROCESS_COUNT = "fileProcessCount";
