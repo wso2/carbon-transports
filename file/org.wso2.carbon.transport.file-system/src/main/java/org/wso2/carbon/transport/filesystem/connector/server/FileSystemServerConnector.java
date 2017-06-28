@@ -62,14 +62,6 @@ class FileSystemServerConnector extends PollingServerConnector {
     public void start() throws ServerConnectorException {
         try {
             consumer = new FileSystemConsumer(id, getProperties(), messageProcessor);
-            consumer.loadFileData();
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    consumer.saveFileData();
-                } catch (FileSystemServerConnectorException e) {
-                    log.debug("Cannot save file data because exception occurred when writing file.");
-                }
-            }, "Shutdown-thread"));
             super.start();
         } catch (RuntimeException e) {
             throw new ServerConnectorException("Failed to start File server connector for Service: " +

@@ -36,11 +36,7 @@ import org.wso2.carbon.transport.filesystem.connector.server.util.FileTransportU
 import org.wso2.carbon.transport.filesystem.connector.server.util.ThreadPoolFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,11 +68,9 @@ public class FileSystemConsumer {
      * Time-out interval (in milli-seconds) to wait for the callback.
      */
     private long timeOutInterval = 30000;
-    private boolean continueIfNotAck = false;
     private String fileNamePattern = null;
     private String postProcessAction = Constants.ACTION_DELETE;
     private String postFailureAction = Constants.ACTION_DELETE;
-    private boolean createRecoveryFiles = true;
 
     private List<String> processed = new ArrayList<>();
     private List<String> failed = new ArrayList<>();
@@ -159,10 +153,6 @@ public class FileSystemConsumer {
                           timeOutInterval + " milliseconds", e);
             }
         }
-        String strContIfNotAck = fileProperties.get(Constants.FILE_CONT_IF_NOT_ACKNOWLEDGED);
-        if (strContIfNotAck != null) {
-            continueIfNotAck = Boolean.parseBoolean(strContIfNotAck);
-        }
         String strParallel = fileProperties.get(Constants.PARALLEL);
         if (strParallel != null) {
             parallelProcess = Boolean.parseBoolean(strParallel);
@@ -200,10 +190,6 @@ public class FileSystemConsumer {
                 default:
                     postProcessAction = Constants.ACTION_DELETE;
             }
-        }
-        String strRecovery = fileProperties.get(Constants.CREATE_RECOVERY_FILES);
-        if (strRecovery != null) {
-            createRecoveryFiles = Boolean.parseBoolean(strRecovery);
         }
         String strPattern = fileProperties.get(Constants.FILE_NAME_PATTERN);
         if (strPattern != null) {
@@ -417,7 +403,7 @@ public class FileSystemConsumer {
             if (FileTransportUtils.acquireLock(fsManager, file)) {
                 log.info("Processing file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 FileSystemProcessor fsp =
-                        new FileSystemProcessor(messageProcessor, serviceName, file, continueIfNotAck, timeOutInterval,
+                        new FileSystemProcessor(messageProcessor, serviceName, file, timeOutInterval,
                                                 uri, this, postProcessAction);
                 fsp.startProcessThread();
                 processCount++;
@@ -595,62 +581,6 @@ public class FileSystemConsumer {
      */
     synchronized void markProcessed(String uri) {
         processed.add(uri);
-    }
-
-    synchronized void saveFileData() throws FileSystemServerConnectorException {
-        if (createRecoveryFiles) {
-            try {
-                if (processed.size() > 0) {
-                    Path processedPath =
-                            Paths.get(".." + File.separator + "tmp" + File.separator + serviceName + File.separator +
-                                      "processed.txt");
-                    if (!Files.exists(processedPath)) {
-                        Path parent = processedPath.getParent();
-                        if (parent != null) {
-                            Files.createDirectories(parent);
-                        }
-                        Files.createFile(processedPath);
-                    }
-                    Files.write(processedPath, processed);
-                }
-                if (failed.size() > 0) {
-                    Path failedPath =
-                            Paths.get(".." + File.separator + "tmp" + File.separator + serviceName + File.separator +
-                                      "failed.txt");
-                    if (!Files.exists(failedPath)) {
-                        Path parent = failedPath.getParent();
-                        if (parent != null) {
-                            Files.createDirectories(parent);
-                        }
-                        Files.createFile(failedPath);
-                    }
-                    Files.write(failedPath, failed);
-                }
-            } catch (IOException e) {
-                throw new FileSystemServerConnectorException("Exception occurred while writing files.");
-            }
-        }
-    }
-
-    synchronized void loadFileData() throws FileSystemServerConnectorException {
-        Path processedPath =
-                Paths.get(".." + File.separator + "tmp" + File.separator + serviceName + File.separator +
-                          "processed.txt");
-        Path failedPath = Paths.get(
-                ".." + File.separator + "tmp" + File.separator + serviceName + File.separator + "failed.txt");
-        try {
-            if (postProcessAction.equals(Constants.ACTION_NONE)) {
-                if (Files.isReadable(processedPath)) {
-                    processed = Files.readAllLines(processedPath);
-                }
-            }
-            if (Files.isReadable(failedPath)) {
-                failed = Files.readAllLines(failedPath);
-                Files.delete(failedPath);
-            }
-        } catch (IOException e) {
-            throw new FileSystemServerConnectorException("Exception occurred while writing file.");
-        }
     }
 
     /**

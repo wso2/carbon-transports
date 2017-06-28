@@ -50,7 +50,6 @@ public class FileSystemServerConnectorTestCase {
         parameters.put(Constants.TRANSPORT_FILE_FILE_URI, fileURI);
         parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "1000");
         parameters.put(Constants.ACTION_AFTER_PROCESS, Constants.ACTION_NONE);
-        parameters.put(Constants.CREATE_RECOVERY_FILES, "false");
         ServerConnector connector = provider.createConnector("testService", parameters);
 
         TestMessageProcessor messageProcessor = new TestMessageProcessor();

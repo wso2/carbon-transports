@@ -52,26 +52,18 @@ class FileSystemServerConnectorCallback implements CarbonCallback {
      * This makes the relevant process to wait till there is a acknowledgement from the application layer.
      *
      * @param timeOutInterval Time-out interval in milliseconds for waiting for the acknowledgement
-     * @param continueIfNotAck  Whether to continue processing if acknowledgement is not received
      * @param fileURI         The URI of the file which is being processed
      * @throws InterruptedException If this thread was interrupted while waiting for the acknowledgement
      * @throws FileSystemServerConnectorException If deleteIfNotAcknowledged parameter is set to false,
      *  and acknowledgement was not received.
      */
-    void waitTillDone(long timeOutInterval, boolean continueIfNotAck, String fileURI)
+    void waitTillDone(long timeOutInterval, String fileURI)
             throws InterruptedException, FileSystemServerConnectorException {
         boolean isCallbackReceived = latch.await(timeOutInterval, TimeUnit.MILLISECONDS);
 
         if (!isCallbackReceived) {
-            if (continueIfNotAck) {
-                log.warn("The time for waiting for the acknowledgement exceeded " + timeOutInterval + "ms. Proceeding "
-                        + "to post processing the file: " + FileTransportUtils.maskURLPassword(fileURI));
-            } else {
-                throw new FileSystemServerConnectorException("Message processor did not acknowledge. " +
-                                                             "Wait timed out  after  " + timeOutInterval +
-                                                             "ms. Aborting processing of file: " +
-                                                             FileTransportUtils.maskURLPassword(fileURI));
-            }
+            log.warn("The time for waiting for the acknowledgement exceeded " + timeOutInterval + "ms. Proceeding " +
+                     "to post processing the file: " + FileTransportUtils.maskURLPassword(fileURI));
         }
     }
 }

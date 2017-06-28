@@ -38,7 +38,6 @@ class FileSystemProcessor implements Runnable {
 
     private CarbonMessageProcessor messageProcessor;
     private FileObject file;
-    private boolean continueIfNotAck;
     private long timeOutInterval;
     private String serviceName;
     private String fileURI;
@@ -51,18 +50,16 @@ class FileSystemProcessor implements Runnable {
      * @param messageProcessor   The message processor instance
      * @param serviceName        The name of the destination service
      * @param file               The file to be processed
-     * @param continueIfNotAck   Whether to continue processing if acknowledgement is not received
      * @param timeOutInterval    Time-out interval in milliseconds for waiting for the acknowledgement
      * @param fileURI            The URI of the file which is being processed
      * @param fileSystemConsumer FileSystemConsumer instance of processed file/directory
      * @param postProcessAction  Action to be applied to file once it is processed
      */
     FileSystemProcessor(CarbonMessageProcessor messageProcessor, String serviceName, FileObject file,
-                        boolean continueIfNotAck, long timeOutInterval, String fileURI,
+                        long timeOutInterval, String fileURI,
                         FileSystemConsumer fileSystemConsumer, String postProcessAction) {
         this.messageProcessor = messageProcessor;
         this.file = file;
-        this.continueIfNotAck = continueIfNotAck;
         this.timeOutInterval = timeOutInterval;
         this.serviceName = serviceName;
         this.fileURI = fileURI;
@@ -88,7 +85,7 @@ class FileSystemProcessor implements Runnable {
                     + " to message processor. ", e);
         }
         try {
-            callback.waitTillDone(timeOutInterval, continueIfNotAck, fileURI);
+            callback.waitTillDone(timeOutInterval, fileURI);
         } catch (InterruptedException e) {
             logger.warn("Interrupted while waiting for message processor to consume" +
                                                          " the file input stream. Aborting processing of file: " +
