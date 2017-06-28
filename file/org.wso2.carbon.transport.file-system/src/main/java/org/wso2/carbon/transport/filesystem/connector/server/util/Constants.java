@@ -23,7 +23,7 @@ package org.wso2.carbon.transport.filesystem.connector.server.util;
  */
 public final class Constants {
 
-    public static final String PROTOCOL_FILE_SYSTEM = "filesystem";
+    public static final String PROTOCOL_FILE_SYSTEM = "file_system";
 
     //transport properties
     public static final String FILE_TRANSPORT_PROPERTY_SERVICE_NAME = "TRANSPORT_FILE_SERVICE_NAME";
@@ -34,24 +34,23 @@ public final class Constants {
     public static final String LAST_MODIFIED = "LAST_MODIFIED";
 
     //file connector parameters
-    public static final String TRANSPORT_FILE_FILE_URI = "fileURI";
+    public static final String TRANSPORT_FILE_FILE_URI = "dirURI";
     public static final String FILE_SORT_PARAM = "fileSortAttribute";
     public static final String FILE_SORT_VALUE_NAME = "name";
     public static final String FILE_SORT_VALUE_SIZE = "size";
     public static final String FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP = "lastModifiedTimestamp";
     public static final String FILE_SORT_ORDER = "fileSortAscending";
-    public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "acknowledgementTimeOut";
-    public static final String FILE_CONT_IF_NOT_ACKNOWLEDGED = "continueIfNotAcknowledged";
+    public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "ackTimeOut";
     public static final String FILE_NAME_PATTERN = "fileNamePattern";
     public static final String ACTION_AFTER_PROCESS = "actionAfterProcess";
     public static final String ACTION_AFTER_FAILURE = "actionAfterFailure";
     public static final String MOVE_TIMESTAMP_FORMAT = "moveTimestampFormat";
     public static final String MOVE_AFTER_PROCESS = "moveAfterProcess";
     public static final String MOVE_AFTER_FAILURE = "moveAfterFailure";
-    public static final String FORCE_CREATE_FOLDER = "createFolder";
+    public static final String FORCE_CREATE_FOLDER = "createMoveDir";
     public static final String PARALLEL = "parallel";
     public static final String THREAD_POOL_SIZE = "threadPoolSize";
-    public static final String FILE_PROCESS_COUNT = "fileProcessCount";
+    public static final String FILE_PROCESS_COUNT = "perPollFileCount";
 
     public static final String ACTION_MOVE = "MOVE";
     public static final String ACTION_DELETE = "DELETE";

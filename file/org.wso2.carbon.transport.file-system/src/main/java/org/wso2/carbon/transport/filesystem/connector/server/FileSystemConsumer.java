@@ -69,8 +69,8 @@ public class FileSystemConsumer {
      */
     private long timeOutInterval = 30000;
     private String fileNamePattern = null;
-    private String postProcessAction = Constants.ACTION_DELETE;
-    private String postFailureAction = Constants.ACTION_DELETE;
+    private String postProcessAction = Constants.ACTION_NONE;
+    private String postFailureAction = Constants.ACTION_NONE;
 
     private List<String> processed = new ArrayList<>();
     private List<String> failed = new ArrayList<>();
