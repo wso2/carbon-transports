@@ -419,6 +419,16 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
     }
 
     /**
+     * Get the {@link Destination} object for the provided destination name.
+     *
+     * @param destinationName name of the {@link Destination}
+     * @return Destination
+     */
+    public Destination getDestination(String destinationName) throws NamingException {
+        return JMSUtils.lookupDestination(ctx, destinationName, "");
+    }
+
+    /**
      * Get a message consumer for particular session and destination.
      *
      * @param session     JMS Session to create the consumer

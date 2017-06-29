@@ -23,6 +23,7 @@ import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
+import org.wso2.carbon.messaging.DefaultCarbonMessage;
 import org.wso2.carbon.messaging.MapCarbonMessage;
 import org.wso2.carbon.messaging.SerializableCarbonMessage;
 import org.wso2.carbon.messaging.TextCarbonMessage;
@@ -33,13 +34,10 @@ import org.wso2.carbon.transport.jms.factory.JMSConnectionFactory;
 import org.wso2.carbon.transport.jms.factory.PooledJMSConnectionFactory;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
-import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
-import javax.jms.BytesMessage;
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
@@ -48,13 +46,15 @@ import javax.jms.MapMessage;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
-import javax.jms.TextMessage;
+import javax.naming.NamingException;
 
 /**
  * JMS sender implementation.
  */
 public class JMSClientConnector implements ClientConnector {
+
     private static final Logger logger = LoggerFactory.getLogger(JMSClientConnector.class);
+
     private MessageProducer messageProducer;
     private Session session;
     private Connection connection;
@@ -77,53 +77,13 @@ public class JMSClientConnector implements ClientConnector {
     public synchronized boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback,
                                   Map<String, String> propertyMap) throws ClientConnectorException {
         try {
-            try {
-                Set<Map.Entry<String, String>> propertySet = propertyMap.entrySet();
-                this.createConnection(propertySet);
-            } catch (JMSConnectorException e) {
-                throw new ClientConnectorException(e.getMessage(), e);
-            }
 
-            Message message = null;
-            String messageType = propertyMap.get(JMSConstants.JMS_MESSAGE_TYPE);
+            setupMessageProducer(propertyMap.entrySet());
 
-            if (carbonMessage instanceof TextCarbonMessage) {
-                String textData = ((TextCarbonMessage) carbonMessage).getText();
-                if (messageType.equals(JMSConstants.TEXT_MESSAGE_TYPE)) {
-                    message = session.createTextMessage();
-                    TextMessage textMessage = (TextMessage) message;
-                    textMessage.setText(textData);
-                } else if (messageType.equals(JMSConstants.BYTES_MESSAGE_TYPE)) {
-                    message = session.createBytesMessage();
-                    BytesMessage bytesMessage = (BytesMessage) message;
-                    bytesMessage.writeBytes(textData.getBytes(Charset.defaultCharset()));
-                }
-            } else if (messageType.equals(JMSConstants.OBJECT_MESSAGE_TYPE) &&
-                       carbonMessage instanceof SerializableCarbonMessage) {
-                message = session.createObjectMessage((SerializableCarbonMessage) carbonMessage);
-            } else if (messageType.equals(JMSConstants.MAP_MESSAGE_TYPE) && carbonMessage instanceof MapCarbonMessage) {
-                message = session.createMapMessage();
-                MapMessage mapMessage = (MapMessage) message;
-                Enumeration<String> mapNames = ((MapCarbonMessage) carbonMessage).getMapNames();
-                while (mapNames.hasMoreElements()) {
-                    String key = mapNames.nextElement();
-                    mapMessage.setString(key, ((MapCarbonMessage) carbonMessage).getValue(key));
-                }
-            }
+            Message jmsMessage = createJmsMessage(carbonMessage, propertyMap);
 
-            if (carbonMessage.getProperty(JMSConstants.PERSISTENCE) != null &&
-                carbonMessage.getProperty(JMSConstants.PERSISTENCE).equals(false)) {
-                messageProducer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-            }
+            sendMessage(carbonMessage, jmsMessage);
 
-            if (message != null) {
-                messageProducer.send(message);
-            } else {
-              throw new ClientConnectorException("Exception occured while creating the message");
-            }
-
-        } catch (JMSException e) {
-            throw new ClientConnectorException("Exception occurred while sending the message", e);
         } finally {
             if (jmsConnectionFactory != null) {
                 try {
@@ -131,22 +91,127 @@ public class JMSClientConnector implements ClientConnector {
                     jmsConnectionFactory.closeSession(session);
                     jmsConnectionFactory.closeConnection(connection);
                 } catch (JMSConnectorException e) {
-                    logger.error("Exception occured when closing connection " + e.getMessage(), e);
+                    logger.error("Exception occurred when closing connection. Error: " + e.getMessage(), e);
                 }
             }
         }
         return false;
     }
 
+    private void sendMessage(CarbonMessage carbonMessage, Message jmsMessage) throws ClientConnectorException {
+        int deliveryMode = DeliveryMode.PERSISTENT;
+        if (getHeader(carbonMessage, JMSConstants.JMS_DELIVERY_MODE).
+                equalsIgnoreCase(JMSConstants.NON_PERSISTENT_DELIVERY_MODE)) {
+            deliveryMode = DeliveryMode.NON_PERSISTENT;
+        }
+        int priority = JMSConstants.DEFAULT_PRIORITY;
+        String value = carbonMessage.getHeader(JMSConstants.JMS_PRIORITY);
+        if (value != null) {
+            priority = Integer.parseInt(value);
+        }
+
+        long timeToLive = 0;
+        value = carbonMessage.getHeader(JMSConstants.JMS_EXPIRATION);
+        if (value != null) {
+            timeToLive = Long.parseLong(value);
+        }
+        try {
+            messageProducer.send(jmsMessage, deliveryMode, priority, timeToLive);
+        } catch (JMSException e) {
+            throw new ClientConnectorException("Send Failed with priority " + priority + " , delivery mode "
+                    + deliveryMode + " [ " + e.getMessage() + " ]", e);
+        }
+
+    }
+
+    private Message createJmsMessage(CarbonMessage carbonMessage, Map<String, String> propertyMap)
+                                                                        throws ClientConnectorException {
+        Message jmsMessage;
+        String messageType = propertyMap.get(JMSConstants.JMS_MESSAGE_TYPE);
+        try {
+            if (carbonMessage instanceof TextCarbonMessage) {
+                String textData = ((TextCarbonMessage) carbonMessage).getText();
+                jmsMessage = session.createTextMessage(textData);
+            } else if (carbonMessage instanceof SerializableCarbonMessage) {
+                jmsMessage = session.createObjectMessage((SerializableCarbonMessage) carbonMessage);
+            } else if (carbonMessage instanceof MapCarbonMessage) {
+                MapMessage jmsMapMessage = session.createMapMessage();
+                MapCarbonMessage mapCarbonMessage = (MapCarbonMessage) carbonMessage;
+                Enumeration<String> mapNames = mapCarbonMessage.getMapNames();
+                while (mapNames.hasMoreElements()) {
+                    String key = mapNames.nextElement();
+                    jmsMapMessage.setString(key, mapCarbonMessage.getValue(key));
+                }
+                jmsMessage = jmsMapMessage;
+            } else if (carbonMessage instanceof DefaultCarbonMessage) {
+                jmsMessage = session.createMessage();
+            } else {
+                throw new ClientConnectorException("Unknown carbon message instance provided. " +
+                        "Message type: " + messageType);
+            }
+            setJmsProperties(carbonMessage, jmsMessage);
+            setJmsHeaders(carbonMessage, jmsMessage);
+            return jmsMessage;
+        } catch (JMSException e) {
+            throw new ClientConnectorException("Error occurred while preparing the JMS message. " +
+                                                e.getMessage(), e);
+        }
+    }
+
     /**
-     * To create jms connection.
+     * Set the JMS headers that are allowed to set by the client application.
+     * refer: https://docs.oracle.com/cd/E19798-01/821-1841/bnces/index.html
+     *
+     * @param carbonMessage source {@link CarbonMessage}
+     * @param jmsMessage Headers are set to the {@link Message}
+     * @throws ClientConnectorException throws when there is an internal error when setting the JMS headers
+     */
+    private void setJmsHeaders(CarbonMessage carbonMessage, Message jmsMessage) throws ClientConnectorException {
+        try {
+            String value = getHeader(carbonMessage, JMSConstants.JMS_CORRELATION_ID);
+            if (!value.isEmpty()) {
+                jmsMessage.setJMSCorrelationID(value);
+            }
+            value = getHeader(carbonMessage, JMSConstants.JMS_MESSAGE_TYPE);
+            if (!value.isEmpty()) {
+                jmsMessage.setJMSType(value);
+            }
+            value = getHeader(carbonMessage, JMSConstants.JMS_REPLY_TO);
+            if (!value.isEmpty()) {
+                Destination destination = jmsConnectionFactory.getDestination(value);
+                jmsMessage.setJMSReplyTo(destination);
+            }
+        } catch (NamingException e) {
+            throw new ClientConnectorException("Error occurred while setting " + JMSConstants.JMS_REPLY_TO +
+                    " JMS message header." + e.getMessage(), e);
+        } catch (JMSException e) {
+            throw new ClientConnectorException("Error occurred while setting JMS message headers. "
+                                                + e.getMessage(), e);
+        }
+    }
+
+    private String getHeader(CarbonMessage carbonMessage, String headerName) {
+        String value = carbonMessage.getHeader(headerName);
+        if (value == null) {
+            return "";
+        } else {
+            return value;
+        }
+    }
+
+    private void setJmsProperties(CarbonMessage carbonMessage, Message message) throws JMSException {
+        for (Map.Entry<String, Object> entry : carbonMessage.getProperties().entrySet()) {
+            message.setStringProperty(entry.getKey(), entry.getValue().toString());
+        }
+    }
+
+    /**
+     * Creates a new {@link MessageProducer} using a new or existing connection to the JMS provider.
      *
      * @param propertySet               Set of user defined properties
-     * @throws JMSConnectorException    Thrown when {@link JMSConnectionFactory} is created
-     * @throws JMSException             Thrown when jms connection is created
+     * @throws ClientConnectorException throws when an internal error occur trying to make the JMS provider connection
      */
-    private void createConnection(Set<Map.Entry<String, String>> propertySet)
-            throws JMSConnectorException, JMSException {
+    private void setupMessageProducer(Set<Map.Entry<String, String>> propertySet) throws ClientConnectorException {
         Properties properties = new Properties();
         for (Map.Entry<String, String> entry : propertySet) {
             String mappedParameter = JMSConstants.MAPPING_PARAMETERS.get(entry.getKey());
@@ -158,40 +223,43 @@ public class JMSClientConnector implements ClientConnector {
         }
 
         String connectionFactoryNature = properties.getProperty(JMSConstants.CONNECTION_FACTORY_NATURE);
-
-        if (connectionFactoryNature != null) {
-            switch (connectionFactoryNature) {
-                case JMSConstants.CACHED_CONNECTION_FACTORY:
-                    jmsConnectionFactory = new CachedJMSConnectionFactory(properties);
-                    break;
-                case JMSConstants.POOLED_CONNECTION_FACTORY:
-                    jmsConnectionFactory = new PooledJMSConnectionFactory(properties);
-                    break;
-                default:
-                    jmsConnectionFactory = new JMSConnectionFactory(properties);
+        try {
+            if (connectionFactoryNature != null) {
+                switch (connectionFactoryNature) {
+                    case JMSConstants.CACHED_CONNECTION_FACTORY:
+                        jmsConnectionFactory = new CachedJMSConnectionFactory(properties);
+                        break;
+                    case JMSConstants.POOLED_CONNECTION_FACTORY:
+                        jmsConnectionFactory = new PooledJMSConnectionFactory(properties);
+                        break;
+                    default:
+                        jmsConnectionFactory = new JMSConnectionFactory(properties);
+                }
+            } else {
+                jmsConnectionFactory = new JMSConnectionFactory(properties);
             }
-        } else {
-            jmsConnectionFactory = new JMSConnectionFactory(properties);
+
+            String conUsername = properties.getProperty(JMSConstants.CONNECTION_USERNAME);
+            String conPassword = properties.getProperty(JMSConstants.CONNECTION_PASSWORD);
+
+            Connection connection;
+            if (conUsername != null && conPassword != null) {
+                connection = this.jmsConnectionFactory.createConnection(conUsername, conPassword);
+            } else {
+                connection = this.jmsConnectionFactory.createConnection();
+            }
+
+            this.connection = connection;
+
+            Session session = this.jmsConnectionFactory.getSession(connection);
+            this.session = session;
+
+            Destination destination = this.jmsConnectionFactory.getDestination(session);
+            this.messageProducer = this.jmsConnectionFactory.getMessageProducer(session, destination);
+        } catch (JMSConnectorException | JMSException e) {
+            throw new ClientConnectorException("Error connecting to JMS provider. " + e.getMessage(), e);
         }
-
-        String conUsername = properties.getProperty(JMSConstants.CONNECTION_USERNAME);
-        String conPassword = properties.getProperty(JMSConstants.CONNECTION_PASSWORD);
-
-        Connection connection;
-        if (conUsername != null && conPassword != null) {
-            connection = this.jmsConnectionFactory.createConnection(conUsername, conPassword);
-        } else {
-            connection = this.jmsConnectionFactory.createConnection();
-        }
-
-        this.connection = connection;
-
-        Session session = this.jmsConnectionFactory.getSession(connection);
-        this.session = session;
-
-        Destination destination = this.jmsConnectionFactory.getDestination(session);
-        this.messageProducer = this.jmsConnectionFactory.getMessageProducer(session, destination);
-    }
+}
 
     @Override
     public String getProtocol() {
