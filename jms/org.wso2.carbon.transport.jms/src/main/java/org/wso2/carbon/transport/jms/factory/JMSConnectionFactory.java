@@ -20,6 +20,7 @@ package org.wso2.carbon.transport.jms.factory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.kernel.utils.StringUtils;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 import org.wso2.carbon.transport.jms.utils.JMSUtils;
@@ -125,7 +126,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
             throw new JMSConnectorException("NamingException while obtaining initial context. ", e);
         }
 
-        String connectionFactoryType = properties.getProperty(JMSConstants.CONNECTION_FACTORY_TYPE);
+        String connectionFactoryType = properties.getProperty(JMSConstants.PARAM_CONNECTION_FACTORY_TYPE);
         if (JMSConstants.DESTINATION_TYPE_TOPIC.equalsIgnoreCase(connectionFactoryType)) {
             this.destinationType = JMSConstants.JMSDestinationType.TOPIC;
         } else {
@@ -156,29 +157,27 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
 
         noPubSubLocal = Boolean.valueOf(properties.getProperty(JMSConstants.PARAM_PUBSUB_NO_LOCAL));
 
-        clientId = properties.getProperty(JMSConstants.PARAM_DURABLE_SUB_CLIENT_ID);
-        subscriptionName = properties.getProperty(JMSConstants.PARAM_DURABLE_SUB_NAME);
+        clientId = properties.getProperty(JMSConstants.PARAM_CLIENT_ID);
+        subscriptionName = properties.getProperty(JMSConstants.PARAM_DURABLE_SUB_ID);
 
         if (isSharedSubscription && subscriptionName == null) {
             logger.warn("Subscription name is not given. Therefore declaring a non-shared subscription");
             isSharedSubscription = false;
         }
 
-        String subDurable = properties.getProperty(JMSConstants.PARAM_SUB_DURABLE);
-        if (null != subDurable) {
-            isDurable = Boolean.parseBoolean(subDurable);
-        }
+        isDurable = !StringUtils.isNullOrEmptyAfterTrim(properties.getProperty(JMSConstants.PARAM_DURABLE_SUB_ID));
+
         String msgSelector = properties.getProperty(JMSConstants.PARAM_MSG_SELECTOR);
         if (null != msgSelector) {
             messageSelector = msgSelector;
         }
-        this.connectionFactoryString = properties.getProperty(JMSConstants.CONNECTION_FACTORY_JNDI_NAME);
+        this.connectionFactoryString = properties.getProperty(JMSConstants.PARAM_CONNECTION_FACTORY_JNDI_NAME);
         if (null == connectionFactoryString || "".equals(connectionFactoryString)) {
             connectionFactoryString = "QueueConnectionFactory";
         }
 
-        this.destinationName = properties.getProperty(JMSConstants.DESTINATION_NAME);
-        String strSessionAck = properties.getProperty(JMSConstants.SESSION_ACK);
+        this.destinationName = properties.getProperty(JMSConstants.PARAM_DESTINATION_NAME);
+        String strSessionAck = properties.getProperty(JMSConstants.PARAM_ACK_MODE);
         if (null == strSessionAck) {
             sessionAckMode = Session.AUTO_ACKNOWLEDGE;
         } else if (strSessionAck.equals(JMSConstants.CLIENT_ACKNOWLEDGE_MODE)) {

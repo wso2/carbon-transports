@@ -20,6 +20,7 @@ package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.kernel.utils.StringUtils;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
@@ -33,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * This is the transport receiver for JMS.
@@ -198,13 +198,7 @@ public class JMSServerConnector extends ServerConnector {
     @Override
     public void start() throws ServerConnectorException {
         properties = new Properties();
-        Set<Map.Entry<String, String>> set = getProperties().entrySet();
-        for (Map.Entry<String, String> entry : set) {
-            String mappedParameter = JMSConstants.MAPPING_PARAMETERS.get(entry.getKey());
-            if (mappedParameter != null) {
-                properties.put(mappedParameter, entry.getValue());
-            }
-        }
+        properties.putAll(getProperties());
 
         userName = getProperties().get(JMSConstants.CONNECTION_USERNAME);
         password = getProperties().get(JMSConstants.CONNECTION_PASSWORD);
@@ -245,13 +239,14 @@ public class JMSServerConnector extends ServerConnector {
             }
         }
 
-        String connectionFactoryType = properties.getProperty(JMSConstants.CONNECTION_FACTORY_TYPE);
+        String connectionFactoryType = properties.getProperty(JMSConstants.PARAM_CONNECTION_FACTORY_TYPE);
 
         if (connectionFactoryType != null) {
             if (JMSConstants.DESTINATION_TYPE_TOPIC.equalsIgnoreCase(connectionFactoryType)) {
-                String subDurable = properties.getProperty(JMSConstants.PARAM_SUB_DURABLE);
+                boolean isDurable = !StringUtils.isNullOrEmptyAfterTrim(
+                                              properties.getProperty(JMSConstants.PARAM_SUB_DURABLE));
 
-                if (!Boolean.parseBoolean(subDurable) && numOfConcurrentConsumers > 1) {
+                if (isDurable && numOfConcurrentConsumers > 1) {
                     // If this is a non durable topic subscription then concurrent consumers should not be allowed
                     // since each subscription will get a duplicate of the same message
                     throw new JMSConnectorException("Concurrent consumers are not allowed for non-durable topic " +

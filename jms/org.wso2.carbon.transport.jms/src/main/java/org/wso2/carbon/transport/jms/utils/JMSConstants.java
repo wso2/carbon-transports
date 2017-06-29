@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.transport.jms.utils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import javax.xml.namespace.QName;
 
 /**
@@ -62,19 +59,19 @@ public class JMSConstants {
     public static final String TOPIC_PREFIX = "topic.";
     public static final String QUEUE_PREFIX = "queue.";
 
-    public static final String CONNECTION_FACTORY_JNDI_NAME = "transport.jms.ConnectionFactoryJNDIName";
-    public static final String CONNECTION_FACTORY_TYPE = "transport.jms.ConnectionFactoryType";
+    public static final String PARAM_CONNECTION_FACTORY_JNDI_NAME = "transport.jms.ConnectionFactoryJNDIName";
+    public static final String PARAM_CONNECTION_FACTORY_TYPE = "transport.jms.ConnectionFactoryType";
 
-    public static final String DESTINATION_NAME = "transport.jms.Destination";
+    public static final String PARAM_DESTINATION_NAME = "transport.jms.Destination";
     public static final String DESTINATION_TYPE_QUEUE = "queue";
     public static final String DESTINATION_TYPE_TOPIC = "topic";
     public static final String SESSION_TRANSACTED = "transport.jms.SessionTransacted";
-    public static final String SESSION_ACK = "transport.jms.SessionAcknowledgement";
+    public static final String PARAM_ACK_MODE = "transport.jms.SessionAcknowledgement";
 
     // Durable subscription related parameters.
     public static final String PARAM_SUB_DURABLE = "transport.jms.SubscriptionDurable";
-    public static final String PARAM_DURABLE_SUB_NAME = "transport.jms.DurableSubscriberName";
-    public static final String PARAM_DURABLE_SUB_CLIENT_ID = "transport.jms.DurableSubscriberClientID";
+    public static final String PARAM_DURABLE_SUB_ID = "transport.jms.DurableSubscriberName";
+    public static final String PARAM_CLIENT_ID = "transport.jms.DurableSubscriberClientId";
 
     /**
      * Acknowledgements to client
@@ -90,20 +87,6 @@ public class JMSConstants {
     public static final String CLIENT_ACKNOWLEDGE_MODE = "CLIENT_ACKNOWLEDGE";
     public static final String DUPS_OK_ACKNOWLEDGE_MODE = "DUPS_OK_ACKNOWLEDGE";
     public static final String SESSION_TRANSACTED_MODE = "SESSION_TRANSACTED";
-
-    /**
-     * Parameters from the user.
-     */
-    public static final String CONNECTION_FACTORY_JNDI_PARAM_NAME = "connectionFactoryJNDIName";
-    public static final String CONNECTION_FACTORY_TYPE_PARAM_NAME = "connectionFactoryType";
-    public static final String DESTINATION_PARAM_NAME = "destination";
-    public static final String NAMING_FACTORY_INITIAL_PARAM_NAME = "factoryInitial";
-    public static final String PROVIDER_URL_PARAM_NAME = "providerUrl";
-    public static final String SESSION_ACK_MODE_PARAM_NAME = "sessionAcknowledgement";
-    public static final String SUBSCRIPTION_DURABLE_PARAM_NAME = "subscriptionDurable";
-    public static final String DURABLE_SUBSCRIBER_CLIENT_ID_PARAM_NAME = "durableSubscriberClientID";
-    public static final String DURABLE_SUBSCRIBER_PARAM_NAME = "durableSubscriberName";
-    public static final String PERSISTENCE = "Persistence";
 
     /**
      * Number of concurrent consumers to be spawned when the server connector is starting.
@@ -151,35 +134,16 @@ public class JMSConstants {
      * <p>
      * The value of this constant is "java.naming.provider.url".
      */
-    public static final String PROVIDER_URL = "java.naming.provider.url";
+    public static final String PARAM_PROVIDER_URL = "java.naming.provider.url";
     public static final String DESTINATION_TYPE_GENERIC = "generic";
     /**
      * Naming factory initial.
      */
-    public static final String NAMING_FACTORY_INITIAL = "java.naming.factory.initial";
+    public static final String PARAM_NAMING_FACTORY_INITIAL = "java.naming.factory.initial";
     /**
      * Default Connection Factory.
      */
     public static final String CONNECTION_STRING = "connectionfactory.QueueConnectionFactory";
-
-    /**
-     * Mapping between parameters and actual values.
-     */
-    private static Map<String, String> mappingParameters;
-
-    static {
-        mappingParameters = new HashMap<>();
-        mappingParameters.put(CONNECTION_FACTORY_JNDI_PARAM_NAME, CONNECTION_FACTORY_JNDI_NAME);
-        mappingParameters.put(CONNECTION_FACTORY_TYPE_PARAM_NAME, CONNECTION_FACTORY_TYPE);
-        mappingParameters.put(DESTINATION_PARAM_NAME, DESTINATION_NAME);
-        mappingParameters.put(NAMING_FACTORY_INITIAL_PARAM_NAME, NAMING_FACTORY_INITIAL);
-        mappingParameters.put(PROVIDER_URL_PARAM_NAME, PROVIDER_URL);
-        mappingParameters.put(SESSION_ACK_MODE_PARAM_NAME, SESSION_ACK);
-        mappingParameters.put(SUBSCRIPTION_DURABLE_PARAM_NAME, PARAM_SUB_DURABLE);
-        mappingParameters.put(DURABLE_SUBSCRIBER_CLIENT_ID_PARAM_NAME, PARAM_DURABLE_SUB_CLIENT_ID);
-        mappingParameters.put(DURABLE_SUBSCRIBER_PARAM_NAME, PARAM_DURABLE_SUB_NAME);
-    }
-    public static final Map<String, String> MAPPING_PARAMETERS = Collections.unmodifiableMap(mappingParameters);
 
     /**
      * The parameter indicating the JMS API specification to be used - if this
