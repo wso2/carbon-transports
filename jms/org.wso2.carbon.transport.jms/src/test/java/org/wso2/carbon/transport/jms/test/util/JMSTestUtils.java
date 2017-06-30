@@ -40,16 +40,16 @@ public class JMSTestUtils {
     public static Map<String, String> createJMSListeningParameterMap(String destinationName, String
             connectionFactory, String destinationType, String jmsMode) {
         HashMap<String, String> jmsDestinationListeningParameters = new HashMap<>();
-        jmsDestinationListeningParameters.put(JMSConstants.DESTINATION_PARAM_NAME, destinationName);
+        jmsDestinationListeningParameters.put(JMSConstants.PARAM_DESTINATION_NAME, destinationName);
         jmsDestinationListeningParameters
-                .put(JMSConstants.CONNECTION_FACTORY_JNDI_PARAM_NAME, connectionFactory);
+                .put(JMSConstants.PARAM_CONNECTION_FACTORY_JNDI_NAME, connectionFactory);
         jmsDestinationListeningParameters
-                .put(JMSConstants.NAMING_FACTORY_INITIAL_PARAM_NAME, JMSTestConstants.ACTIVEMQ_FACTORY_INITIAL);
-        jmsDestinationListeningParameters.put(JMSConstants.PROVIDER_URL_PARAM_NAME,
+                .put(JMSConstants.PARAM_NAMING_FACTORY_INITIAL, JMSTestConstants.ACTIVEMQ_FACTORY_INITIAL);
+        jmsDestinationListeningParameters.put(JMSConstants.PARAM_PROVIDER_URL,
                 JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
         jmsDestinationListeningParameters
-                .put(JMSConstants.CONNECTION_FACTORY_TYPE_PARAM_NAME, destinationType);
-        jmsDestinationListeningParameters.put(JMSConstants.SESSION_ACK_MODE_PARAM_NAME, jmsMode);
+                .put(JMSConstants.PARAM_CONNECTION_FACTORY_TYPE, destinationType);
+        jmsDestinationListeningParameters.put(JMSConstants.PARAM_ACK_MODE, jmsMode);
         return jmsDestinationListeningParameters;
     }
 }

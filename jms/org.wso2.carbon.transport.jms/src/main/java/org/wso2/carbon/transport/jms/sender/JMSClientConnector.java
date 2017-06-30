@@ -37,7 +37,6 @@ import org.wso2.carbon.transport.jms.utils.JMSConstants;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
@@ -78,7 +77,7 @@ public class JMSClientConnector implements ClientConnector {
                                   Map<String, String> propertyMap) throws ClientConnectorException {
         try {
 
-            setupMessageProducer(propertyMap.entrySet());
+            setupMessageProducer(propertyMap);
 
             Message jmsMessage = createJmsMessage(carbonMessage, propertyMap);
 
@@ -208,22 +207,16 @@ public class JMSClientConnector implements ClientConnector {
     /**
      * Creates a new {@link MessageProducer} using a new or existing connection to the JMS provider.
      *
-     * @param propertySet               Set of user defined properties
+     * @param propertyMap               Map of user defined properties
      * @throws ClientConnectorException throws when an internal error occur trying to make the JMS provider connection
      */
-    private void setupMessageProducer(Set<Map.Entry<String, String>> propertySet) throws ClientConnectorException {
-        Properties properties = new Properties();
-        for (Map.Entry<String, String> entry : propertySet) {
-            String mappedParameter = JMSConstants.MAPPING_PARAMETERS.get(entry.getKey());
-            if (mappedParameter != null) {
-                properties.put(mappedParameter, entry.getValue());
-            } else {
-                properties.put(entry.getKey(), entry.getValue());
-            }
-        }
-
-        String connectionFactoryNature = properties.getProperty(JMSConstants.CONNECTION_FACTORY_NATURE);
+    private void setupMessageProducer(Map<String, String> propertyMap) throws ClientConnectorException {
         try {
+            Properties properties = new Properties();
+            properties.putAll(propertyMap);
+
+            String connectionFactoryNature = properties.getProperty(JMSConstants.CONNECTION_FACTORY_NATURE);
+
             if (connectionFactoryNature != null) {
                 switch (connectionFactoryNature) {
                     case JMSConstants.CACHED_CONNECTION_FACTORY:
