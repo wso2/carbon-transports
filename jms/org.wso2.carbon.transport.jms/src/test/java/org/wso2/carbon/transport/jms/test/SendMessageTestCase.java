@@ -48,11 +48,11 @@ public class SendMessageTestCase {
     public void setUp() {
         carbonMessage = new TextCarbonMessage("Hello World");
         properties = new HashMap();
-        properties.put(JMSConstants.DESTINATION_PARAM_NAME, JMSTestConstants.QUEUE_NAME_1);
-        properties.put(JMSConstants.CONNECTION_FACTORY_JNDI_PARAM_NAME, JMSTestConstants.QUEUE_CONNECTION_FACTORY);
-        properties.put(JMSConstants.NAMING_FACTORY_INITIAL_PARAM_NAME, JMSTestConstants.ACTIVEMQ_FACTORY_INITIAL);
-        properties.put(JMSConstants.PROVIDER_URL_PARAM_NAME, JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
-        properties.put(JMSConstants.CONNECTION_FACTORY_TYPE_PARAM_NAME, JMSConstants.DESTINATION_TYPE_QUEUE);
+        properties.put(JMSConstants.PARAM_DESTINATION_NAME, JMSTestConstants.QUEUE_NAME_1);
+        properties.put(JMSConstants.PARAM_CONNECTION_FACTORY_JNDI_NAME, JMSTestConstants.QUEUE_CONNECTION_FACTORY);
+        properties.put(JMSConstants.PARAM_NAMING_FACTORY_INITIAL, JMSTestConstants.ACTIVEMQ_FACTORY_INITIAL);
+        properties.put(JMSConstants.PARAM_PROVIDER_URL, JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
+        properties.put(JMSConstants.PARAM_CONNECTION_FACTORY_TYPE, JMSConstants.DESTINATION_TYPE_QUEUE);
         properties.put(JMSConstants.TEXT_DATA, "Hello World");
         properties.put(JMSConstants.JMS_MESSAGE_TYPE, JMSConstants.TEXT_MESSAGE_TYPE);
         jmsServer = new JMSServer();
