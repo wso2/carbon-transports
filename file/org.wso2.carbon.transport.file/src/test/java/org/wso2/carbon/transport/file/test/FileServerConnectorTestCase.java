@@ -54,4 +54,24 @@ public class FileServerConnectorTestCase {
         Assert.assertEquals(messageProcessor.getFileContent(), "File Server Connector test");
         connector.stop();
     }
+
+    @Test(description = "Testing the scenario: reading a file and asserting whether its content " +
+                        "is equal to what is expected with cron expression.")
+    public void filePollingCronTestCase() throws ServerConnectorException, InterruptedException {
+        FileServerConnectorProvider provider = new FileServerConnectorProvider();
+        ClassLoader classLoader = getClass().getClassLoader();
+        String fileURI = new File(classLoader.getResource("testCron.txt").getFile()).getAbsolutePath();
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put(Constants.TRANSPORT_FILE_FILE_URI, fileURI);
+        parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.CRON_EXPRESSION, "0/5 * * * * ?");
+        ServerConnector connector = provider.createConnector("testService", parameters);
+
+        TestMessageProcessor messageProcessor = new TestMessageProcessor();
+        connector.setMessageProcessor(messageProcessor);
+
+        connector.start();
+        messageProcessor.waitTillDone();
+        Assert.assertEquals(messageProcessor.getFileContent(), "File Server Connector cron test");
+        connector.stop();
+    }
 }

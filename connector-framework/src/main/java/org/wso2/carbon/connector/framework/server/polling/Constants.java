@@ -26,4 +26,5 @@ public final class Constants {
     }
 
     public static final String POLLING_INTERVAL = "pollingInterval";
+    public static final String CRON_EXPRESSION = "cronExpression";
 }
