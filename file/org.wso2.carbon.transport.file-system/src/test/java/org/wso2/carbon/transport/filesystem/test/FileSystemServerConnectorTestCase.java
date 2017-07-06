@@ -64,9 +64,9 @@ public class FileSystemServerConnectorTestCase {
     @Test(description = "Testing the scenario: reading a file and asserting whether its content " +
                         "is equal to what is expected with cron expression.")
     public void filePollingCronTestCase() throws ServerConnectorException, InterruptedException {
-        FileServerConnectorProvider provider = new FileServerConnectorProvider();
+        FileSystemServerConnectorProvider provider = new FileSystemServerConnectorProvider();
         ClassLoader classLoader = getClass().getClassLoader();
-        String fileURI = new File(classLoader.getResource("testCron.txt").getFile()).getAbsolutePath();
+        String fileURI = new File(classLoader.getResource("fs-cron/").getFile()).getAbsolutePath();
         Map<String, String> parameters = new HashMap<>();
         parameters.put(Constants.TRANSPORT_FILE_FILE_URI, fileURI);
         parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.CRON_EXPRESSION, "0/5 * * * * ?");
