@@ -26,6 +26,6 @@
     <artifactId>org.wso2.carbon.transport.file.parent</artifactId>
     <name>WSO2 Carbon Transport File Parent</name>
     <modules>
-        <module>org.wso2.carbon.transport.file</module>
+        <module>org.wso2.carbon.transport.file-system</module>
     </modules>
 </project>
