@@ -72,7 +72,10 @@ class FileSystemProcessor implements Runnable {
      */
     @Override
     public void run() {
-        TextCarbonMessage message = new TextCarbonMessage(file.getName().getURI());
+        String uri = file.getName().getURI();
+        uri = uri.startsWith("file://") ? uri.replace("file://", "") : uri;
+
+        TextCarbonMessage message = new TextCarbonMessage(uri);
         message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE_SYSTEM);
         message.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
         boolean processFailed = false;
