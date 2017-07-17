@@ -215,7 +215,7 @@ public class FileConsumer {
      * @return
      */
     private FileObject processFile(FileObject file) throws FileServerConnectorException {
-
+        // TODO: Revisit this logic. Maybe implement a proper event handling mechanism such as Observer-Observable?
         try {
             boolean newer = isFileNewer(fileObject, currentTime);
             long length = this.fileObject.getContent().getSize();

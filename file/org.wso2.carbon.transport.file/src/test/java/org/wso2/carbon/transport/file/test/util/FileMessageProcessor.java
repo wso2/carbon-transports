@@ -80,15 +80,15 @@ public class FileMessageProcessor implements CarbonMessageProcessor {
     }
 
     /**
-     * To make sure the reading the file content is done.
+     * To make sure reading the file content is done.
      */
     private void done() {
         latch.countDown();
     }
 
     private class FillFileContent implements Runnable {
-        CountDownLatch latch;
-        CarbonMessage carbonMessage;
+        private CountDownLatch latch;
+        private CarbonMessage carbonMessage;
 
         public FillFileContent(CountDownLatch latch, CarbonMessage carbonMessage) {
             this.latch = latch;

@@ -76,8 +76,21 @@ class FileSystemProcessor implements Runnable {
         uri = uri.startsWith("file://") ? uri.replace("file://", "") : uri;
 
         TextCarbonMessage message = new TextCarbonMessage(uri);
-        message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE_SYSTEM);
+        try {
+            message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, file.getURL().getProtocol());
+        } catch (FileSystemException e) {
+            logger.error("Exception occurred while retrieving the file protocol", e);
+            message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE_SYSTEM);
+        }
+
         message.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
+        try {
+            message.setProperty(Constants.META_FILE_SIZE, file.getContent().getSize());
+            message.setProperty(Constants.META_FILE_LAST_MODIFIED_TIME, file.getContent().getLastModifiedTime());
+        } catch (FileSystemException e) {
+            logger.error("Failed to set meta data for file: " + file.getName().getURI(), e);
+        }
+
         boolean processFailed = false;
         FileSystemServerConnectorCallback callback = new FileSystemServerConnectorCallback();
         try {
