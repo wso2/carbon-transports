@@ -42,14 +42,9 @@ public class FileMessageProcessor implements CarbonMessageProcessor {
 
     @Override
     public boolean receive(CarbonMessage carbonMessage, CarbonCallback carbonCallback) throws Exception {
-        executor.execute(new Runnable() {
-            @Override public void run() {
-                byte[] content = ((BinaryCarbonMessage) carbonMessage).readBytes().array();
-                fileContent.add(new String(content));
-
-            }
-        });
-        latch.await(10, TimeUnit.MICROSECONDS);
+        CountDownLatch latch = new CountDownLatch(1);
+        executor.execute(new FillFileContent(latch, carbonMessage));
+        latch.await();
         if (fileContent.size() == 20) {
             done();
         }
@@ -91,4 +86,20 @@ public class FileMessageProcessor implements CarbonMessageProcessor {
         latch.countDown();
     }
 
+    private class FillFileContent implements Runnable {
+        CountDownLatch latch;
+        CarbonMessage carbonMessage;
+
+        public FillFileContent(CountDownLatch latch, CarbonMessage carbonMessage) {
+            this.latch = latch;
+            this.carbonMessage = carbonMessage;
+        }
+
+        @Override
+        public void run() {
+            byte[] content = ((BinaryCarbonMessage) carbonMessage).readBytes().array();
+            fileContent.add(new String(content));
+            latch.countDown();
+        }
+    }
 }
