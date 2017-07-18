@@ -16,15 +16,26 @@
  * under the License.
  */
 
-package org.wso2.carbon.connector.framework.server.polling;
+package org.wso2.carbon.transport.file.connector.sender;
 
 /**
- * Constants for polling server connectors.
+ * This class contains the constants related to File transport.
  */
 public final class Constants {
+
+    public static final String PROTOCOL_NAME = "file";
+
+    public static final String APPEND = "append";
+    public static final String FILE_URI = "uri";
+    public static final String ACTION = "action";
+    public static final String CREATE = "create";
+    public static final String WRITE = "write";
+    public static final String DELETE = "delete";
+    public static final String COPY = "copy";
+    public static final String MOVE = "move";
+    public static final String READ = "read";
+    public static final String EXISTS = "exists";
+
     private Constants() {
     }
-
-    public static final String POLLING_INTERVAL = "pollingInterval";
-    public static final String CRON_EXPRESSION = "cronExpression";
 }

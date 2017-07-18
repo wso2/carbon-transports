@@ -16,15 +16,19 @@
  * under the License.
  */
 
-package org.wso2.carbon.connector.framework.server.polling;
+package org.wso2.carbon.transport.filesystem.connector.server.exception;
+
+import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 
 /**
- * Constants for polling server connectors.
+ * Generic {@link Exception} for File Server connector.
  */
-public final class Constants {
-    private Constants() {
+public class FileSystemServerConnectorException extends ServerConnectorException {
+    public FileSystemServerConnectorException(String message) {
+        super(message);
     }
 
-    public static final String POLLING_INTERVAL = "pollingInterval";
-    public static final String CRON_EXPRESSION = "cronExpression";
+    public FileSystemServerConnectorException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

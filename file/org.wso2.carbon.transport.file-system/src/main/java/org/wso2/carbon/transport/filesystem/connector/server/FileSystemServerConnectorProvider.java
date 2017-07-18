@@ -16,11 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.file.connector.server;
+package org.wso2.carbon.transport.filesystem.connector.server;
 
 import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.ServerConnectorProvider;
-import org.wso2.carbon.transport.file.connector.server.util.Constants;
+import org.wso2.carbon.transport.filesystem.connector.server.util.Constants;
 
 import java.util.List;
 import java.util.Map;
@@ -28,13 +28,10 @@ import java.util.Map;
 /**
  * Server connector provider for File transport.
  */
-public class FileServerConnectorProvider extends ServerConnectorProvider {
-    public FileServerConnectorProvider(String protocol) {
-        super(protocol);
-    }
+public class FileSystemServerConnectorProvider extends ServerConnectorProvider {
 
-    public FileServerConnectorProvider() {
-        super(Constants.PROTOCOL_FILE);
+    public FileSystemServerConnectorProvider() {
+        super(Constants.PROTOCOL_FILE_SYSTEM);
     }
 
     @Override
@@ -44,6 +41,6 @@ public class FileServerConnectorProvider extends ServerConnectorProvider {
 
     @Override
     public ServerConnector createConnector(String s, Map<String, String> properties) {
-        return new FileServerConnector(s, properties);
+        return new FileSystemServerConnector(s, properties);
     }
 }

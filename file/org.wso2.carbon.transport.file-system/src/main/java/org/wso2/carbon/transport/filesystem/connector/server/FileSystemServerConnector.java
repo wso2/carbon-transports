@@ -16,29 +16,29 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.file.connector.server;
+package org.wso2.carbon.transport.filesystem.connector.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.connector.framework.server.polling.PollingServerConnector;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
-import org.wso2.carbon.transport.file.connector.server.exception.FileServerConnectorException;
+import org.wso2.carbon.transport.filesystem.connector.server.exception.FileSystemServerConnectorException;
 
 import java.util.Map;
 
 /**
  * Server connector for File transport.
  */
-public class FileServerConnector extends PollingServerConnector {
-    private static final Logger log = LoggerFactory.getLogger(FileServerConnector.class);
+class FileSystemServerConnector extends PollingServerConnector {
+    private static final Logger log = LoggerFactory.getLogger(FileSystemServerConnector.class);
 
 
     private static final long FILE_CONNECTOR_DEFAULT_INTERVAL = 10000L;
     private CarbonMessageProcessor messageProcessor;
-    private FileConsumer consumer;
+    private FileSystemConsumer consumer;
 
-    public FileServerConnector(String id, Map<String, String> properties) {
+    FileSystemServerConnector(String id, Map<String, String> properties) {
         super(id, properties);
         interval = FILE_CONNECTOR_DEFAULT_INTERVAL; //this might be overridden in super.start()
     }
@@ -58,14 +58,14 @@ public class FileServerConnector extends PollingServerConnector {
         stop();
     }
 
-
     @Override
     public void start() throws ServerConnectorException {
         try {
-            consumer = new FileConsumer(id, getProperties(), messageProcessor);
+            consumer = new FileSystemConsumer(id, getProperties(), messageProcessor);
             super.start();
         } catch (RuntimeException e) {
-            throw new ServerConnectorException("Failed to start File server connector for Service: " + id, e);
+            throw new ServerConnectorException("Failed to start File server connector for Service: " +
+                    "" + id, e);
         }
     }
 
@@ -73,8 +73,9 @@ public class FileServerConnector extends PollingServerConnector {
     public void poll() {
         try {
             consumer.consume();
-        } catch (FileServerConnectorException e) {
-            log.error("Error executing the polling cycle of File " + "server connector for service: " + id, e);
+        } catch (FileSystemServerConnectorException e) {
+            log.error("Error executing the polling cycle of File " +
+                    "server connector for service: " + id, e);
         } 
     }
 }

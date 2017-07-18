@@ -18,31 +18,35 @@
 
 package org.wso2.carbon.transport.file.test.util;
 
+import org.wso2.carbon.messaging.BinaryCarbonMessage;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.TransportSender;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Message processor that is used for the testing purposes.
  */
-public class TestMessageProcessor implements CarbonMessageProcessor {
+public class FileMessageProcessor implements CarbonMessageProcessor {
     private CountDownLatch latch = new CountDownLatch(1);
-    private String fileContent;
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private List<String> fileContent = new ArrayList<>();
 
     @Override
     public boolean receive(CarbonMessage carbonMessage, CarbonCallback carbonCallback) throws Exception {
-        fileContent = getStringFromInputStream(carbonMessage.getInputStream());
-        carbonCallback.done(carbonMessage);
-        done();
+        CountDownLatch latch = new CountDownLatch(1);
+        executor.execute(new FillFileContent(latch, carbonMessage));
+        latch.await();
+        if (fileContent.size() == 20) {
+            done();
+        }
         return false;
     }
 
@@ -62,6 +66,16 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
     }
 
     /**
+     * Retrieve the line number of the file given by index
+     *
+     * @param index
+     * @return the content of the line at index-th line of the file
+     */
+    public String getFileContent(int index) {
+        return fileContent.get(index);
+    }
+
+    /**
      * To wait till file reading operation is finished.
      *
      * @throws InterruptedException Interrupted Exception.
@@ -71,54 +85,26 @@ public class TestMessageProcessor implements CarbonMessageProcessor {
     }
 
     /**
-     * To make sure the reading the file content is done.
+     * To make sure reading the file content is done.
      */
     private void done() {
         latch.countDown();
     }
 
-    /**
-     * To get the string from the input stream.
-     *
-     * @param in Input stream to be converted to String.
-     * @return the String value of the input stream
-     * @throws IOException IO exception when reading the input stream
-     */
-    private static String getStringFromInputStream(InputStream in) throws IOException {
-        StringBuilder sb = new StringBuilder(4096);
-        InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
-        BufferedReader bufferedReader = new BufferedReader(reader);
-        try {
-            String str;
-            while ((str = bufferedReader.readLine()) != null) {
-                sb.append(str);
-            }
-        } finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-                // Do nothing.
-            }
-            try {
-                reader.close();
-            } catch (IOException e) {
-                // Do nothing.
-            }
-            try {
-                bufferedReader.close();
-            } catch (IOException e) {
-                // Do nothing.
-            }
-        }
-        return sb.toString();
-    }
+    private class FillFileContent implements Runnable {
+        private CountDownLatch latch;
+        private CarbonMessage carbonMessage;
 
-    /**
-     * To get the file content of the relevant file.
-     *
-     * @return the file content.
-     */
-    public String getFileContent() {
-        return fileContent;
+        public FillFileContent(CountDownLatch latch, CarbonMessage carbonMessage) {
+            this.latch = latch;
+            this.carbonMessage = carbonMessage;
+        }
+
+        @Override
+        public void run() {
+            byte[] content = ((BinaryCarbonMessage) carbonMessage).readBytes().array();
+            fileContent.add(new String(content));
+            latch.countDown();
+        }
     }
 }

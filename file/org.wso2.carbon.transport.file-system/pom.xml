@@ -18,10 +18,9 @@
   ~ under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-<parent>
+    <parent>
         <groupId>org.wso2.carbon.transport</groupId>
         <artifactId>org.wso2.carbon.transport.file.parent</artifactId>
         <version>4.4.13-SNAPSHOT</version>
@@ -29,10 +28,10 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.transport.file</artifactId>
+    <artifactId>org.wso2.carbon.transport.file-system</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon Transport File Component</name>
-    <description>Carbon File Transport</description>
+    <name>WSO2 Carbon Transport File System Component</name>
+    <description>Carbon File System Transport</description>
 
     <dependencies>
         <dependency>
@@ -52,6 +51,11 @@
             <artifactId>commons-vfs2</artifactId>
         </dependency>
         <dependency>
+            <groupId>commons-io.wso2</groupId>
+            <artifactId>commons-io</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.eclipse.osgi</groupId>
             <artifactId>org.eclipse.osgi</artifactId>
         </dependency>
@@ -60,23 +64,14 @@
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-net</groupId>
-            <artifactId>commons-net</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-io.wso2</groupId>
-            <artifactId>commons-io</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
     <properties>
         <export.package>
-            org.wso2.carbon.transport.file.*;version="${file.transport.package.export.version}"
+            org.wso2.carbon.transport.filesystem.*;version="${file.transport.package.export.version}"
         </export.package>
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.import.version.range}",
@@ -86,7 +81,7 @@
             org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}",
             org.apache.commons.vfs2.*;version="${commons-vfs2.wso2.version.range}"
         </import.package>
-        <bundle.activator>org.wso2.carbon.transport.file.connector.server.internal.FileConnectorBundleActivator</bundle.activator>
+        <bundle.activator>org.wso2.carbon.transport.filesystem.connector.server.internal.FileSystemConnectorBundleActivator</bundle.activator>
         <carbon.component>
             osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"
         </carbon.component>
