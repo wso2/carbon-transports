@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- *
+ * A Thread Pool factory for creating Thread Pools required for the File System transport
  */
 public class ThreadPoolFactory {
     private static ThreadPoolFactory instance;

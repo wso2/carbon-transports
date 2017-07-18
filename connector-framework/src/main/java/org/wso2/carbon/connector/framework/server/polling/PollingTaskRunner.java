@@ -45,6 +45,9 @@ public class PollingTaskRunner {
         this.connector = connector;
     }
 
+    /**
+     * Start a new scheduler and schedule a new job.
+     */
     public void start() {
         String group = "carbon.connector.quartz";
         JobDetail job = JobBuilder.newJob(PollingJob.class)
@@ -69,7 +72,7 @@ public class PollingTaskRunner {
             scheduler.start();
             scheduler.scheduleJob(job, trigger);
         } catch (SchedulerException e) {
-            log.error("Exception occurred while scheduling job");
+            log.error("Exception occurred while scheduling job", e);
         }
 
     }
@@ -81,7 +84,7 @@ public class PollingTaskRunner {
         try {
             scheduler.shutdown();
         } catch (SchedulerException e) {
-            log.error("Exception occurred when shutting down scheduler");
+            log.error("Exception occurred when shutting down scheduler", e);
         }
     }
 }

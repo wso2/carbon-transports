@@ -47,6 +47,7 @@ public class FileTransportUtils {
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(":(?:[^/]+)@");
 
     /**
+     * A utility method for setting the relevant configurations for the file system in question
      *
      * @param options
      * @param fsManager
@@ -97,6 +98,7 @@ public class FileTransportUtils {
     }
 
     /**
+     * A utility method for masking the password in a file URI
      *
      * @param url
      * @return
@@ -113,6 +115,7 @@ public class FileTransportUtils {
     }
 
     /**
+     * A utility method for retrieving the type of the file
      *
      * @param fileType
      * @return

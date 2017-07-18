@@ -43,7 +43,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
- * VFSClientConnector.
+ * A Client Connector implementation for file systems using the Apache VFS library for file operations
  */
 public class VFSClientConnector implements ClientConnector {
     private static final Logger logger = LoggerFactory.getLogger(VFSClientConnector.class);

@@ -66,6 +66,12 @@ public class FileMessageProcessor implements CarbonMessageProcessor {
         return "test-file-message-processor";
     }
 
+    /**
+     * Retrieve the line number of the file given by index
+     *
+     * @param index
+     * @return the content of the line at index-th line of the file
+     */
     public String getFileContent(int index) {
         return fileContent.get(index);
     }

@@ -37,7 +37,7 @@ public class PollingJob implements Job {
         try {
             schedulerContext = jobExecutionContext.getScheduler().getContext();
         } catch (SchedulerException e1) {
-            log.debug("Exception occurred while getting scheduler context");
+            log.debug("Exception occurred while getting scheduler context", e1);
         }
         if (schedulerContext == null) {
             log.error("Scheduler context is null");
@@ -50,8 +50,7 @@ public class PollingJob implements Job {
         try {
             connector.poll();
         } catch (Exception e) {
-            log.error("Error executing the polling cycle for " +
-                      "server connector ID: " + connector.getId(), e);
+            log.error("Error executing the polling cycle for server connector ID: " + connector.getId(), e);
         }
         log.debug("Exit the polling task running loop for server connector ID: " + connector.getId());
     }
