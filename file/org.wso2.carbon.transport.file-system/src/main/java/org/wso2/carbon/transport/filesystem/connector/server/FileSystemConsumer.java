@@ -117,8 +117,8 @@ public class FileSystemConsumer {
             }
         } catch (FileSystemException e) {
             throw new FileSystemServerConnectorException(
-                    "Exception while determining file: " + FileTransportUtils.maskURLPassword(listeningDirURI) + " is readable",
-                    e);
+                    "Exception while determining file: " + FileTransportUtils.maskURLPassword(listeningDirURI) +
+                            " is readable", e);
         }
         FileType fileType = getFileType(listeningDir);
         if (fileType != FileType.FOLDER) {
