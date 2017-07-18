@@ -38,6 +38,14 @@ public class FileTransportUtils {
     private static final Pattern URL_PATTERN = Pattern.compile("[a-z]+://.*");
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(":(?:[^/]+)@");
 
+    /**
+     * A utility method for setting the relevant configurations for the file system in question
+     *
+     * @param options   A map containigthe options to be attached to the file system
+     * @param fsManager
+     * @return
+     * @throws FileServerConnectorException
+     */
     public static FileSystemOptions attachFileSystemOptions(
             Map<String, String> options, FileSystemManager fsManager) throws FileServerConnectorException {
         if (options == null) {
@@ -71,18 +79,23 @@ public class FileTransportUtils {
         if (options.get(Constants.FILE_TYPE) != null) {
             try {
                 delegate.setConfigString(opts, options.get(Constants.SCHEME),
-                        Constants.FILE_TYPE, String.valueOf(getFileType(
-                                options.get(Constants.FILE_TYPE))));
+                        Constants.FILE_TYPE,
+                        String.valueOf(getFileType(options.get(Constants.FILE_TYPE))));
             } catch (FileSystemException e) {
                 throw new FileServerConnectorException(
-                        "Failed to set file transport configuration for scheme: "
-                                + options.get(Constants.SCHEME) + " and option: "
-                                + Constants.FILE_TYPE, e);
+                        "Failed to set file transport configuration for scheme: " + options.get(Constants.SCHEME) +
+                                " and option: " + Constants.FILE_TYPE, e);
             }
         }
         return opts;
     }
 
+    /**
+     * A utility method for masking the password in a file URI
+     *
+     * @param url The file URL in which the password has to be masked.
+     * @return The URL with the password masked
+     */
     public static String maskURLPassword(String url) {
         Matcher urlMatcher = URL_PATTERN.matcher(url);
         if (urlMatcher.find()) {

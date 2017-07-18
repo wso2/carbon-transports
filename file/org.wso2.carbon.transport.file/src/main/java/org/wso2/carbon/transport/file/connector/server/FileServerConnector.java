@@ -65,7 +65,7 @@ public class FileServerConnector extends PollingServerConnector {
             consumer = new FileConsumer(id, getProperties(), messageProcessor);
             super.start();
         } catch (RuntimeException e) {
-            throw new ServerConnectorException("Failed to start File server connector for Service: " + "" + id, e);
+            throw new ServerConnectorException("Failed to start File server connector for Service: " + id, e);
         }
     }
 

@@ -23,25 +23,17 @@ package org.wso2.carbon.transport.file.connector.server.util;
  */
 public final class Constants {
 
-    public static final String PROTOCOL_NAME = "file";
+    public static final String PROTOCOL_FILE = "file";
 
     //transport properties
     public static final String FILE_TRANSPORT_PROPERTY_SERVICE_NAME = "TRANSPORT_FILE_SERVICE_NAME";
-    public static final String FILE_PATH = "FILE_PATH";
-    public static final String FILE_URI = "FILE_URI";
-    public static final String FILE_NAME = "FILE_NAME";
-    public static final String FILE_LENGTH = "FILE_LENGTH";
-    public static final String LAST_MODIFIED = "LAST_MODIFIED";
+
+    public static final String SINGLE_THREADED_EXECUTION = "SINGLE_THREADED";
 
     //file connector parameters
-    public static final String TRANSPORT_FILE_FILE_URI = "fileURI";
-    public static final String FILE_SORT_PARAM = "fileSortAttribute";
-    public static final String FILE_SORT_VALUE_NAME = "name";
-    public static final String FILE_SORT_VALUE_SIZE = "size";
-    public static final String FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP = "lastModifiedTimestamp";
-    public static final String FILE_SORT_ORDER = "fileSortAscending";
-    public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "acknowledgementTimeOut";
-    public static final String FILE_DELETE_IF_NOT_ACKNOWLEDGED = "deleteIfNotAcknowledged";
+    public static final String TRANSPORT_FILE_FILE_PATH = "path";
+    public static final String START_POSITION = "startPosition";
+    public static final String MAX_LINES_PER_POLL = "maxLinesPerPoll";
 
     public static final String SCHEME = "VFS_SCHEME";
     public static final String SFTP_PREFIX = "sftp";
@@ -53,6 +45,9 @@ public final class Constants {
     public static final String LOCAL_TYPE = "LOCAL";
     public static final String ASCII_TYPE = "ASCII";
     public static final String EBCDIC_TYPE = "EBCDIC";
+    public static final String FILE_UPDATE = "FILE_UPDATE";
+    public static final String FILE_ROTATE = "FILE_ROTATE";
+    public static final String FILE_TRANSPORT_EVENT_NAME = "FILE_TRANSPORT_EVENT_NAME";
 
     private Constants() {
     }

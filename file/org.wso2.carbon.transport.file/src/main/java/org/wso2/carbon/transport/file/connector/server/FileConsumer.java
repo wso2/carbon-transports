@@ -18,30 +18,34 @@
 
 package org.wso2.carbon.transport.file.connector.server;
 
-import org.apache.commons.vfs2.FileContent;
+import org.apache.commons.vfs2.FileNotFoundException;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.RandomAccessContent;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
+import org.apache.commons.vfs2.util.RandomAccessMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.messaging.BinaryCarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
-import org.wso2.carbon.messaging.StreamingCarbonMessage;
+import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.file.connector.server.exception.FileServerConnectorException;
 import org.wso2.carbon.transport.file.connector.server.util.Constants;
 import org.wso2.carbon.transport.file.connector.server.util.FileTransportUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,16 +57,18 @@ public class FileConsumer {
 
     private Map<String, String> fileProperties;
     private FileSystemManager fsManager = null;
-    private String serviceName;
     private CarbonMessageProcessor messageProcessor;
-    private String fileURI;
+    private String path;
+    private String serviceName;
     private FileObject fileObject;
     private FileSystemOptions fso;
-    /**
-     * Time-out interval (in mill-seconds) to wait for the callback.
-     */
-    private long timeOutInterval = 30000;
-    private boolean deleteIfNotAck = false;
+
+    private final byte[] inbuf = new byte[4096];
+    private int startPosition;
+    private long currentTime = 0L;
+    private long position = 0L;
+    private RandomAccessContent reader = null;
+    private int maxLinesPerPoll;
 
     public FileConsumer(String id, Map<String, String> fileProperties,
                         CarbonMessageProcessor messageProcessor)
@@ -81,7 +87,7 @@ public class FileConsumer {
             throw new ServerConnectorException("Could not initialize File System Manager from " +
                     "the configuration: providers.xml", e);
         }
-        Map<String, String> options = parseSchemeFileOptions(fileURI);
+        Map<String, String> options = parseSchemeFileOptions(path);
         fso = FileTransportUtils.attachFileSystemOptions(options, fsManager);
 
         if (options != null && Constants.SCHEME_FTP.equals(options.get(Constants.SCHEME))) {
@@ -89,10 +95,17 @@ public class FileConsumer {
         }
 
         try {
-            fileObject = fsManager.resolveFile(fileURI, fso);
+            fileObject = fsManager.resolveFile(path, fso);
+            reader = fileObject.getContent().getRandomAccessContent(RandomAccessMode.READ);
+            position = this.startPosition == -1 ? this.fileObject.getContent().getSize() : startPosition;
+            currentTime = System.currentTimeMillis();
+            reader.seek(position);
         } catch (FileSystemException e) {
-            throw new FileServerConnectorException("Failed to resolve fileURI: "
-                    + FileTransportUtils.maskURLPassword(fileURI), e);
+            throw new FileServerConnectorException("Failed to resolve path: "
+                    + FileTransportUtils.maskURLPassword(path), e);
+        } catch (IOException e) {
+            throw new FileServerConnectorException("Failed to read File: "
+                                                   + FileTransportUtils.maskURLPassword(path), e);
         }
     }
 
@@ -102,112 +115,74 @@ public class FileConsumer {
      */
     public void consume() throws FileServerConnectorException {
         if (log.isDebugEnabled()) {
-            log.debug("Polling for directory or file : " +
-                    FileTransportUtils.maskURLPassword(fileURI));
+            log.debug("Polling for file : " + FileTransportUtils.maskURLPassword(path));
         }
 
         // If file/folder found proceed to the processing stage
+        boolean isFileExists;
         try {
-            boolean isFileExists;
-            try {
-                isFileExists = fileObject.exists();
-            } catch (FileSystemException e) {
-                throw new FileServerConnectorException("Error occurred when determining whether the file at URI : "
-                        + FileTransportUtils.maskURLPassword(fileURI) + " exists. " + e);
-            }
-
-            boolean isFileReadable;
-            try {
-                isFileReadable = fileObject.isReadable();
-            } catch (FileSystemException e) {
-                throw new FileServerConnectorException("Error occurred when determining whether the file at URI : "
-                        + FileTransportUtils.maskURLPassword(fileURI) + " is readable. " + e);
-            }
-
-            if (isFileExists && isFileReadable) {
-                FileType fileType;
-                try {
-                    fileType = fileObject.getType();
-                } catch (FileSystemException e) {
-                    throw new FileServerConnectorException("Error occurred when determining whether file: "
-                            + FileTransportUtils.maskURLPassword(fileURI) + " is a file or a folder", e);
-                }
-
-                if (fileType == FileType.FILE) {
-                    processFile(fileObject);
-                    deleteFile(fileObject);
-                } else if (fileType == FileType.FOLDER) {
-                    FileObject[] children = null;
-                    try {
-                        children = fileObject.getChildren();
-                    } catch (FileSystemException ignored) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("The file does not exist, or is not a folder, or an error " +
-                                    "has occurred when trying to list the children. File URI : "
-                                    + FileTransportUtils.maskURLPassword(fileURI), ignored);
-                        }
-                    }
-
-                    // if this is a file that would translate to a single message
-                    if (children == null || children.length == 0) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Folder at " + FileTransportUtils.maskURLPassword(fileURI)
-                                    + " is empty.");
-                        }
-                    } else {
-                        directoryHandler(children);
-                    }
-                } else {
-                    throw new FileServerConnectorException("File: "
-                            + FileTransportUtils.maskURLPassword(fileURI) + " is neither a file or " +
-                            "a folder" + (fileType == null ? "" : ". Found file type: " + fileType.toString()));
-                }
-            } else {
-                throw new FileServerConnectorException("Unable to access or read file or directory : "
-                        + FileTransportUtils.maskURLPassword(fileURI)
-                        + ". Reason: "
-                        + (isFileExists ? (isFileReadable ? "Unknown reason"
-                        : "The file can not be read!") : "The file does not exist!"));
-            }
-        } finally {
-            try {
-                fileObject.close();
-            } catch (FileSystemException e) {
-                log.warn("Could not close file at URI: " + FileTransportUtils.maskURLPassword(fileURI), e);
-            }
+            isFileExists = fileObject.exists();
+        } catch (FileSystemException e) {
+            throw new FileServerConnectorException("Error occurred when determining whether the file at URI : " +
+                                                   FileTransportUtils.maskURLPassword(path) + " exists. " + e);
         }
-        if (log.isDebugEnabled()) {
-            log.debug("End : Scanning directory or file : " + FileTransportUtils.maskURLPassword(fileURI));
+
+        boolean isFileReadable;
+        try {
+            isFileReadable = fileObject.isReadable();
+        } catch (FileSystemException e) {
+            throw new FileServerConnectorException("Error occurred when determining whether the file at URI : " +
+                                                   FileTransportUtils.maskURLPassword(path) + " is readable. " + e);
+        }
+
+        if (isFileExists && isFileReadable) {
+            FileType fileType;
+            try {
+                fileType = fileObject.getType();
+            } catch (FileSystemException e) {
+                throw new FileServerConnectorException(
+                        "Error occurred when determining whether file: " + FileTransportUtils.maskURLPassword(path) +
+                        " is a file or a folder", e);
+            }
+
+            if (fileType == FileType.FILE) {
+                processFile(fileObject);
+            } else {
+                throw new FileServerConnectorException(
+                        "Unable to access or read file or directory : " + FileTransportUtils.maskURLPassword(path));
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("End : Scanning directory or file : " + FileTransportUtils.maskURLPassword(path));
+            }
         }
     }
 
 
+
     /**
-     * Setup the required transport parameters
+     * Setup the required transport parameters.
      */
     private void setupParams() throws ServerConnectorException {
-        fileURI = fileProperties.get(Constants.TRANSPORT_FILE_FILE_URI);
-        if (fileURI == null) {
-            throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " is a " +
-                    "mandatory parameter for " + Constants.PROTOCOL_NAME + " transport.");
+        path = fileProperties.get(Constants.TRANSPORT_FILE_FILE_PATH);
+        if (path == null) {
+            throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_PATH + " is a " +
+                    "mandatory parameter for " + Constants.PROTOCOL_FILE + " transport.");
         }
-        if (fileURI.trim().equals("")) {
-            throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " parameter " +
-                    "cannot be empty for " + Constants.PROTOCOL_NAME + " transport.");
+        if (path.trim().equals("")) {
+            throw new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_PATH + " parameter " +
+                    "cannot be empty for " + Constants.PROTOCOL_FILE + " transport.");
         }
-        String timeOut = fileProperties.get(Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT);
-        if (timeOut != null) {
-            try {
-                timeOutInterval = Long.parseLong(timeOut);
-            } catch (NumberFormatException e) {
-                log.error("Provided " + Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT + " is invalid. " +
-                        "Using the default callback timeout, " +
-                        timeOutInterval + " milliseconds", e);
-            }
+        String startPosition = fileProperties.get(Constants.START_POSITION);
+        if (startPosition != null) {
+            this.startPosition = Integer.parseInt(startPosition);
+        } else {
+            this.startPosition = -1;
         }
-        String strDeleteIfNotAck = fileProperties.get(Constants.FILE_DELETE_IF_NOT_ACKNOWLEDGED);
-        if (strDeleteIfNotAck != null) {
-            deleteIfNotAck = Boolean.parseBoolean(strDeleteIfNotAck);
+        String maxLinesPerPoll = fileProperties.get(Constants.MAX_LINES_PER_POLL);
+        if (maxLinesPerPoll != null) {
+            this.maxLinesPerPoll = Integer.parseInt(maxLinesPerPoll);
+        } else {
+            this.maxLinesPerPoll = -1;
         }
     }
 
@@ -234,243 +209,145 @@ public class FileConsumer {
     }
 
     /**
-     * Handle directory with chile elements
-     *
-     * @param children
-     * @return
-     * @throws FileSystemException
-     */
-    private void directoryHandler(FileObject[] children) throws FileServerConnectorException {
-        // Sort the files
-        String strSortParam = fileProperties.get(Constants.FILE_SORT_PARAM);
-
-        if (strSortParam != null && !"NONE".equals(strSortParam)) {
-            log.debug("Starting to sort the files in folder: " + FileTransportUtils.maskURLPassword(fileURI));
-
-            String strSortOrder = fileProperties.get(Constants.FILE_SORT_ORDER);
-            boolean bSortOrderAscending = true;
-
-            if (strSortOrder != null) {
-                bSortOrderAscending = Boolean.parseBoolean(strSortOrder);
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Sorting the files by : " + strSortOrder + ". (" +
-                        bSortOrderAscending + ")");
-            }
-            switch (strSortParam) {
-                case Constants.FILE_SORT_VALUE_NAME:
-                    if (bSortOrderAscending) {
-                        Arrays.sort(children, new FileNameAscComparator());
-                    } else {
-                        Arrays.sort(children, new FileNameDesComparator());
-                    }
-                    break;
-                case Constants.FILE_SORT_VALUE_SIZE:
-                    if (bSortOrderAscending) {
-                        Arrays.sort(children, new FileSizeAscComparator());
-                    } else {
-                        Arrays.sort(children, new FileSizeDesComparator());
-                    }
-                    break;
-                case Constants.FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP:
-                    if (bSortOrderAscending) {
-                        Arrays.sort(children, new FileLastmodifiedtimestampAscComparator());
-                    } else {
-                        Arrays.sort(children, new FileLastmodifiedtimestampDesComparator());
-                    }
-                    break;
-                default:
-                    log.warn("Invalid value given for " + Constants.FILE_SORT_PARAM + " parameter. "
-                            + " Expected one of the values: " + Constants.FILE_SORT_VALUE_NAME + ", "
-                            + Constants.FILE_SORT_VALUE_SIZE + " or "
-                            + Constants.FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP + ". Found: " + strSortParam);
-                    break;
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("End sorting the files.");
-            }
-        }
-        for (FileObject child : children) {
-            processFile(child);
-            deleteFile(child);
-            //close the file system after processing
-            try {
-                child.close();
-            } catch (FileSystemException e) {
-                log.warn("Could not close the file: " + child.getName().getPath(), e);
-            }
-        }
-    }
-
-
-    /**
-     * Actual processing of the file/folder
+     * Actual processing of the file/folder.
      *
      * @param file
      * @return
      */
     private FileObject processFile(FileObject file) throws FileServerConnectorException {
-        FileContent content;
-        String fileURI;
-
-        String fileName = file.getName().getBaseName();
-        String filePath = file.getName().getPath();
-        fileURI = file.getName().getURI();
-
+        // TODO: Revisit this logic. Maybe implement a proper event handling mechanism such as Observer-Observable?
         try {
-            content = file.getContent();
+            boolean newer = isFileNewer(fileObject, currentTime);
+            long length = this.fileObject.getContent().getSize();
+            if (length < position) {
+
+                EventListener.fileRotated(fileObject, messageProcessor, serviceName);
+                try {
+                    reader = fileObject.getContent().getRandomAccessContent(RandomAccessMode.READ);
+                    position = fileObject.getContent().getSize();
+                } catch (FileNotFoundException e) {
+                    throw new FileServerConnectorException("File Not Found: " +
+                                                           FileTransportUtils.maskURLPassword(path), e);
+                }
+            } else {
+                if (length > position) {
+                    position = this.readLines(reader);
+                    currentTime = System.currentTimeMillis();
+                } else if (newer) {
+                    position = fileObject.getContent().getSize();
+                    reader.seek(position);
+                    position = this.readLines(reader);
+                    currentTime = System.currentTimeMillis();
+                }
+                FileObject parent = fileObject.getParent();
+                parent.getType(); // assure that parent folder is attached
+                parent.refresh();
+                fileObject.refresh();
+                reader.close();
+                reader = fileObject.getContent().getRandomAccessContent(RandomAccessMode.READ);
+                reader.seek(position);
+            }
         } catch (FileSystemException e) {
-            throw new FileServerConnectorException("Could not read content of file at URI: "
-                    + FileTransportUtils.maskURLPassword(fileURI) + ". ", e);
-        }
-
-        InputStream inputStream;
-        try {
-            inputStream = content.getInputStream();
-        } catch (FileSystemException e) {
-            throw new FileServerConnectorException("Error occurred when trying to get " +
-                    "input stream from file at URI :" + FileTransportUtils.maskURLPassword(fileURI), e);
-        }
-        CarbonMessage cMessage = new StreamingCarbonMessage(inputStream);
-        cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_NAME);
-        cMessage.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
-        cMessage.setHeader(Constants.FILE_PATH, filePath);
-        cMessage.setHeader(Constants.FILE_NAME, fileName);
-        cMessage.setHeader(Constants.FILE_URI, fileURI);
-        try {
-            cMessage.setHeader(Constants.FILE_LENGTH, Long.toString(content.getSize()));
-            cMessage.setHeader(Constants.LAST_MODIFIED, Long.toString(content.getLastModifiedTime()));
-        } catch (FileSystemException e) {
-            log.warn("Unable to set file length or last modified date header.", e);
-        }
-
-        FileServerConnectorCallback callback = new FileServerConnectorCallback();
-        try {
-            messageProcessor.receive(cMessage, callback);
-        } catch (Exception e) {
-            throw new FileServerConnectorException("Failed to send stream from file: "
-                    + FileTransportUtils.maskURLPassword(fileURI) + " to message processor. ", e);
-        }
-        try {
-            callback.waitTillDone(timeOutInterval, deleteIfNotAck, fileURI);
-        } catch (InterruptedException e) {
-            throw new FileServerConnectorException("Interrupted while waiting for message " +
-                    "processor to consume the file input stream. Aborting processing of file: " +
-                    FileTransportUtils.maskURLPassword(fileURI), e);
+            throw new FileServerConnectorException(
+                    "Error in reading file: " + FileTransportUtils.maskURLPassword(path), e);
+        } catch (IOException e) {
+            throw new FileServerConnectorException(
+                    "Error in reading file: " + FileTransportUtils.maskURLPassword(path), e);
         }
         return file;
     }
 
-    /**
-     * Do the post processing actions
-     *
-     * @param fileObject
-     */
-    private void deleteFile(FileObject fileObject) throws FileServerConnectorException {
-        if (log.isDebugEnabled()) {
-            log.debug("Deleting file :" + FileTransportUtils.
-                    maskURLPassword(fileObject.getName().getBaseName()));
-        }
-        try {
-            if (!fileObject.delete()) {
-                throw new FileServerConnectorException("Could not delete file : "
-                        + FileTransportUtils.maskURLPassword(fileObject.getName().getBaseName()));
+    private long readLines(RandomAccessContent reader)
+            throws IOException, FileServerConnectorException {
+
+        long pos = reader.getFilePointer();
+        long rePos = pos;
+
+        List<Byte> list = new ArrayList<>();
+        int num;
+        int lines = 0;
+        boolean throttled = false;
+            for (;
+                 ((num = read(reader, inbuf)) != -1) && !throttled; pos = reader.getFilePointer()) {
+                for (int i = 0; (i < num) && !throttled; ++i) {
+                    byte ch = this.inbuf[i];
+                    if (ch == 10) {
+                        Byte[] line = new Byte[list.size()];
+                        line = list.toArray(line);
+                        EventListener.fileUpdated(line, messageProcessor, serviceName);
+                        lines++;
+                        list.clear();
+                        rePos = pos + (long) i + 1L;
+                    } else {
+                        list.add(ch);
+                    }
+                    if (maxLinesPerPoll != -1 && (lines > maxLinesPerPoll) && ch == 10) {
+                        throttled = true;
+                    }
+                }
             }
-        } catch (FileSystemException e) {
-            throw new FileServerConnectorException("Could not delete file : "
-                    + FileTransportUtils.maskURLPassword(fileObject.getName().getBaseName()), e);
+
+        reader.seek(rePos);
+        return rePos;
+    }
+    private static boolean isFileNewer(FileObject file, long timeMillis) throws FileSystemException {
+        if (file == null) {
+            throw new IllegalArgumentException("No specified file");
+        } else {
+            return !file.exists() || file.getContent().getLastModifiedTime() > timeMillis;
         }
     }
 
-    /**
-     * Comparator classed used to sort the files according to user input
-     */
-    static class FileNameAscComparator implements Comparator<FileObject>, Serializable {
-
-        private static final long serialVersionUID = 1;
-
-        @Override
-        public int compare(FileObject o1, FileObject o2) {
-            return o1.getName().compareTo(o2.getName());
-        }
+    private static int read(RandomAccessContent reader, byte[] inbuf) throws IOException {
+        InputStream is = reader.getInputStream();
+        int count  = is.read(inbuf);
+        return count;
     }
 
-    static class FileLastmodifiedtimestampAscComparator
-            implements Comparator<FileObject>, Serializable {
+    private static class EventListener {
 
-        private static final long serialVersionUID = 1;
+        private static void fileRotated(FileObject file, CarbonMessageProcessor messageProcessor, String serviceName)
+                throws FileServerConnectorException {
 
-        @Override
-        public int compare(FileObject o1, FileObject o2) {
-            Long lDiff = 0L;
             try {
-                lDiff = o1.getContent().getLastModifiedTime()
-                        - o2.getContent().getLastModifiedTime();
-            } catch (FileSystemException e) {
-                log.warn("Unable to compare last modified timestamp of the two files.", e);
+
+                TextCarbonMessage cMessage = new TextCarbonMessage(file.getURL().toString());
+                cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE);
+                cMessage.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
+                cMessage.setProperty(Constants.FILE_TRANSPORT_EVENT_NAME, Constants.FILE_ROTATE);
+
+                messageProcessor.receive(cMessage, null);
+            } catch (Exception e) {
+                throw new FileServerConnectorException("Failed to send event message processor. ", e);
             }
-            return lDiff.intValue();
         }
-    }
 
-    static class FileSizeAscComparator implements Comparator<FileObject>, Serializable {
-
-        private static final long serialVersionUID = 1;
-
-        @Override
-        public int compare(FileObject o1, FileObject o2) {
-            Long lDiff = 0L;
+        private static void fileUpdated(Byte[] content, CarbonMessageProcessor messageProcessor, String serviceName)
+                throws FileServerConnectorException {
             try {
-                lDiff = o1.getContent().getSize() - o2.getContent().getSize();
-            } catch (FileSystemException e) {
-                log.warn("Unable to compare size of the two files.", e);
+                CarbonMessage cMessage = new BinaryCarbonMessage(ByteBuffer.wrap(toPrimitives(content)), true);
+                cMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE);
+                cMessage.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
+                cMessage.setProperty(Constants.FILE_TRANSPORT_EVENT_NAME, Constants.FILE_UPDATE);
+                cMessage.setProperty(Constants.SINGLE_THREADED_EXECUTION, serviceName);
+
+                messageProcessor.receive(cMessage, null);
+            } catch (Exception e) {
+                throw new FileServerConnectorException("Failed to send event message processor. ", e);
             }
-            return lDiff.intValue();
         }
-    }
 
-    static class FileNameDesComparator implements Comparator<FileObject>, Serializable {
+        private static byte[] toPrimitives(Byte[] oBytes) {
 
-        private static final long serialVersionUID = 1;
+            byte[] bytes = new byte[oBytes.length];
 
-        @Override
-        public int compare(FileObject o1, FileObject o2) {
-            return o2.getName().compareTo(o1.getName());
-        }
-    }
-
-    static class FileLastmodifiedtimestampDesComparator
-            implements Comparator<FileObject>, Serializable {
-
-        private static final long serialVersionUID = 1;
-
-        @Override
-        public int compare(FileObject o1, FileObject o2) {
-            Long lDiff = 0L;
-            try {
-                lDiff = o2.getContent().getLastModifiedTime()
-                        - o1.getContent().getLastModifiedTime();
-            } catch (FileSystemException e) {
-                log.warn("Unable to compare last modified timestamp of the two files.", e);
+            for (int i = 0; i < oBytes.length; i++) {
+                bytes[i] = oBytes[i];
             }
-            return lDiff.intValue();
+
+            return bytes;
         }
-    }
 
-    static class FileSizeDesComparator implements Comparator<FileObject>, Serializable {
-
-        private static final long serialVersionUID = 1;
-
-        @Override
-        public int compare(FileObject o1, FileObject o2) {
-            Long lDiff = 0L;
-            try {
-                lDiff = o2.getContent().getSize() - o1.getContent().getSize();
-            } catch (FileSystemException e) {
-                log.warn("Unable to compare size of the two files.", e);
-            }
-            return lDiff.intValue();
-        }
     }
 
 }

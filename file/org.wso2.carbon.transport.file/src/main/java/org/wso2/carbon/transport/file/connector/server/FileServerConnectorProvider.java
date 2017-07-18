@@ -34,7 +34,7 @@ public class FileServerConnectorProvider extends ServerConnectorProvider {
     }
 
     public FileServerConnectorProvider() {
-        super(Constants.PROTOCOL_NAME);
+        super(Constants.PROTOCOL_FILE);
     }
 
     @Override
