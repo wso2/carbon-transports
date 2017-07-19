@@ -137,10 +137,12 @@ public class VFSClientConnector implements ClientConnector {
                         }
                         if (!newPath.exists()) {
                             path.moveTo(newPath);
+                        } else {
+                            throw new ClientConnectorException("the file at " + newPath.getURL().toString() +
+                                                                       " already exists or it is a directory");
                         }
                     } else {
-                        throw new ClientConnectorException("failed to move file: file " +
-                                                           "not found:" + path.getName());
+                        throw new ClientConnectorException("failed to move file: file not found:" + path.getName());
                     }
                     break;
                 case Constants.READ:
@@ -152,8 +154,7 @@ public class VFSClientConnector implements ClientConnector {
                                             org.wso2.carbon.messaging.Constants.DIRECTION_RESPONSE);
                         carbonMessageProcessor.receive(message, carbonCallback);
                     } else {
-                        throw new ClientConnectorException("failed to read file: file " +
-                                                           "not found:" + path.getName());
+                        throw new ClientConnectorException("failed to read file: file not found:" + path.getName());
                     }
                     break;
                 case Constants.EXISTS:
@@ -166,8 +167,10 @@ public class VFSClientConnector implements ClientConnector {
                     return false;
             }
         } catch (RuntimeException e) {
+            logger.error("Runtime exception occurred when performing file I/O operation", e);
             throw new ClientConnectorException("Runtime Exception occurred : " + e.getMessage(), e);
         } catch (Exception e) {
+            logger.error("Exception occurred when performing file I/O operation", e);
             throw new ClientConnectorException("Exception occurred while processing file: " + e.getMessage(), e);
         } finally {
             closeQuietly(is);
