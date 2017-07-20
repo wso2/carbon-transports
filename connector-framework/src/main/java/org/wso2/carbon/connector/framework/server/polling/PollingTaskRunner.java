@@ -29,6 +29,7 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Properties;
 import java.util.Random;
 
 /**
@@ -67,7 +68,7 @@ public class PollingTaskRunner {
 
         // Schedule the job
         try {
-            scheduler = new StdSchedulerFactory().getScheduler();
+            scheduler = new StdSchedulerFactory(getSchedulerProperties("polling-task-runner")).getScheduler();
             scheduler.getContext().put("connector", connector);
             scheduler.start();
             scheduler.scheduleJob(job, trigger);
@@ -86,5 +87,23 @@ public class PollingTaskRunner {
         } catch (SchedulerException e) {
             log.error("Exception occurred when shutting down scheduler", e);
         }
+    }
+
+    private Properties getSchedulerProperties(String name) {
+        Properties config = new Properties();
+        config.put(Constants.SCHEDULER_INSTANCE_NAME, name);
+        config.put(Constants.SCHEDULER_RMI_EXPORT, "false");
+        config.put(Constants.SCHEDULER_RMI_PROXY, "false");
+        config.put(Constants.SCHEDULER_WRAP_JOB_EXE_IN_USER_TRANSACTION, "false");
+        config.put(Constants.THREAD_POOL_CLASS, "org.quartz.simpl.SimpleThreadPool");
+        // This is set to one because according to the current implementation one scheduler
+        // only have one job
+        config.put(Constants.THREAD_POOL_THREAD_COUNT, "1");
+        config.put(Constants.THREAD_POOL_THREAD_PRIORITY, "5");
+        config.put(Constants.JOB_STORE_MISFIRE_THRESHOLD, "60000");
+        config.put(Constants.THREAD_INHERIT_CONTEXT_CLASSLOADER_OF_INIT_THREAD, "true");
+        config.put(Constants.JOB_STORE_CLASS, "org.quartz.simpl.RAMJobStore");
+
+        return config;
     }
 }
