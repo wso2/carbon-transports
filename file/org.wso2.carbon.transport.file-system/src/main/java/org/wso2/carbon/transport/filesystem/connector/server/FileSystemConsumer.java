@@ -111,12 +111,12 @@ public class FileSystemConsumer {
                 this.errorHandler.handleError(
                         new FileSystemServerConnectorException(
                                 "Failed to resolve listeningDirURI: " +
-                                        FileTransportUtils.maskURLPassword(listeningDirURI), e), null, null);
+                                FileTransportUtils.maskURLPassword(listeningDirURI), e), null, null);
             }
         } catch (FileSystemException e) {
             this.errorHandler.handleError(
                     new ServerConnectorException("Could not initialize File System Manager from " +
-                                                         "the configuration: providers.xml", e), null, null);
+                                                 "the configuration: providers.xml", e), null, null);
         }
 
         try {
@@ -126,15 +126,14 @@ public class FileSystemConsumer {
         } catch (FileSystemException e) {
             this.errorHandler.handleError(new FileSystemServerConnectorException(
                     "Exception while determining file: " + FileTransportUtils.maskURLPassword(listeningDirURI) +
-                            " is readable", e), null, null);
+                    " is readable", e), null, null);
         }
         FileType fileType = getFileType(listeningDir);
         if (fileType != FileType.FOLDER) {
             this.errorHandler.handleError(
                     new FileSystemServerConnectorException(
                             "File system server connector is used to " +
-                                    "listen to a folder. But the given path does not refer to a folder."),
-                                null, null);
+                            "listen to a folder. But the given path does not refer to a folder."), null, null);
         }
         //Initialize the thread executor based on properties
         ThreadPoolFactory.createInstance(threadPoolSize, parallelProcess);
@@ -148,32 +147,33 @@ public class FileSystemConsumer {
         if (listeningDirURI == null) {
             errorHandler.handleError(new ServerConnectorException(
                     Constants.TRANSPORT_FILE_FILE_URI + " is a " + "mandatory parameter for " +
-                            Constants.PROTOCOL_FILE_SYSTEM + " transport."), null, null);
+                    Constants.PROTOCOL_FILE_SYSTEM + " transport."), null, null);
         } else if (listeningDirURI.trim().equals("")) {
-            errorHandler.handleError(new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " parameter " +
-                                                                          "cannot be empty for " +
-                                                                          Constants.PROTOCOL_FILE_SYSTEM +
-                                                                          " transport."),
-                                     null, null);
+            errorHandler.handleError(
+                    new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " parameter cannot be empty for " +
+                    Constants.PROTOCOL_FILE_SYSTEM + " transport."), null, null);
         }
+
         String timeOut = fileProperties.get(Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT);
         if (timeOut != null) {
             try {
                 timeOutInterval = Long.parseLong(timeOut);
             } catch (NumberFormatException e) {
                 log.error("Provided " + Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT + " is invalid. " +
-                          "Using the default callback timeout, " +
-                          timeOutInterval + " milliseconds", e);
+                          "Using the default callback timeout, " + timeOutInterval + " milliseconds", e);
             }
         }
+
         String strParallel = fileProperties.get(Constants.PARALLEL);
         if (strParallel != null) {
             parallelProcess = Boolean.parseBoolean(strParallel);
         }
+
         String strPoolSize = fileProperties.get(Constants.THREAD_POOL_SIZE);
         if (strPoolSize != null) {
             threadPoolSize = Integer.parseInt(strPoolSize);
         }
+
         String strProcessCount = fileProperties.get(Constants.FILE_PROCESS_COUNT);
         if (strProcessCount != null) {
             fileProcessCount = Integer.parseInt(strProcessCount);
@@ -204,6 +204,7 @@ public class FileSystemConsumer {
                     postProcessAction = Constants.ACTION_DELETE;
             }
         }
+
         String strPattern = fileProperties.get(Constants.FILE_NAME_PATTERN);
         if (strPattern != null) {
             fileNamePattern = strPattern;
@@ -254,11 +255,11 @@ public class FileSystemConsumer {
                 isFileExists = listeningDir.exists();
                 isFileReadable = listeningDir.isReadable();
             } catch (FileSystemException e) {
-                errorHandler.handleError(new FileSystemServerConnectorException("Error occurred when determining" +
-                                                             " whether the file at URI : " +
-                                                             FileTransportUtils.maskURLPassword(listeningDirURI) +
-                                                                                        " exists and readable. " + e),
-                                         null, null);
+                errorHandler.handleError(
+                        new FileSystemServerConnectorException(
+                                "Error occurred when determining whether the file at URI : " +
+                                FileTransportUtils.maskURLPassword(listeningDirURI) +
+                                " exists and readable. " + e), null, null);
             }
 
             if (isFileExists && isFileReadable) {
@@ -268,8 +269,8 @@ public class FileSystemConsumer {
                 } catch (FileSystemException ignored) {
                     if (log.isDebugEnabled()) {
                         log.debug("The file does not exist, or is not a folder, or an error " +
-                                  "has occurred when trying to list the children. File URI : " +
-                                  FileTransportUtils.maskURLPassword(listeningDirURI), ignored);
+                                    "has occurred when trying to list the children. File URI : " +
+                                    FileTransportUtils.maskURLPassword(listeningDirURI), ignored);
                     }
                 }
                 if (children == null || children.length == 0) {
@@ -282,9 +283,8 @@ public class FileSystemConsumer {
             } else {
                 errorHandler.handleError(new FileSystemServerConnectorException(
                         "Unable to access or read file or directory : " + FileTransportUtils.maskURLPassword(
-                                listeningDirURI) + ". Reason: " +
-                                (isFileExists ? "The file can not be read!" : "The file does not exist!")),
-                                         null, null);
+                        listeningDirURI) + ". Reason: " +
+                        (isFileExists ? "The file can not be read!" : "The file does not exist!")), null, null);
             }
         } finally {
             try {
@@ -318,8 +318,7 @@ public class FileSystemConsumer {
                 bSortOrderAscending = Boolean.parseBoolean(strSortOrder);
             }
             if (log.isDebugEnabled()) {
-                log.debug("Sorting the files by : " + strSortOrder + ". (" +
-                          bSortOrderAscending + ")");
+                log.debug("Sorting the files by : " + strSortOrder + ". (" + bSortOrderAscending + ")");
             }
             switch (strSortParam) {
                 case Constants.FILE_SORT_VALUE_NAME:
@@ -416,15 +415,15 @@ public class FileSystemConsumer {
                 postProcess(file, false);
             } catch (FileSystemServerConnectorException e) {
                 log.error("File object '" + FileTransportUtils.maskURLPassword(uri) +
-                                  "'could not complete action " + postProcessAction + ", will remain in \"fail\" state",
-                          e);
+                          "'could not complete action " + postProcessAction +
+                          ", will remain in \"fail\" state", e);
             }
         } else {
             if (FileTransportUtils.acquireLock(fsManager, file)) {
                 log.info("Processing file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 FileSystemProcessor fsp =
                         new FileSystemProcessor(messageProcessor, serviceName, file, timeOutInterval,
-                                                uri, this, postProcessAction);
+                                                                uri, this, postProcessAction);
                 fsp.startProcessThread();
                 processCount++;
             } else {
@@ -469,7 +468,7 @@ public class FileSystemConsumer {
             } catch (FileSystemException e) {
                 errorHandler.handleError(new FileSystemServerConnectorException(
                         "Error occurred when resolving move destination file: " +
-                                FileTransportUtils.maskURLPassword(listeningDirURI), e), null, null);
+                        FileTransportUtils.maskURLPassword(listeningDirURI), e), null, null);
             }
         }
 
@@ -512,7 +511,7 @@ public class FileSystemConsumer {
                     errorHandler.handleError(
                             new FileSystemServerConnectorException("Error moving file : " +
                                 FileTransportUtils.maskURLPassword(file.toString()) + " to " +
-                                   FileTransportUtils.maskURLPassword(moveToDirectoryURI), e), null, null);
+                                FileTransportUtils.maskURLPassword(moveToDirectoryURI), e), null, null);
                 }
 
             } else {
@@ -533,10 +532,9 @@ public class FileSystemConsumer {
                     }
                 } catch (FileSystemException e) {
                     errorHandler.handleError(
-                            new FileSystemServerConnectorException("Could not delete file : " +
-                                                                           FileTransportUtils.maskURLPassword(
-                                                                                   file.getName().getBaseName()), e),
-                            null, null);
+                            new FileSystemServerConnectorException(
+                                    "Could not delete file : " + FileTransportUtils.maskURLPassword(
+                                    file.getName().getBaseName()), e), null, null);
                 }
             }
         } catch (FileSystemException e) {
@@ -544,7 +542,7 @@ public class FileSystemConsumer {
                 markFailRecord(file);
                 errorHandler.handleError(
                         new FileSystemServerConnectorException("Error resolving directory to move file : " +
-                               FileTransportUtils.maskURLPassword(moveToDirectoryURI), e), null, null);
+                            FileTransportUtils.maskURLPassword(moveToDirectoryURI), e), null, null);
             }
         }
     }
@@ -561,8 +559,8 @@ public class FileSystemConsumer {
         } catch (FileSystemException e) {
             errorHandler.handleError(new FileSystemServerConnectorException(
                     "Error occurred when determining whether file: " +
-                            FileTransportUtils.maskURLPassword(fileObject.getName().getURI()) +
-                            " is a file or a folder", e), null, null);
+                    FileTransportUtils.maskURLPassword(fileObject.getName().getURI()) +
+                    " is a file or a folder", e), null, null);
         }
 
         return FileType.IMAGINARY;
@@ -576,8 +574,8 @@ public class FileSystemConsumer {
     private synchronized void markFailRecord(FileObject fo) {
         String fullPath = fo.getName().getURI();
         if (failed.contains(fullPath)) {
-            log.debug("File : " + FileTransportUtils.maskURLPassword(fullPath)
-                      + " is already marked as a failed record.");
+            log.debug("File : " + FileTransportUtils.maskURLPassword(fullPath) +
+                      " is already marked as a failed record.");
             return;
         }
         failed.add(fullPath);
