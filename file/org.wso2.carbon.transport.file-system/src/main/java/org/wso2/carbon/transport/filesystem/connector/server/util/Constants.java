@@ -24,6 +24,7 @@ package org.wso2.carbon.transport.filesystem.connector.server.util;
 public final class Constants {
 
     public static final String PROTOCOL_FILE_SYSTEM = "fs";
+    public static final String PROTOCOL_FILE = "file";
 
     // meta data of the file
     public static final String META_FILE_SIZE = "file-size";
