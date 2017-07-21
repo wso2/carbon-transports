@@ -77,7 +77,13 @@ class FileSystemProcessor implements Runnable {
 
         TextCarbonMessage message = new TextCarbonMessage(uri);
         try {
-            message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, file.getURL().getProtocol());
+            String protocol = file.getURL().getProtocol();
+
+            // Since there is a separate module for File Server Connector, if the protocol is file, mark it as fs
+            if (Constants.PROTOCOL_FILE.equals(protocol)) {
+                protocol = Constants.PROTOCOL_FILE_SYSTEM;
+            }
+            message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, protocol);
         } catch (FileSystemException e) {
             logger.error("Exception occurred while retrieving the file protocol", e);
             message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE_SYSTEM);
@@ -113,22 +119,21 @@ class FileSystemProcessor implements Runnable {
 
         if (postProcessAction.equals(Constants.ACTION_NONE)) {
             fileSystemConsumer.markProcessed(fileURI);
-        }
-
-        if (!postProcessAction.equals(Constants.ACTION_NONE)) {
+        } else {
             try {
                 fileSystemConsumer.postProcess(file, processFailed);
             } catch (FileSystemServerConnectorException e) {
                 logger.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().toString()) + "' " +
-                             "cloud not be moved", e);
+                             "could not be moved", e);
             }
         }
 
         FileTransportUtils.releaseLock(file);
         if (logger.isDebugEnabled()) {
-            logger.debug("Removed the lock file '" + FileTransportUtils.maskURLPassword(file.toString()) +
+            logger.debug("Released the lock file '" + FileTransportUtils.maskURLPassword(file.toString()) +
                          ".lock' of the file '" + FileTransportUtils.maskURLPassword(file.toString()));
         }
+
         //close the file system after processing
         try {
             file.close();
