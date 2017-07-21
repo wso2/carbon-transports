@@ -51,6 +51,12 @@ public class VFSClientConnector implements ClientConnector {
     private CarbonMessageProcessor carbonMessageProcessor;
 
     @Override
+    public Object init(CarbonMessage cMsg, CarbonCallback callback, Map<String, Object> properties)
+            throws ClientConnectorException {
+        throw new ClientConnectorException("Method not supported for VFS.");
+    }
+
+    @Override
     public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
             throws ClientConnectorException {
         return false;

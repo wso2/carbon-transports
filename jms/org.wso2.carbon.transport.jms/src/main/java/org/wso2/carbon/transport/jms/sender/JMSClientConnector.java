@@ -63,6 +63,12 @@ public class JMSClientConnector implements ClientConnector {
         super();
     }
 
+    @Override
+    public Object init(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, Object> map)
+            throws ClientConnectorException {
+        throw new ClientConnectorException("Method not supported for JMS.");
+    }
+
     /**
      * @return false because, in this instance, the send method with a map parameter is required.
      */
