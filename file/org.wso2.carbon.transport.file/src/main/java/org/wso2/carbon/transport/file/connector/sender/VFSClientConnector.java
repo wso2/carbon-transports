@@ -173,10 +173,8 @@ public class VFSClientConnector implements ClientConnector {
                     return false;
             }
         } catch (RuntimeException e) {
-            logger.error("Runtime exception occurred when performing file I/O operation", e);
             throw new ClientConnectorException("Runtime Exception occurred : " + e.getMessage(), e);
         } catch (Exception e) {
-            logger.error("Exception occurred when performing file I/O operation", e);
             throw new ClientConnectorException("Exception occurred while processing file: " + e.getMessage(), e);
         } finally {
             closeQuietly(is);
