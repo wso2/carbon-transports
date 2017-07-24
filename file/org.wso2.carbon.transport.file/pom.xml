@@ -20,10 +20,10 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <parent>
+<parent>
         <groupId>org.wso2.carbon.transport</groupId>
         <artifactId>org.wso2.carbon.transport.file.parent</artifactId>
-        <version>4.4.13-SNAPSHOT</version>
+        <version>4.4.23-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -59,8 +59,17 @@
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-io.wso2</groupId>
+            <artifactId>commons-io</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

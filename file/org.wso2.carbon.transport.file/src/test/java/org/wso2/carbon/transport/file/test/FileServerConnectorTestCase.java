@@ -24,7 +24,7 @@ import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.file.connector.server.FileServerConnectorProvider;
 import org.wso2.carbon.transport.file.connector.server.util.Constants;
-import org.wso2.carbon.transport.file.test.util.TestMessageProcessor;
+import org.wso2.carbon.transport.file.test.util.FileMessageProcessor;
 
 import java.io.File;
 import java.util.HashMap;
@@ -42,16 +42,26 @@ public class FileServerConnectorTestCase {
         ClassLoader classLoader = getClass().getClassLoader();
         String fileURI = new File(classLoader.getResource("test.txt").getFile()).getAbsolutePath();
         Map<String, String> parameters = new HashMap<>();
-        parameters.put(Constants.TRANSPORT_FILE_FILE_URI, fileURI);
+        parameters.put(Constants.TRANSPORT_FILE_FILE_PATH, fileURI);
+        parameters.put(Constants.START_POSITION, "0");
         parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "1000");
         ServerConnector connector = provider.createConnector("testService", parameters);
 
-        TestMessageProcessor messageProcessor = new TestMessageProcessor();
+        FileMessageProcessor messageProcessor = new FileMessageProcessor();
         connector.setMessageProcessor(messageProcessor);
 
         connector.start();
         messageProcessor.waitTillDone();
-        Assert.assertEquals(messageProcessor.getFileContent(), "File Server Connector test");
+        Assert.assertEquals(messageProcessor.getFileContent(3), "four", "The read content does not match" +
+                                                                          " the actual content of the file");
+        Assert.assertEquals(messageProcessor.getFileContent(6), "seven", "The read content does not match" +
+                                                                           " the actual content of the file");
+        Assert.assertEquals(messageProcessor.getFileContent(10), "eleven", "The read content does not match" +
+                                                                             " the actual content of the file");
+        Assert.assertEquals(messageProcessor.getFileContent(16), "seventeen", "The read content does not match " +
+                                                                            "the actual content of the file");
+        Assert.assertEquals(messageProcessor.getFileContent(19), "twenty", "The read content does not match " +
+                                                                             "the actual content of the file");
         connector.stop();
     }
 }

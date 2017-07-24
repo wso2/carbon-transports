@@ -40,11 +40,8 @@ import java.util.ServiceLoader;
 public class ConnectorManager {
 
     private Map<String, ServerConnector> serverConnectors = new HashMap<>();
-
     private Map<String, ClientConnector> clientConnectors = new HashMap<>();
-
     private Map<String, ServerConnectorProvider> serverConnectorProviders = new HashMap<>();
-
     private Map<String, ServerConnectorErrorHandler> serverConnectorErrorHandlers = new HashMap<>();
 
     private CarbonMessageProcessor messageProcessor;
@@ -57,7 +54,7 @@ public class ConnectorManager {
         }
     }
 
-    private void registerClientConnector(ClientConnector clientConnector) {
+    public void registerClientConnector(ClientConnector clientConnector) {
         clientConnectors.put(clientConnector.getProtocol(), clientConnector);
     }
 
