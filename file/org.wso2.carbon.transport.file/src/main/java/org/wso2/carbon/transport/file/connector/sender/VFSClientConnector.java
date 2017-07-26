@@ -24,6 +24,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.Selectors;
 import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.BinaryCarbonMessage;
@@ -53,7 +54,19 @@ public class VFSClientConnector implements ClientConnector {
     @Override
     public Object init(CarbonMessage cMsg, CarbonCallback callback, Map<String, Object> properties)
             throws ClientConnectorException {
-        throw new ClientConnectorException("Method not supported for VFS.");
+        //TODO: Handle FS options configuration for other protocols as well
+        if (Constants.PROTOCOL_FTP.equals(this.getProtocol())) {
+            properties.forEach((property, value) -> {
+                // TODO: Add support for other FTP related configurations
+                switch (property) {
+                    case Constants.FTP_PASSIVE_MODE:
+                        FtpFileSystemConfigBuilder.getInstance().setPassiveMode(opts, (Boolean) value);
+                        break;
+                }
+            });
+        }
+
+        return Boolean.TRUE;
     }
 
     @Override
@@ -65,6 +78,7 @@ public class VFSClientConnector implements ClientConnector {
     @Override
     public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, String> map)
             throws ClientConnectorException {
+        FtpFileSystemConfigBuilder.getInstance().setPassiveMode(opts, true);
         String fileURI = map.get(Constants.FILE_URI);
         String action = map.get(Constants.ACTION);
         FileType fileType;
@@ -185,7 +199,8 @@ public class VFSClientConnector implements ClientConnector {
 
     @Override
     public String getProtocol() {
-        return Constants.PROTOCOL_NAME;
+        // TODO: Revisit this
+        return Constants.PROTOCOL_FILE;
     }
 
     /**

@@ -23,7 +23,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
-import org.apache.commons.vfs2.impl.StandardFileSystemManager;
+import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
 import org.slf4j.Logger;
@@ -66,10 +66,7 @@ public class FileSystemConsumer {
     private int threadPoolSize = 10;
     private int fileProcessCount;
     private int processCount;
-    /**
-     * Time-out interval (in milli-seconds) to wait for the callback.
-     */
-    private long timeOutInterval = 30000;
+    private long timeOutInterval = 30000; // Time-out interval (in milli-seconds) to wait for the callback.
     private String fileNamePattern = null;
     private String postProcessAction = Constants.ACTION_NONE;
     private String postFailureAction = Constants.ACTION_NONE;
@@ -93,14 +90,12 @@ public class FileSystemConsumer {
 
         setupParams();
         try {
-            StandardFileSystemManager fsm = new StandardFileSystemManager();
-            fsm.setConfiguration(getClass().getClassLoader().getResource("providers.xml"));
-            fsm.init();
-            fsManager = fsm;
+            fsManager = VFS.getManager();
 
             Map<String, String> options = parseSchemeFileOptions(listeningDirURI);
             fso = FileTransportUtils.attachFileSystemOptions(options, fsManager);
 
+            // TODO: Make this and other file related configurations configurable from Ballerina
             if (options != null && Constants.SCHEME_FTP.equals(options.get(Constants.SCHEME))) {
                 FtpFileSystemConfigBuilder.getInstance().setPassiveMode(fso, true);
             }
@@ -128,6 +123,7 @@ public class FileSystemConsumer {
                     "Exception while determining file: " + FileTransportUtils.maskURLPassword(listeningDirURI) +
                     " is readable", e), null, null);
         }
+
         FileType fileType = getFileType(listeningDir);
         if (fileType != FileType.FOLDER) {
             this.errorHandler.handleError(
@@ -188,6 +184,7 @@ public class FileSystemConsumer {
                     postFailureAction = Constants.ACTION_NONE;
                     break;
                 default:
+                    //TODO: Reconsider the default case
                     postFailureAction = Constants.ACTION_DELETE;
             }
         }
@@ -201,6 +198,7 @@ public class FileSystemConsumer {
                     postProcessAction = Constants.ACTION_NONE;
                     break;
                 default:
+                    //TODO: Reconsider the default case
                     postProcessAction = Constants.ACTION_DELETE;
             }
         }
@@ -243,7 +241,7 @@ public class FileSystemConsumer {
         if (log.isDebugEnabled()) {
             log.debug("Thread name: " + Thread.currentThread().getName());
             log.debug("File System Consumer hashcode: " + this.hashCode());
-            log.debug("Polling for directory or file : " + FileTransportUtils.maskURLPassword(listeningDirURI));
+            log.debug("Polling for directory or file: " + FileTransportUtils.maskURLPassword(listeningDirURI));
         }
         //Resetting the process count, used to control number of files processed per batch
         processCount = 0;
@@ -252,6 +250,7 @@ public class FileSystemConsumer {
             boolean isFileExists = false; // Initially assume that the file doesn't exist
             boolean isFileReadable = false; // Initially assume that the file is not readable
             try {
+                listeningDir.refresh();
                 isFileExists = listeningDir.exists();
                 isFileReadable = listeningDir.isReadable();
             } catch (FileSystemException e) {
@@ -419,7 +418,7 @@ public class FileSystemConsumer {
                           ", will remain in \"fail\" state", e);
             }
         } else {
-            if (FileTransportUtils.acquireLock(fsManager, file)) {
+            if (FileTransportUtils.acquireLock(fsManager, file, fso)) {
                 log.info("Processing file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 FileSystemProcessor fsp =
                         new FileSystemProcessor(messageProcessor, serviceName, file, timeOutInterval,
@@ -454,7 +453,7 @@ public class FileSystemConsumer {
 
         if (moveToDirectoryURI != null) {
             try {
-                if (getFileType(fsManager.resolveFile(moveToDirectoryURI)) == FileType.FILE) {
+                if (getFileType(fsManager.resolveFile(moveToDirectoryURI, fso)) == FileType.FILE) {
                     moveToDirectoryURI = null;
                     if (processFailed) {
                         postFailureAction = Constants.ACTION_NONE;
