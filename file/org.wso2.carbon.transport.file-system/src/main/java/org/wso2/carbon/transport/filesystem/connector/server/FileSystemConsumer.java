@@ -121,7 +121,7 @@ public class FileSystemConsumer {
         } catch (FileSystemException e) {
             this.errorHandler.handleError(new FileSystemServerConnectorException(
                     "Exception while determining file: " + FileTransportUtils.maskURLPassword(listeningDirURI) +
-                    " is readable", e), null, null);
+                            " is writable", e), null, null);
         }
 
         FileType fileType = getFileType(listeningDir);
@@ -308,7 +308,10 @@ public class FileSystemConsumer {
 
         // TODO: rethink the way the string constants are handled
         if (strSortParam != null && !"NONE".equals(strSortParam)) {
-            log.debug("Starting to sort the files in folder: " + FileTransportUtils.maskURLPassword(listeningDirURI));
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Starting to sort the files in folder: " + FileTransportUtils.maskURLPassword(listeningDirURI));
+            }
 
             String strSortOrder = fileProperties.get(Constants.FILE_SORT_ORDER);
             boolean bSortOrderAscending = true;
@@ -404,7 +407,9 @@ public class FileSystemConsumer {
         String uri = file.getName().getURI();
         synchronized (this) {
             if (postProcessAction.equals(Constants.ACTION_NONE) && processed.contains(uri)) {
-                log.debug("The file: " + FileTransportUtils.maskURLPassword(uri) + "is already processed");
+                if (log.isDebugEnabled()) {
+                    log.debug("The file: " + FileTransportUtils.maskURLPassword(uri) + " is already processed");
+                }
                 return;
             }
         }
@@ -419,14 +424,16 @@ public class FileSystemConsumer {
             }
         } else {
             if (FileTransportUtils.acquireLock(fsManager, file, fso)) {
-                log.info("Processing file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                if (log.isInfoEnabled()) {
+                    log.info("Processing file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                }
                 FileSystemProcessor fsp =
                         new FileSystemProcessor(messageProcessor, serviceName, file, timeOutInterval,
                                                                 uri, this, postProcessAction);
                 fsp.startProcessThread();
                 processCount++;
             } else {
-                log.warn("Couldn't get the lock for processing the file : " +
+                log.warn("Couldn't get the lock for processing the file: " +
                          FileTransportUtils.maskURLPassword(file.getName().toString()));
             }
         }
@@ -497,7 +504,9 @@ public class FileSystemConsumer {
                 if (log.isDebugEnabled()) {
                     log.debug("Moving to file :" + FileTransportUtils.maskURLPassword(dest.getName().getURI()));
                 }
-                log.info("Moving file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                if (log.isInfoEnabled()) {
+                    log.info("Moving file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                }
                 try {
                     file.moveTo(dest);
                     if (isFailRecord(file)) {
@@ -517,7 +526,9 @@ public class FileSystemConsumer {
                 if (log.isDebugEnabled()) {
                     log.debug("Deleting file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 }
-                log.info("Deleting file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                if (log.isInfoEnabled()) {
+                    log.info("Deleting file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                }
                 try {
                     if (!file.delete()) {
                         if (log.isDebugEnabled()) {
@@ -573,8 +584,10 @@ public class FileSystemConsumer {
     private synchronized void markFailRecord(FileObject fo) {
         String fullPath = fo.getName().getURI();
         if (failed.contains(fullPath)) {
-            log.debug("File : " + FileTransportUtils.maskURLPassword(fullPath) +
-                      " is already marked as a failed record.");
+            if (log.isDebugEnabled()) {
+                log.debug("File: " + FileTransportUtils.maskURLPassword(fullPath) +
+                                  " is already marked as a failed record.");
+            }
             return;
         }
         failed.add(fullPath);

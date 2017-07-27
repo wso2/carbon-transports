@@ -143,8 +143,7 @@ public class VFSClientConnectorTestCase {
     }
 
     @Test(expectedExceptions = ClientConnectorException.class,
-            expectedExceptionsMessageRegExp = ".*Exception occurred while processing file: failed to copy file: file " +
-                                              "not found:.*")
+            expectedExceptionsMessageRegExp = ".*Exception occurred while processing file: Failed to copy file: .*")
     public void copyNonExistentFile()
             throws ClientConnectorException, IOException {
         VFSClientConnector vfsClientConnector = new VFSClientConnector();
@@ -200,8 +199,7 @@ public class VFSClientConnectorTestCase {
     }
 
     @Test(expectedExceptions = ClientConnectorException.class,
-            expectedExceptionsMessageRegExp = ".*Exception occurred while processing file: failed to move file: file " +
-                                              "not found:.*")
+            expectedExceptionsMessageRegExp = ".*Exception occurred while processing file: Failed to move file: .*")
     public void moveNonExistentFile()
             throws ClientConnectorException, IOException {
         VFSClientConnector vfsClientConnector = new VFSClientConnector();
@@ -250,8 +248,7 @@ public class VFSClientConnectorTestCase {
     }
 
     @Test(expectedExceptions = ClientConnectorException.class,
-            expectedExceptionsMessageRegExp = ".*Exception occurred while processing file: failed to delete file:" +
-                                              " file not found:.*")
+            expectedExceptionsMessageRegExp = ".*Exception occurred while processing file: Failed to delete file: .*")
     public void deleteNonExistentFile()
             throws ClientConnectorException, IOException {
         VFSClientConnector vfsClientConnector = new VFSClientConnector();
@@ -295,8 +292,7 @@ public class VFSClientConnectorTestCase {
     }
 
     @Test(expectedExceptions = ClientConnectorException.class,
-            expectedExceptionsMessageRegExp = ".*Exception occurred while processing file: failed to read file: file " +
-                                              "not found:.*")
+            expectedExceptionsMessageRegExp = ".*Exception occurred while processing file: Failed to read file: .*")
     public void readNonExistentFile()
             throws ClientConnectorException, IOException {
         VFSClientConnector vfsClientConnector = new VFSClientConnector();
