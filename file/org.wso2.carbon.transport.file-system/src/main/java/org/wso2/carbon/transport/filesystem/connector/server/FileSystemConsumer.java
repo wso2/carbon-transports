@@ -95,7 +95,7 @@ public class FileSystemConsumer {
             Map<String, String> options = parseSchemeFileOptions(listeningDirURI);
             fso = FileTransportUtils.attachFileSystemOptions(options, fsManager);
 
-            // TODO: Make this and other file related configurations configurable from Ballerina
+            // TODO: Make this and other file related configurations configurable
             if (options != null && Constants.SCHEME_FTP.equals(options.get(Constants.SCHEME))) {
                 FtpFileSystemConfigBuilder.getInstance().setPassiveMode(fso, true);
             }
