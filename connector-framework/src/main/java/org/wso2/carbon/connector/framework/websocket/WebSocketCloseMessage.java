@@ -22,5 +22,5 @@ package org.wso2.carbon.connector.framework.websocket;
 /**
  * This message contains the details of WebSocket close message.
  */
-public interface WebSocketCloseMessage extends WebSocketMessage {
+public interface WebSocketCloseMessage extends WebSocketChannelContext, WebSocketSessionContext {
 }

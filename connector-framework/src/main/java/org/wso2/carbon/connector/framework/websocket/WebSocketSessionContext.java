@@ -19,8 +19,26 @@
 
 package org.wso2.carbon.connector.framework.websocket;
 
+import javax.websocket.Session;
+
 /**
- * This Message is used to handle WebSocket handshake.
+ * This interface represents the necessary methods for WebSocket context.
+ * <b>Note: Use this interface in the application level only and only if the user needs only the session details
+ * of a WebSocket message otherwise use the extensions of this interface.</b>
  */
-public interface WebSocketInitMessage extends WebSocketChannelContext {
+public interface WebSocketSessionContext {
+
+    /**
+     * Retrieve the server session of the connection.
+     *
+     * @return the server session of the connection.
+     */
+    Session getServerSession();
+
+    /**
+     * Retrieve the client session array relates to the listener channel.
+     *
+     * @return the client session array relates to the listener channel.
+     */
+    Session[] getClientSessions();
 }
