@@ -19,8 +19,33 @@
 
 package org.wso2.carbon.connector.framework.websocket;
 
+import java.nio.ByteBuffer;
+
 /**
  * This message contains the details of WebSocket binary message.
  */
 public interface WebSocketBinaryMessage extends WebSocketChannelContext, WebSocketSessionContext {
+
+    /**
+     * Get the binary data as a byteBuffer.
+     *
+     * @return binary data as a {@link ByteBuffer}.
+     */
+    ByteBuffer getByteBuffer();
+
+    /**
+     * Get the binary data as a byte array.
+     *
+     * @return the binary data as a byte array.
+     */
+    byte[] getByteArray();
+
+    /**
+     * Check whether the message is a final fragment. <br>
+     * <b> This is true if the user receives single messages and not a fragments of a message. So if the user is
+     * pretty sure that the messages receiving are single messages user does not have to use this method.</b>
+     *
+     * @return true if the received binary data is a final fragment.
+     */
+    boolean isFinalFragment();
 }

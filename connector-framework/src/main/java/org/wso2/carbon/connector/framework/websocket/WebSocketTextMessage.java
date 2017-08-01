@@ -32,11 +32,11 @@ public interface WebSocketTextMessage extends WebSocketChannelContext, WebSocket
     String getText();
 
     /**
-     * Check whether the message is a final fragment. <b> This is true if the user receives single messages and not
-     * fragments of a message. So if the user is pretty sure that the messages receiving are single messages user
-     * does not have to use this method.</b>
+     * Check whether the message is a final fragment. <br>
+     * <b> This is true if the user receives single messages and not a fragments of a message. So if the user is
+     * pretty sure that the messages receiving are single messages user does not have to use this method.</b>
      *
-     * @return true if the received text the final fragment.
+     * @return true if the received text is a final fragment.
      */
     boolean isFinalFragment();
 }
