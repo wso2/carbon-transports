@@ -60,4 +60,12 @@ public interface WebSocketChannelContext {
      * @return true if the connection is secured.
      */
     boolean isConnectionSecured();
+
+    /**
+     * Check whether the message is coming from server connector or client connector.
+     *
+     * @return true if the message is coming from server connector else return false if the message is coming from
+     * client connector.
+     */
+    boolean isServerMessage();
 }
