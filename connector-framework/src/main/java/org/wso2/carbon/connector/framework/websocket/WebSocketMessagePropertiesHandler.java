@@ -35,7 +35,7 @@ import javax.websocket.Session;
  * Also note that this class is public since developers might need to create WebSocket messages in the application
  * level for testing purposes and this class can be extended to use the setter methods for those purposes.</b>
  */
-public abstract class WebSocketMessagePropertiesManager {
+public abstract class WebSocketMessagePropertiesHandler {
 
     private Map<String, Object> properties = new HashMap<>();
 
