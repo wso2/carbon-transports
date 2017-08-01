@@ -23,4 +23,19 @@ package org.wso2.carbon.connector.framework.websocket;
  * This message contains the details of WebSocket close message.
  */
 public interface WebSocketCloseMessage extends WebSocketChannelContext, WebSocketSessionContext {
+
+    /**
+     * Get the status code of closing the connection.
+     *
+     * @return the status code of closing the connection.
+     */
+    int getCloseCode();
+
+    /**
+     * Get the reason for closing the connection.
+     *
+     * @return the reason for closing the connection.
+     */
+    String getCloseReason();
+
 }
