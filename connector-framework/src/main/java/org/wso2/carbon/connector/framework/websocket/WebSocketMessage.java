@@ -20,7 +20,7 @@
 package org.wso2.carbon.connector.framework.websocket;
 
 /**
- * This Message is used to handle WebSocket handshake.
+ * This is the common interface for all WebSocket messages.
  */
-public interface WebSocketInitMessage extends WebSocketMessage {
+public interface WebSocketMessage {
 }

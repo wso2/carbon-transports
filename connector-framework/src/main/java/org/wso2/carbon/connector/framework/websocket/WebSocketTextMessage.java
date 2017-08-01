@@ -22,5 +22,5 @@ package org.wso2.carbon.connector.framework.websocket;
 /**
  * This message contains the details of WebSocket text message.
  */
-public class WebSocketTextMessage {
+public interface WebSocketTextMessage extends WebSocketMessage {
 }

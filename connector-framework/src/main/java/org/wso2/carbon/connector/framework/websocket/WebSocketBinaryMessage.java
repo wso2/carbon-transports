@@ -22,5 +22,5 @@ package org.wso2.carbon.connector.framework.websocket;
 /**
  * This message contains the details of WebSocket binary message.
  */
-public interface WebSocketBinaryMessage {
+public interface WebSocketBinaryMessage extends WebSocketMessage {
 }

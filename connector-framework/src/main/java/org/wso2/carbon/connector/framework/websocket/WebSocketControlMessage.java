@@ -22,5 +22,5 @@ package org.wso2.carbon.connector.framework.websocket;
 /**
  * This message contains the details of WebSocket bong message.
  */
-public class WebSocketControlMessage {
+public interface WebSocketControlMessage extends WebSocketMessage {
 }
