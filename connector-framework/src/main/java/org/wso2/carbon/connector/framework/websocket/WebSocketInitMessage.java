@@ -19,8 +19,25 @@
 
 package org.wso2.carbon.connector.framework.websocket;
 
+import javax.websocket.Session;
+
 /**
  * This Message is used to handle WebSocket handshake.
  */
 public interface WebSocketInitMessage extends WebSocketChannelContext {
+
+    /**
+     * Complete the handshake of a given request.
+     *
+     * @return the Server session for the newly created WebSocket connection.
+     */
+    Session handshake();
+
+    /**
+     * Cancel the handshake.
+     *
+     * @param closeCode close code for cancelling the handshake.
+     * @param closeReason reason for canceling the handshake.
+     */
+    void cancelHandShake(int closeCode, String closeReason);
 }
