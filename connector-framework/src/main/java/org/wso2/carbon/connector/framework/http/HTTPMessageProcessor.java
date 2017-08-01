@@ -16,14 +16,6 @@ public interface HTTPMessageProcessor {
     void handleInboudRequest(HTTPMessage httpRequest, HTTPResponseFuture httpResponseFuture);
 
     /**
-     * This method allows you to send outbound HTTP request to the back-end.
-     *
-     * @param httpRequest HTTP request that needs be written to the wire.
-     * @return A future the will get notify when there is a response.
-     */
-    HTTPResponseFuture handleOutboundRequest(HTTPMessage httpRequest);
-
-    /**
      * This method allows you to handle errors/exceptions that triggered from the server connector.
      *
      * @param throwable Error/Exception that occurred from the server-connector.
