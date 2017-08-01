@@ -23,4 +23,39 @@ package org.wso2.carbon.connector.framework.websocket;
  * This is the common interface for all WebSocket messages.
  */
 public interface WebSocketMessage {
+
+    /**
+     * Retrieve negotiated sub-protocol.
+     *
+     * @return the negotiated sub-protocol.
+     */
+    String getSubProtocol();
+
+    /**
+     * Retrieve the target of the application as a String.
+     *
+     * @return the target of the application.
+     */
+    String getTarget();
+
+    /**
+     * Retrieve the listener port of the the incoming message.
+     *
+     * @return the listener port.
+     */
+    String getListenerPort();
+
+    /**
+     * Retrieve the WebSocket protocol version.
+     *
+     * @return the protocol version of the given channel.
+     */
+    String getWebSocketProtocolVersion();
+
+    /**
+     * Check whether the given connection is secured or not.
+     *
+     * @return true if the connection is secured.
+     */
+    boolean isConnectionSecured();
 }
