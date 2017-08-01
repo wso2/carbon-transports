@@ -23,4 +23,20 @@ package org.wso2.carbon.connector.framework.websocket;
  * This message contains the details of WebSocket text message.
  */
 public interface WebSocketTextMessage extends WebSocketMessage {
+
+    /**
+     * Retrieve the text from the message.
+     *
+     * @return the received text of the message.
+     */
+    String getText();
+
+    /**
+     * Check whether the message is a final fragment. <b> This is true if the user receives single messages and not
+     * fragments of a message. So if the user is pretty sure that the messages receiving are single messages user
+     * does not have to use this method.</b>
+     *
+     * @return true if the received text the final fragment.
+     */
+    boolean isFinalFragment();
 }

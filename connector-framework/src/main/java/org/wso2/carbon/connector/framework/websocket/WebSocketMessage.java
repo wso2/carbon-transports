@@ -21,6 +21,8 @@ package org.wso2.carbon.connector.framework.websocket;
 
 /**
  * This is the common interface for all WebSocket messages.
+ * <b>Note: Use this interface in the application level only and only if the user needs only the common details
+ * of a WebSocket message otherwise use the extensions of this interface.</b>
  */
 public interface WebSocketMessage {
 
