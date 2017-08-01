@@ -19,20 +19,45 @@
 
 package org.wso2.carbon.connector.framework.websocket;
 
-import javax.websocket.Session;
-
 /**
  * Message processor for WebSocket inbound messages.
  */
 public interface WebSocketMessageProcessor {
 
-    void receiveInitMessage(WebSocketInitMessage initMessage, Session session);
+    /**
+     * This method is used to trigger WebSocket handshake. This will initialize a client connection for WebSocket
+     * server connector.
+     *
+     * @param initMessage {@link WebSocketInitMessage} to initialize connection.
+     */
+    void receiveInitMessage(WebSocketInitMessage initMessage);
 
-    void receiveTextMessage(WebSocketTextMessage textMessage, Session session);
+    /**
+     * This method is used to process incoming WebSocket text messages.
+     *
+     * @param textMessage {@link WebSocketTextMessage} to process text messages.
+     */
+    void receiveTextMessage(WebSocketTextMessage textMessage);
 
-    void receiveBinaryMessage(WebSocketBinaryMessage binaryMessage, Session session);
+    /**
+     * This method is used to process incoming WebSocket binary messages.
+     *
+     * @param binaryMessage {@link WebSocketBinaryMessage} to process binary messages.
+     */
+    void receiveBinaryMessage(WebSocketBinaryMessage binaryMessage);
 
-    void receivePongMessage(WebSocketControlMessage controlMessage, Session session);
+    /**
+     * This method is used to process incoming WebSocket binary messages.
+     *
+     * @param controlMessage {@link WebSocketControlMessage} to indicate a incoming pong messages.
+     */
+    void receivePongMessage(WebSocketControlMessage controlMessage);
 
-    void receiveCloseMessage(WebSocketCloseMessage closeMessage, Session session);
+    /**
+     * This method is used to process incoming WebSocket close messages.
+     *
+     * @param closeMessage {@link WebSocketCloseMessage} to indicate incoming close messages.
+     */
+    void receiveCloseMessage(WebSocketCloseMessage closeMessage);
+
 }
