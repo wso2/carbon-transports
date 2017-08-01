@@ -60,4 +60,11 @@ public interface WebSocketMessageProcessor {
      */
     void receiveCloseMessage(WebSocketCloseMessage closeMessage);
 
+    /**
+     * Handle any transport error.
+     *
+     * @param throwable error received from transport.
+     */
+    void handleError(Throwable throwable);
+
 }
