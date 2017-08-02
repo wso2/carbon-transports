@@ -39,6 +39,12 @@ public interface WebSocketObservable {
     WebSocketObserver getObserver();
 
     /**
+     * Check whether there is a observer presents in the Observable.
+     * @return
+     */
+    boolean hasObserver();
+
+    /**
      * Remove the observer from the Observable.
      *
      * @param observer {@link WebSocketObserver} which should be removed.
