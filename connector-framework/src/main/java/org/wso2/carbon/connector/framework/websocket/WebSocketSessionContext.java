@@ -19,6 +19,7 @@
 
 package org.wso2.carbon.connector.framework.websocket;
 
+import java.util.List;
 import javax.websocket.Session;
 
 /**
@@ -40,5 +41,5 @@ public interface WebSocketSessionContext {
      *
      * @return the client session array relates to the listener channel.
      */
-    Session[] getClientSessions();
+    List<Session> getClientSessions();
 }
