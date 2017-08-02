@@ -40,7 +40,7 @@ public interface WebSocketObservable {
 
     /**
      * Check whether there is a observer presents in the Observable.
-     * @return
+     * @return true if {@link WebSocketObserver} is present.
      */
     boolean hasObserver();
 
