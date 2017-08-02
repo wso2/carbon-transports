@@ -22,7 +22,7 @@ package org.wso2.carbon.connector.framework.websocket;
 /**
  * Message processor for WebSocket inbound messages.
  */
-public interface WebSocketMessageProcessor {
+public interface WebSocketObserver {
 
     /**
      * This method is used to trigger WebSocket handshake. This will initialize a client connection for WebSocket
@@ -30,41 +30,41 @@ public interface WebSocketMessageProcessor {
      *
      * @param initMessage {@link WebSocketInitMessage} to initialize connection.
      */
-    void receiveInitMessage(WebSocketInitMessage initMessage);
+    void notifyConnectionOpen(WebSocketInitMessage initMessage);
 
     /**
      * This method is used to process incoming WebSocket text messages.
      *
      * @param textMessage {@link WebSocketTextMessage} to process text messages.
      */
-    void receiveTextMessage(WebSocketTextMessage textMessage);
+    void notifyTextMessage(WebSocketTextMessage textMessage);
 
     /**
      * This method is used to process incoming WebSocket binary messages.
      *
      * @param binaryMessage {@link WebSocketBinaryMessage} to process binary messages.
      */
-    void receiveBinaryMessage(WebSocketBinaryMessage binaryMessage);
+    void notifyBinaryMessage(WebSocketBinaryMessage binaryMessage);
 
     /**
      * This method is used to process incoming WebSocket binary messages.
      *
      * @param controlMessage {@link WebSocketControlMessage} to indicate a incoming pong messages.
      */
-    void receivePongMessage(WebSocketControlMessage controlMessage);
+    void notifyPongMessage(WebSocketControlMessage controlMessage);
 
     /**
      * This method is used to process incoming WebSocket close messages.
      *
      * @param closeMessage {@link WebSocketCloseMessage} to indicate incoming close messages.
      */
-    void receiveCloseMessage(WebSocketCloseMessage closeMessage);
+    void notifyConnectionClosure(WebSocketCloseMessage closeMessage);
 
     /**
      * Handle any transport error.
      *
      * @param throwable error received from transport.
      */
-    void handleError(Throwable throwable);
+    void notifyError(Throwable throwable);
 
 }
