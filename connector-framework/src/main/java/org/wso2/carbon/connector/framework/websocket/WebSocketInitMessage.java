@@ -32,6 +32,7 @@ public interface WebSocketInitMessage extends WebSocketChannelContext {
      * Complete the handshake of a given request.
      *
      * @return the Server session for the newly created WebSocket connection.
+     * @throws ProtocolException if error occurred while proceeding with the handshake.
      */
     Session handshake() throws ProtocolException;
 

@@ -48,13 +48,6 @@ public interface WebSocketChannelContext {
     String getListenerPort();
 
     /**
-     * Retrieve the WebSocket protocol version.
-     *
-     * @return the protocol version of the given channel.
-     */
-    String getWebSocketProtocolVersion();
-
-    /**
      * Check whether the given connection is secured or not.
      *
      * @return true if the connection is secured.
