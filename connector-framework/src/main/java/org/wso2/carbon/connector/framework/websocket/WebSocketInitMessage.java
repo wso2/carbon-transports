@@ -19,6 +19,8 @@
 
 package org.wso2.carbon.connector.framework.websocket;
 
+import java.net.ProtocolException;
+import java.net.URISyntaxException;
 import javax.websocket.Session;
 
 /**
@@ -31,7 +33,7 @@ public interface WebSocketInitMessage extends WebSocketChannelContext {
      *
      * @return the Server session for the newly created WebSocket connection.
      */
-    Session handshake();
+    Session handshake() throws ProtocolException;
 
     /**
      * Cancel the handshake.
