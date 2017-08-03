@@ -32,22 +32,52 @@ public interface WebSocketObservable {
     void setObserver(WebSocketObserver observer);
 
     /**
-     * Retrieve the related observer.
-     *
-     * @return the related observer.
-     */
-    WebSocketObserver getObserver();
-
-    /**
-     * Check whether there is a observer presents in the Observable.
-     * @return true if {@link WebSocketObserver} is present.
-     */
-    boolean hasObserver();
-
-    /**
      * Remove the observer from the Observable.
      *
      * @param observer {@link WebSocketObserver} which should be removed.
      */
     void removeObserver(WebSocketObserver observer);
+
+    /**
+     * Notify WebSocket handshake. This will initialize a client connection for WebSocket
+     * server connector.
+     *
+     * @param initMessage {@link WebSocketInitMessage} to initialize connection.
+     */
+    void notify(WebSocketInitMessage initMessage);
+
+    /**
+     * Notify incoming WebSocket text messages.
+     *
+     * @param textMessage {@link WebSocketTextMessage} to process text messages.
+     */
+    void notify(WebSocketTextMessage textMessage);
+
+    /**
+     * Notify incoming WebSocket binary messages.
+     *
+     * @param binaryMessage {@link WebSocketBinaryMessage} to process binary messages.
+     */
+    void notify(WebSocketBinaryMessage binaryMessage);
+
+    /**
+     * Notify incoming WebSocket control messages.
+     *
+     * @param controlMessage {@link WebSocketControlMessage} to indicate a incoming pong messages.
+     */
+    void notify(WebSocketControlMessage controlMessage);
+
+    /**
+     * Notify incoming WebSocket close messages.
+     *
+     * @param closeMessage {@link WebSocketCloseMessage} to indicate incoming close messages.
+     */
+    void notify(WebSocketCloseMessage closeMessage);
+
+    /**
+     * Notify any transport error.
+     *
+     * @param throwable error received from transport.
+     */
+    void notifyError(Throwable throwable);
 }

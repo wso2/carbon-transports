@@ -25,46 +25,46 @@ package org.wso2.carbon.connector.framework.websocket;
 public interface WebSocketObserver {
 
     /**
-     * This method is used to trigger WebSocket handshake. This will initialize a client connection for WebSocket
+     * Update WebSocket handshake. This will initialize a client connection for WebSocket
      * server connector.
      *
      * @param initMessage {@link WebSocketInitMessage} to initialize connection.
      */
-    void notifyConnectionOpen(WebSocketInitMessage initMessage);
+    void update(WebSocketInitMessage initMessage);
 
     /**
-     * This method is used to process incoming WebSocket text messages.
+     * Update incoming WebSocket text messages.
      *
      * @param textMessage {@link WebSocketTextMessage} to process text messages.
      */
-    void notifyTextMessage(WebSocketTextMessage textMessage);
+    void update(WebSocketTextMessage textMessage);
 
     /**
-     * This method is used to process incoming WebSocket binary messages.
+     * Update incoming WebSocket binary messages.
      *
      * @param binaryMessage {@link WebSocketBinaryMessage} to process binary messages.
      */
-    void notifyBinaryMessage(WebSocketBinaryMessage binaryMessage);
+    void update(WebSocketBinaryMessage binaryMessage);
 
     /**
-     * This method is used to process incoming WebSocket binary messages.
+     * Update incoming WebSocket control messages.
      *
      * @param controlMessage {@link WebSocketControlMessage} to indicate a incoming pong messages.
      */
-    void notifyPongMessage(WebSocketControlMessage controlMessage);
+    void update(WebSocketControlMessage controlMessage);
 
     /**
-     * This method is used to process incoming WebSocket close messages.
+     * Update incoming WebSocket close messages.
      *
      * @param closeMessage {@link WebSocketCloseMessage} to indicate incoming close messages.
      */
-    void notifyConnectionClosure(WebSocketCloseMessage closeMessage);
+    void update(WebSocketCloseMessage closeMessage);
 
     /**
-     * Handle any transport error.
+     * Update any transport error.
      *
      * @param throwable error received from transport.
      */
-    void notifyError(Throwable throwable);
+    void handleError(Throwable throwable);
 
 }
