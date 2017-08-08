@@ -17,11 +17,26 @@
  *
  */
 
-package org.wso2.carbon.connector.framework.websocket;
+package org.wso2.carbon.transport.http.netty.contract.websocket;
+
+import java.nio.ByteBuffer;
 
 /**
- * Control signals for WebSocket connection.
+ * This message contains the details of WebSocket bong message.
  */
-public enum WebSocketControlSignal {
-    PING, PONG;
+public interface WebSocketControlMessage extends WebSocketChannelContext, WebSocketSessionContext {
+
+    /**
+     * Get the control signal.
+     *
+     * @return the control signal as a {@link WebSocketControlSignal}.
+     */
+    WebSocketControlSignal getControlSignal();
+
+    /**
+     * Get the payload of the control signal.
+     *
+     * @return the payload of the control signal.
+     */
+    ByteBuffer getPayload();
 }

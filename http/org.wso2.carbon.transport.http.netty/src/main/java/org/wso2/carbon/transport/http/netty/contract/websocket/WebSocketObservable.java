@@ -17,54 +17,67 @@
  *
  */
 
-package org.wso2.carbon.connector.framework.websocket;
+package org.wso2.carbon.transport.http.netty.contract.websocket;
 
 /**
- * Message processor for WebSocket inbound messages.
+ * Observable for WebSocket server connector.
  */
-public interface WebSocketObserver {
+public interface WebSocketObservable {
 
     /**
-     * Update WebSocket handshake. This will initialize a client connection for WebSocket
+     * Set the {@link WebSocketInboundObserver} for the Observable.
+     *
+     * @param observer for the given Observable.
+     */
+    void setObserver(WebSocketInboundObserver observer);
+
+    /**
+     * Remove the observer from the Observable.
+     *
+     * @param observer {@link WebSocketInboundObserver} which should be removed.
+     */
+    void removeObserver(WebSocketInboundObserver observer);
+
+    /**
+     * Notify WebSocket handshake. This will initialize a client connection for WebSocket
      * server connector.
      *
      * @param initMessage {@link WebSocketInitMessage} to initialize connection.
      */
-    void update(WebSocketInitMessage initMessage);
+    void notify(WebSocketInitMessage initMessage);
 
     /**
-     * Update incoming WebSocket text messages.
+     * Notify incoming WebSocket text messages.
      *
      * @param textMessage {@link WebSocketTextMessage} to process text messages.
      */
-    void update(WebSocketTextMessage textMessage);
+    void notify(WebSocketTextMessage textMessage);
 
     /**
-     * Update incoming WebSocket binary messages.
+     * Notify incoming WebSocket binary messages.
      *
      * @param binaryMessage {@link WebSocketBinaryMessage} to process binary messages.
      */
-    void update(WebSocketBinaryMessage binaryMessage);
+    void notify(WebSocketBinaryMessage binaryMessage);
 
     /**
-     * Update incoming WebSocket control messages.
+     * Notify incoming WebSocket control messages.
      *
      * @param controlMessage {@link WebSocketControlMessage} to indicate a incoming pong messages.
      */
-    void update(WebSocketControlMessage controlMessage);
+    void notify(WebSocketControlMessage controlMessage);
 
     /**
-     * Update incoming WebSocket close messages.
+     * Notify incoming WebSocket close messages.
      *
      * @param closeMessage {@link WebSocketCloseMessage} to indicate incoming close messages.
      */
-    void update(WebSocketCloseMessage closeMessage);
+    void notify(WebSocketCloseMessage closeMessage);
 
     /**
-     * Update any transport error.
+     * Notify any transport error.
      *
      * @param throwable error received from transport.
      */
-    void handleError(Throwable throwable);
-
+    void notifyError(Throwable throwable);
 }

@@ -17,7 +17,7 @@
  *
  */
 
-package org.wso2.carbon.connector.framework.websocket;
+package org.wso2.carbon.transport.http.netty.contract.websocket;
 
 import java.util.List;
 import javax.websocket.Session;

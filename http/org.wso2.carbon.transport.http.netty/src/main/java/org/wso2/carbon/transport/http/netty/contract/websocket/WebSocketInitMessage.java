@@ -17,26 +17,29 @@
  *
  */
 
-package org.wso2.carbon.connector.framework.websocket;
+package org.wso2.carbon.transport.http.netty.contract.websocket;
 
-import java.nio.ByteBuffer;
+import java.net.ProtocolException;
+import javax.websocket.Session;
 
 /**
- * This message contains the details of WebSocket bong message.
+ * This Message is used to handle WebSocket handshake.
  */
-public interface WebSocketControlMessage extends WebSocketChannelContext, WebSocketSessionContext {
+public interface WebSocketInitMessage extends WebSocketChannelContext {
 
     /**
-     * Get the control signal.
+     * Complete the handshake of a given request.
      *
-     * @return the control signal as a {@link WebSocketControlSignal}.
+     * @return the Server session for the newly created WebSocket connection.
+     * @throws ProtocolException if error occurred while proceeding with the handshake.
      */
-    WebSocketControlSignal getControlSignal();
+    Session handshake() throws ProtocolException;
 
     /**
-     * Get the payload of the control signal.
+     * Cancel the handshake.
      *
-     * @return the payload of the control signal.
+     * @param closeCode close code for cancelling the handshake.
+     * @param closeReason reason for canceling the handshake.
      */
-    ByteBuffer getPayload();
+    void cancelHandShake(int closeCode, String closeReason);
 }
