@@ -71,7 +71,7 @@
             org.quartz.*;version="${quartz.version.range}"
         </import.package>
         <carbon.component>
-            startup.listener;componentName="wso2-server-connector-sc";requiredService="org.wso2.carbon.messaging.ServerConnectorProvider"
+            startup.connectorListener;componentName="wso2-server-connector-sc";requiredService="org.wso2.carbon.messaging.ServerConnectorProvider"
         </carbon.component>
         <bundle.activator>org.wso2.carbon.connector.framework.server.internal.ServerConnectorBundleActivator</bundle.activator>
     </properties>
