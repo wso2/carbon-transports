@@ -98,6 +98,11 @@
             <groupId>org.wso2.orbit.org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.core</artifactId>
+            <version>5.2.0-m4</version>
+        </dependency>
 
         <dependency>
             <groupId>javax.websocket</groupId>
@@ -203,7 +208,9 @@
             startup.listener;componentName="netty-transports-mgt";
             requiredService="org.wso2.carbon.messaging.CarbonTransportInitializer,
             org.wso2.carbon.messaging.CarbonMessageProcessor",
-            osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"
+            osgi.service;objectClass="org.wso2.carbon.messaging.ServerConnectorProvider",
+            osgi.service;objectClass="org.wso2.carbon.kernel.startupresolver.CapabilityProvider";
+            capabilityName="org.wso2.carbon.messaging.ServerConnector"
         </carbon.component>
     </properties>
 </project>

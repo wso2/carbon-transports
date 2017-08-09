@@ -20,10 +20,10 @@ package org.wso2.carbon.transport.jms.factory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.kernel.utils.StringUtils;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 import org.wso2.carbon.transport.jms.utils.JMSUtils;
+import org.wso2.carbon.utils.StringUtils;
 
 import java.util.Properties;
 import javax.jms.Connection;

@@ -29,7 +29,6 @@ import org.wso2.carbon.transport.http.netty.config.ListenerConfiguration;
 import org.wso2.carbon.transport.http.netty.config.TransportsConfiguration;
 import org.wso2.carbon.transport.http.netty.internal.HTTPTransportContextHolder;
 import org.wso2.carbon.transport.http.netty.listener.HTTPServerConnector;
-import org.wso2.carbon.transport.http.netty.listener.HTTPTransportListener;
 import org.wso2.carbon.transport.http.netty.listener.ServerConnectorController;
 import org.wso2.carbon.transport.http.netty.sender.HTTPClientConnector;
 import org.wso2.carbon.transport.http.netty.util.server.HTTPServer;
@@ -158,15 +157,6 @@ public class TestUtil {
             log.error("Thread Interrupted while sleeping ", e);
         }
         return httpServer;
-    }
-
-    public static void shutDownCarbonTransport(HTTPTransportListener httpTransportListener) {
-        httpTransportListener.stop();
-        try {
-            Thread.sleep(TestUtil.SERVERS_SETUP_TIME);
-        } catch (InterruptedException e) {
-            log.error("Thread Interuppted while sleeping ", e);
-        }
     }
 
     public static void shutDownHttpServer(HTTPServer httpServer) {

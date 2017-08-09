@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.connector.framework.ConnectorManager;
 import org.wso2.carbon.kernel.CarbonRuntime;
 import org.wso2.carbon.kernel.startupresolver.RequiredCapabilityListener;
+import org.wso2.carbon.kernel.startupresolver.StartupServiceUtils;
 import org.wso2.carbon.messaging.ServerConnectorProvider;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 
@@ -53,6 +54,7 @@ public class ServerConnectorSC implements RequiredCapabilityListener {
     )
     protected void registerServerConnectorProvider(ServerConnectorProvider serverConnectorProvider, Map properties) {
         connectorManager.registerServerConnectorProvider(serverConnectorProvider);
+        StartupServiceUtils.updateServiceCache("wso2-server-connector-sc", ServerConnectorProvider.class);
     }
 
     protected void unregisterServerConnectorProvider(ServerConnectorProvider serverConnectorProvider, Map properties) {

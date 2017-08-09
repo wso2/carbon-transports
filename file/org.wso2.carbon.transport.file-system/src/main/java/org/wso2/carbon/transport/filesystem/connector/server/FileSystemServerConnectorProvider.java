@@ -43,4 +43,9 @@ public class FileSystemServerConnectorProvider extends ServerConnectorProvider {
     public ServerConnector createConnector(String s, Map<String, String> properties) {
         return new FileSystemServerConnector(s, properties);
     }
+
+    @Override
+    public int getCount() {
+        return 0;
+    }
 }

@@ -54,6 +54,10 @@
             <artifactId>org.wso2.carbon.connector.framework</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.utils</groupId>
+            <artifactId>org.wso2.carbon.utils</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
         </dependency>

@@ -20,9 +20,13 @@ package org.wso2.carbon.transport.http.netty.internal;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.wso2.carbon.kernel.startupresolver.CapabilityProvider;
 import org.wso2.carbon.messaging.ServerConnectorProvider;
 import org.wso2.carbon.messaging.handler.HandlerExecutor;
 import org.wso2.carbon.transport.http.netty.listener.HTTPServerConnectorProvider;
+
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 /**
  * OSGi BundleActivator of the Netty transport component.
@@ -34,8 +38,13 @@ public class HTTPTransportActivator implements BundleActivator {
         HTTPTransportContextHolder.getInstance().setBundleContext(bundleContext);
         HandlerExecutor handlerExecutor = new HandlerExecutor();
         HTTPTransportContextHolder.getInstance().setHandlerExecutor(handlerExecutor);
+        HTTPServerConnectorProvider httpServerConnectorProvider = new HTTPServerConnectorProvider();
         bundleContext
-                .registerService(ServerConnectorProvider.class, new HTTPServerConnectorProvider(), null);
+                .registerService(ServerConnectorProvider.class, httpServerConnectorProvider, null);
+        Dictionary<String, String> properties = new Hashtable<>();
+        properties.put("capabilityName", "org.wso2.carbon.messaging.ServerConnector");
+        bundleContext
+                .registerService(CapabilityProvider.class, httpServerConnectorProvider, properties);
     }
 
     @Override

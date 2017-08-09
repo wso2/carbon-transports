@@ -102,6 +102,11 @@
                 <version>${org.wso2.carbon.core.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.wso2.carbon.utils</groupId>
+                <artifactId>org.wso2.carbon.utils</artifactId>
+                <version>${carbon.utils.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
@@ -294,9 +299,10 @@
         <maven.wagon.ssh.version>2.1</maven.wagon.ssh.version>
 
         <!-- Dependencies -->
-        <org.wso2.carbon.core.version>5.1.0</org.wso2.carbon.core.version>
+        <org.wso2.carbon.core.version>5.2.0-alpha</org.wso2.carbon.core.version>
         <carbon.kernel.package.import.version.range>[5.0.0, 6.0.0)</carbon.kernel.package.import.version.range>
 
+        <carbon.utils.version>2.0.2</carbon.utils.version>
         <netty.version>4.1.7.Final</netty.version>
         <netty.package.import.version.range>[4.0.30, 5.0.0)</netty.package.import.version.range>
         <equinox.osgi.version>3.10.2.v20150203-1939</equinox.osgi.version>
@@ -326,7 +332,7 @@
         <quartz.version.range>[2.3.0, 3.0.0)</quartz.version.range>
         <commons-net.version>3.6</commons-net.version>
 
-        <carbon.messaging.version>2.3.7</carbon.messaging.version>
+        <carbon.messaging.version>2.3.8-SNAPSHOT</carbon.messaging.version>
         <carbon.messaging.package.import.version.range>[2.0.0, 3.0.0)</carbon.messaging.package.import.version.range>
         <slf4j.version>1.7.5</slf4j.version>
         <!--Logging API version range-->

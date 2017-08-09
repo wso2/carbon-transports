@@ -118,4 +118,9 @@ public class HTTPServerConnectorProvider extends ServerConnectorProvider {
         }
         return config;
     }
+
+    @Override
+    public int getCount() {
+        return ConfigurationBuilder.getInstance().getConfiguration().getListenerConfigurations().size();
+    }
 }
