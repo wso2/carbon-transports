@@ -14,6 +14,7 @@ import javax.jms.JMSException;
  */
 public class JMSExceptionListener implements ExceptionListener {
     private static final Logger logger = LoggerFactory.getLogger(JMSExceptionListener.class);
+
     /**
      * List of {@link JMSMessageConsumer} instances that this handler listens to for exceptions
      * receiver.
@@ -38,7 +39,6 @@ public class JMSExceptionListener implements ExceptionListener {
      */
     @Override
     public void onException(JMSException exception) {
-
         /*
             Quoting from JMS 2.0 Spec - https://jms-spec.java.net/2.0/apidocs/javax/jms/Session.html
 
@@ -49,7 +49,6 @@ public class JMSExceptionListener implements ExceptionListener {
 
             Therefore we shouldn't do anything other than closing the consumers and restarting them within this method.
          */
-
         logger.error("Error in the JMS connection. " + exception.getMessage());
 
         for (JMSMessageConsumer messageConsumer : messageConsumers) {
@@ -60,7 +59,6 @@ public class JMSExceptionListener implements ExceptionListener {
                 // connection exception
                 logger.error("Error closing connection after exception", e);
             }
-
             try {
                 messageConsumer.startConsuming();
             } catch (JMSConnectorException e) {

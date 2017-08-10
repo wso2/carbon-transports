@@ -23,26 +23,28 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
-import org.wso2.carbon.transport.jms.receiver.JMSServerConnector;
+import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
+import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.impl.JMSServerConnectorFutureImpl;
+import org.wso2.carbon.transport.jms.receiver.JMSServerConnectorImpl;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
 import org.wso2.carbon.transport.jms.test.util.JMSTestUtils;
-import org.wso2.carbon.transport.jms.test.util.TestMessageProcessor;
+import org.wso2.carbon.transport.jms.test.util.TestMessageListener;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.Map;
 import javax.jms.JMSException;
-
+d
 /**
  * Test case for queue topic listening in session transacted mode.
  */
 public class QueueTopicSessionTransactedTestCase {
     private JMSServer jmsServer;
-    private TestMessageProcessor queueTestMessageProcessor;
-    private TestMessageProcessor topicTestMessageProcessor;
-    private JMSServerConnector jmsQueueTransportListener;
-    private JMSServerConnector jmsTopicTransportListener;
+    private TestMessageListener queueTestMessageProcessor;
+    private TestMessageListener topicTestMessageProcessor;
+    private JMSServerConnectorImpl jmsQueueTransportListener;
+    private JMSServerConnectorImpl jmsTopicTransportListener;
     private Map<String, String> queueListeningParameters;
     private Map<String, String> topicListeningParameters;
     private static final Logger logger = LoggerFactory.getLogger(QueueTopicAutoAckListeningTestCase.class);
@@ -51,10 +53,10 @@ public class QueueTopicSessionTransactedTestCase {
      * Starts the JMS Server, and create two jms server connectors.
      * Make the server connectors to listen to topic and queue.
      *
-     * @throws ServerConnectorException Server Connector Exception
+     * @throws JMSConnectorException Server Connector Exception
      */
     @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS receiver and message processor")
-    public void setUp() throws ServerConnectorException {
+    public void setUp() throws JMSConnectorException {
         queueListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.QUEUE_NAME_3,
                 JMSTestConstants.QUEUE_CONNECTION_FACTORY, JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants
                         .SESSION_TRANSACTED_MODE);
@@ -65,14 +67,15 @@ public class QueueTopicSessionTransactedTestCase {
         jmsServer.startServer();
 
         // Create a queue transport listener
-        jmsQueueTransportListener = new JMSServerConnector("1", queueListeningParameters);
-        queueTestMessageProcessor = new TestMessageProcessor();
-        jmsQueueTransportListener.setMessageProcessor(queueTestMessageProcessor);
+        queueTestMessageProcessor = new TestMessageListener();
+        JMSServerConnectorFuture queueFuture = new JMSServerConnectorFutureImpl(queueTestMessageProcessor);
+        jmsQueueTransportListener = new JMSServerConnectorImpl("1", queueListeningParameters, queueFuture);
 
         // Create a topic transport listener
-        jmsTopicTransportListener = new JMSServerConnector("3", topicListeningParameters);
-        topicTestMessageProcessor = new TestMessageProcessor();
-        jmsTopicTransportListener.setMessageProcessor(topicTestMessageProcessor);
+        topicTestMessageProcessor = new TestMessageListener();
+        JMSServerConnectorFuture topicFuture = new JMSServerConnectorFutureImpl(topicTestMessageProcessor);
+        jmsTopicTransportListener = new JMSServerConnectorImpl("3", topicListeningParameters, topicFuture);
+
     }
 
     /**
@@ -83,7 +86,7 @@ public class QueueTopicSessionTransactedTestCase {
      */
     @Test(groups = "jmsListening", description = "Testing whether queue listening is working correctly without any "
             + "exceptions in client ack mode")
-    public void queueListeningTestCase() throws ServerConnectorException, InterruptedException, JMSException {
+    public void queueListeningTestCase() throws JMSConnectorException, InterruptedException, JMSException {
         jmsQueueTransportListener.start();
         logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME_3);
         jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME_3);
@@ -101,7 +104,7 @@ public class QueueTopicSessionTransactedTestCase {
      */
     @Test(groups = "jmsListening", description = "Testing whether topic listening is working correctly without any "
             + "exceptions in client ack mode")
-    public void topicListeningTestCase() throws ServerConnectorException, InterruptedException, JMSException {
+    public void topicListeningTestCase() throws JMSConnectorException, InterruptedException, JMSException {
         jmsTopicTransportListener.start();
         logger.info("JMS Transport Listener is starting to listen to the topic " + JMSTestConstants.TOPIC_NAME_2);
         jmsServer.publishMessagesToTopic(JMSTestConstants.TOPIC_NAME_2);
