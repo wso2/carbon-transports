@@ -81,8 +81,8 @@ public class VFSClientConnector implements ClientConnector {
         String action = map.get(Constants.ACTION);
         FileType fileType;
         ByteBuffer byteBuffer;
-        InputStream is = null;
-        OutputStream os = null;
+        InputStream inputStream = null;
+        OutputStream outputStream = null;
         try {
             FileSystemManager fsManager = VFS.getManager();
             FileObject path = fsManager.resolveFile(fileURI, opts);
@@ -115,12 +115,13 @@ public class VFSClientConnector implements ClientConnector {
                         }
                         byte[] bytes = byteBuffer.array();
                         if (map.get(Constants.APPEND) != null) {
-                            os = path.getContent().getOutputStream(Boolean.parseBoolean(map.get(Constants.APPEND)));
+                            outputStream = path.getContent().getOutputStream(
+                                    Boolean.parseBoolean(map.get(Constants.APPEND)));
                         } else {
-                            os = path.getContent().getOutputStream();
+                            outputStream = path.getContent().getOutputStream();
                         }
-                        os.write(bytes);
-                        os.flush();
+                        outputStream.write(bytes);
+                        outputStream.flush();
                     }
                     break;
                 case Constants.DELETE:
@@ -167,8 +168,8 @@ public class VFSClientConnector implements ClientConnector {
                 case Constants.READ:
                     if (path.exists()) {
                         //TODO: Do not assume 'path' always refers to a file
-                        is = path.getContent().getInputStream();
-                        byte[] bytes = toByteArray(is);
+                        inputStream = path.getContent().getInputStream();
+                        byte[] bytes = toByteArray(inputStream);
                         BinaryCarbonMessage message = new BinaryCarbonMessage(ByteBuffer.wrap(bytes), true);
                         message.setProperty(org.wso2.carbon.messaging.Constants.DIRECTION,
                                             org.wso2.carbon.messaging.Constants.DIRECTION_RESPONSE);
@@ -192,8 +193,8 @@ public class VFSClientConnector implements ClientConnector {
         } catch (Exception e) {
             throw new ClientConnectorException("Exception occurred while processing file: " + e.getMessage(), e);
         } finally {
-            closeQuietly(is);
-            closeQuietly(os);
+            closeQuietly(inputStream);
+            closeQuietly(outputStream);
         }
         return true;
     }

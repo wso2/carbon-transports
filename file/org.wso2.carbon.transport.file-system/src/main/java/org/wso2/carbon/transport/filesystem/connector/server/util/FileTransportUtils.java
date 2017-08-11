@@ -133,7 +133,7 @@ public class FileTransportUtils {
      *
      * @param fsManager     The file system manager instance
      * @param fileObject    The file object to get the lock from
-     * @param fsOpts
+     * @param fsOpts        The file system options to be used with the file system manager
      * @return              Boolean value whether lock was successful
      */
     public static synchronized boolean acquireLock(FileSystemManager fsManager, FileObject fileObject,
@@ -202,10 +202,10 @@ public class FileTransportUtils {
     /**
      * Release a file item lock acquired at the start of processing.
      *
-     * @param fo    File that needs the lock to be removed
+     * @param fileObject    File that needs the lock to be removed
      */
-    public static synchronized void releaseLock(FileObject fo) {
-        String fullPath = fo.getName().getURI();
+    public static synchronized void releaseLock(FileObject fileObject) {
+        String fullPath = fileObject.getName().getURI();
         processing.remove(fullPath);
     }
 }

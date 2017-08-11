@@ -41,8 +41,8 @@ public class FileTransportUtils {
     /**
      * A utility method for setting the relevant configurations for the file system in question
      *
-     * @param options   A map containigthe options to be attached to the file system
-     * @param fsManager
+     * @param options   A map containing the options to be attached to the file system
+     * @param fsManager The file system manager instance
      * @return
      * @throws FileServerConnectorException
      */
