@@ -58,10 +58,8 @@ public class VFSClientConnector implements ClientConnector {
         if (Constants.PROTOCOL_FTP.equals(properties.get("PROTOCOL"))) {
             properties.forEach((property, value) -> {
                 // TODO: Add support for other FTP related configurations
-                switch (property) {
-                    case Constants.FTP_PASSIVE_MODE:
-                        FtpFileSystemConfigBuilder.getInstance().setPassiveMode(opts, (Boolean) value);
-                        break;
+                if (Constants.FTP_PASSIVE_MODE.equals(property)) {
+                    FtpFileSystemConfigBuilder.getInstance().setPassiveMode(opts, (Boolean) value);
                 }
             });
         }
