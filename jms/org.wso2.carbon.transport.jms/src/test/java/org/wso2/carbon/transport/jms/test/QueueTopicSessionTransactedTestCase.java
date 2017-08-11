@@ -35,7 +35,7 @@ import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.Map;
 import javax.jms.JMSException;
-d
+
 /**
  * Test case for queue topic listening in session transacted mode.
  */
