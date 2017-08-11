@@ -23,12 +23,14 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
-import org.wso2.carbon.transport.jms.receiver.JMSServerConnector;
+import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
+import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.impl.JMSServerConnectorFutureImpl;
+import org.wso2.carbon.transport.jms.receiver.JMSServerConnectorImpl;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
 import org.wso2.carbon.transport.jms.test.util.JMSTestUtils;
-import org.wso2.carbon.transport.jms.test.util.TestMessageProcessor;
+import org.wso2.carbon.transport.jms.test.util.TestMessageListener;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.Map;
@@ -39,16 +41,16 @@ import javax.jms.JMSException;
  */
 public class QueueTopicAutoAckListeningTestCase {
     private JMSServer jmsServer;
-    private TestMessageProcessor queueTestMessageProcessor;
-    private TestMessageProcessor topicTestMessageProcessor;
+    private TestMessageListener queueTestMessageProcessor;
+    private TestMessageListener topicTestMessageProcessor;
     private Map<String, String> queueListeningParameters;
     private Map<String, String> topicListeningParameters;
-    private JMSServerConnector jmsQueueTransportListener;
-    private JMSServerConnector jmsTopicTransportListener;
+    private JMSServerConnectorImpl jmsQueueTransportListener;
+    private JMSServerConnectorImpl jmsTopicTransportListener;
     private static final Logger logger = LoggerFactory.getLogger(QueueTopicAutoAckListeningTestCase.class);
 
     @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS receiver and message processor")
-    public void setUp() throws ServerConnectorException {
+    public void setUp() throws JMSConnectorException {
         queueListeningParameters = JMSTestUtils.
                 createJMSListeningParameterMap(JMSTestConstants.QUEUE_NAME,
                                                JMSTestConstants.QUEUE_CONNECTION_FACTORY,
@@ -62,14 +64,15 @@ public class QueueTopicAutoAckListeningTestCase {
         jmsServer.startServer();
 
         // Create a queue transport listener
-        jmsQueueTransportListener = new JMSServerConnector("1", queueListeningParameters);
-        queueTestMessageProcessor = new TestMessageProcessor();
-        jmsQueueTransportListener.setMessageProcessor(queueTestMessageProcessor);
+        queueTestMessageProcessor = new TestMessageListener();
+        JMSServerConnectorFuture queueFuture = new JMSServerConnectorFutureImpl(queueTestMessageProcessor);
+        jmsQueueTransportListener = new JMSServerConnectorImpl("1", queueListeningParameters, queueFuture);
 
         // Create a topic transport listener
-        jmsTopicTransportListener = new JMSServerConnector("2", topicListeningParameters);
-        topicTestMessageProcessor = new TestMessageProcessor();
-        jmsTopicTransportListener.setMessageProcessor(topicTestMessageProcessor);
+        topicTestMessageProcessor = new TestMessageListener();
+        JMSServerConnectorFuture topicFuture = new JMSServerConnectorFutureImpl(topicTestMessageProcessor);
+        jmsTopicTransportListener = new JMSServerConnectorImpl("2", topicListeningParameters, topicFuture);
+
     }
 
     /**
@@ -79,7 +82,7 @@ public class QueueTopicAutoAckListeningTestCase {
      */
     @Test(groups = "jmsListening", description = "Testing whether queue listening is working correctly without any "
             + "exceptions in auto ack mode")
-    public void queueListeningTestCase() throws ServerConnectorException, InterruptedException, JMSException {
+    public void queueListeningTestCase() throws JMSConnectorException, InterruptedException, JMSException {
         jmsQueueTransportListener.start();
         logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME);
         jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME);
@@ -96,7 +99,7 @@ public class QueueTopicAutoAckListeningTestCase {
      */
     @Test(groups = "jmsListening", description = "Testing whether topic listening is working correctly without any "
             + "exceptions in auto ack mode")
-    public void topicListeningTestCase() throws InterruptedException, JMSException, ServerConnectorException {
+    public void topicListeningTestCase() throws InterruptedException, JMSException, JMSConnectorException {
         jmsTopicTransportListener.start();
         logger.info("JMS Transport Listener is starting to listen to the topic " + JMSTestConstants.TOPIC_NAME);
         jmsServer.publishMessagesToTopic(JMSTestConstants.TOPIC_NAME);

@@ -24,8 +24,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.TextCarbonMessage;
-import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
-import org.wso2.carbon.transport.jms.sender.JMSClientConnector;
+import org.wso2.carbon.transport.jms.contract.JMSClientConnector;
+import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.sender.JMSClientConnectorImpl;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
@@ -61,12 +62,12 @@ public class SendMessageTestCase {
 
     @Test(groups = "queueSending", description = "Testing whether queue sending is working correctly without any " +
             "exceptions")
-    public void queueListeningTestCase() throws InterruptedException, JMSException, ClientConnectorException {
+    public void queueListeningTestCase() throws InterruptedException, JMSException, JMSConnectorException {
         logger.info("JMS Transport Sender is sending a message to the queue " +
                     JMSTestConstants.QUEUE_NAME_1);
-        JMSClientConnector sender = new JMSClientConnector();
+        JMSClientConnector sender = new JMSClientConnectorImpl();
         jmsServer.receiveMessagesFromQueue();
-        sender.send(carbonMessage, null, properties);
-        sender.send(carbonMessage, null, properties);
+        sender.send(carbonMessage, properties);
+        sender.send(carbonMessage, properties);
     }
 }

@@ -19,15 +19,12 @@ package org.wso2.carbon.transport.jms.sender;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
-import org.wso2.carbon.messaging.CarbonMessageProcessor;
-import org.wso2.carbon.messaging.ClientConnector;
 import org.wso2.carbon.messaging.DefaultCarbonMessage;
 import org.wso2.carbon.messaging.MapCarbonMessage;
 import org.wso2.carbon.messaging.SerializableCarbonMessage;
 import org.wso2.carbon.messaging.TextCarbonMessage;
-import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
+import org.wso2.carbon.transport.jms.contract.JMSClientConnector;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.factory.CachedJMSConnectionFactory;
 import org.wso2.carbon.transport.jms.factory.JMSConnectionFactory;
@@ -50,44 +47,24 @@ import javax.naming.NamingException;
 /**
  * JMS sender implementation.
  */
-public class JMSClientConnector implements ClientConnector {
+public class JMSClientConnectorImpl implements JMSClientConnector {
 
-    private static final Logger logger = LoggerFactory.getLogger(JMSClientConnector.class);
+    private static final Logger logger = LoggerFactory.getLogger(JMSClientConnectorImpl.class);
 
     private MessageProducer messageProducer;
     private Session session;
     private Connection connection;
     private JMSConnectionFactory jmsConnectionFactory;
 
-    public JMSClientConnector() {
-        super();
-    }
-
     @Override
-    public Object init(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, Object> map)
-            throws ClientConnectorException {
-        throw new ClientConnectorException("Method not supported for JMS.");
-    }
-
-    /**
-     * @return false because, in this instance, the send method with a map parameter is required.
-     */
-    @Override
-    public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
-            throws ClientConnectorException {
-        return false;
-    }
-
-    @Override
-    public synchronized boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback,
-                                  Map<String, String> propertyMap) throws ClientConnectorException {
+    public boolean send(CarbonMessage message, Map<String, String> propertyMap) throws JMSConnectorException {
         try {
 
             setupMessageProducer(propertyMap);
 
-            Message jmsMessage = createJmsMessage(carbonMessage, propertyMap);
+            Message jmsMessage = createJmsMessage(message, propertyMap);
 
-            sendMessage(carbonMessage, jmsMessage);
+            sendMessage(message, jmsMessage);
 
         } finally {
             if (jmsConnectionFactory != null) {
@@ -103,7 +80,7 @@ public class JMSClientConnector implements ClientConnector {
         return false;
     }
 
-    private void sendMessage(CarbonMessage carbonMessage, Message jmsMessage) throws ClientConnectorException {
+    private void sendMessage(CarbonMessage carbonMessage, Message jmsMessage) throws JMSConnectorException {
         int deliveryMode = DeliveryMode.PERSISTENT;
         if (getHeader(carbonMessage, JMSConstants.JMS_DELIVERY_MODE).
                 equalsIgnoreCase(JMSConstants.NON_PERSISTENT_DELIVERY_MODE)) {
@@ -123,14 +100,14 @@ public class JMSClientConnector implements ClientConnector {
         try {
             messageProducer.send(jmsMessage, deliveryMode, priority, timeToLive);
         } catch (JMSException e) {
-            throw new ClientConnectorException("Send Failed with priority " + priority + " , delivery mode "
+            throw new JMSConnectorException("Send Failed with priority " + priority + " , delivery mode "
                     + deliveryMode + " [ " + e.getMessage() + " ]", e);
         }
 
     }
 
     private Message createJmsMessage(CarbonMessage carbonMessage, Map<String, String> propertyMap)
-                                                                        throws ClientConnectorException {
+                                                                        throws JMSConnectorException {
         Message jmsMessage;
         String messageType = propertyMap.get(JMSConstants.JMS_MESSAGE_TYPE);
         try {
@@ -151,14 +128,14 @@ public class JMSClientConnector implements ClientConnector {
             } else if (carbonMessage instanceof DefaultCarbonMessage) {
                 jmsMessage = session.createMessage();
             } else {
-                throw new ClientConnectorException("Unknown carbon message instance provided. " +
+                throw new JMSConnectorException("Unknown carbon message instance provided. " +
                         "Message type: " + messageType);
             }
             setJmsProperties(carbonMessage, jmsMessage);
             setJmsHeaders(carbonMessage, jmsMessage);
             return jmsMessage;
         } catch (JMSException e) {
-            throw new ClientConnectorException("Error occurred while preparing the JMS message. " +
+            throw new JMSConnectorException("Error occurred while preparing the JMS message. " +
                                                 e.getMessage(), e);
         }
     }
@@ -169,9 +146,9 @@ public class JMSClientConnector implements ClientConnector {
      *
      * @param carbonMessage source {@link CarbonMessage}
      * @param jmsMessage Headers are set to the {@link Message}
-     * @throws ClientConnectorException throws when there is an internal error when setting the JMS headers
+     * @throws JMSConnectorException throws when there is an internal error when setting the JMS headers
      */
-    private void setJmsHeaders(CarbonMessage carbonMessage, Message jmsMessage) throws ClientConnectorException {
+    private void setJmsHeaders(CarbonMessage carbonMessage, Message jmsMessage) throws JMSConnectorException {
         try {
             String value = getHeader(carbonMessage, JMSConstants.JMS_CORRELATION_ID);
             if (!value.isEmpty()) {
@@ -187,10 +164,10 @@ public class JMSClientConnector implements ClientConnector {
                 jmsMessage.setJMSReplyTo(destination);
             }
         } catch (NamingException e) {
-            throw new ClientConnectorException("Error occurred while setting " + JMSConstants.JMS_REPLY_TO +
+            throw new JMSConnectorException("Error occurred while setting " + JMSConstants.JMS_REPLY_TO +
                     " JMS message header." + e.getMessage(), e);
         } catch (JMSException e) {
-            throw new ClientConnectorException("Error occurred while setting JMS message headers. "
+            throw new JMSConnectorException("Error occurred while setting JMS message headers. "
                                                 + e.getMessage(), e);
         }
     }
@@ -214,9 +191,9 @@ public class JMSClientConnector implements ClientConnector {
      * Creates a new {@link MessageProducer} using a new or existing connection to the JMS provider.
      *
      * @param propertyMap               Map of user defined properties
-     * @throws ClientConnectorException throws when an internal error occur trying to make the JMS provider connection
+     * @throws JMSConnectorException throws when an internal error occur trying to make the JMS provider connection
      */
-    private void setupMessageProducer(Map<String, String> propertyMap) throws ClientConnectorException {
+    private void setupMessageProducer(Map<String, String> propertyMap) throws JMSConnectorException {
         try {
             Properties properties = new Properties();
             properties.putAll(propertyMap);
@@ -256,17 +233,7 @@ public class JMSClientConnector implements ClientConnector {
             Destination destination = this.jmsConnectionFactory.getDestination(session);
             this.messageProducer = this.jmsConnectionFactory.getMessageProducer(session, destination);
         } catch (JMSConnectorException | JMSException e) {
-            throw new ClientConnectorException("Error connecting to JMS provider. " + e.getMessage(), e);
+            throw new JMSConnectorException("Error connecting to JMS provider. " + e.getMessage(), e);
         }
-}
-
-    @Override
-    public String getProtocol() {
-        return "jms";
-    }
-
-    @Override
-    public void setMessageProcessor(CarbonMessageProcessor messageProcessor) {
-        // Message processor is not needed with regards to jms client connector
     }
 }

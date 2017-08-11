@@ -55,7 +55,6 @@ class JMSConnectionRetryHandler {
      */
     private int maxRetryCount;
 
-
     /**
      * States whether a retrying is in progress.
      */
@@ -64,16 +63,15 @@ class JMSConnectionRetryHandler {
     /**
      * Creates a jms connection retry handler.
      *
-     * @param messageConsumer    JMS message consumer that needs to retry
-     * @param retryInterval      Retry interval between
-     * @param maxRetryCount      Maximum retries
+     * @param messageConsumer JMS message consumer that needs to retry
+     * @param retryInterval   Retry interval between
+     * @param maxRetryCount   Maximum retries
      */
     JMSConnectionRetryHandler(JMSMessageConsumer messageConsumer, long retryInterval, int maxRetryCount) {
         this.messageConsumer = messageConsumer;
         this.retryInterval = retryInterval;
         this.maxRetryCount = maxRetryCount;
-
-        currentRetryInterval = retryInterval;
+        this.currentRetryInterval = retryInterval;
     }
 
     /**
@@ -85,11 +83,9 @@ class JMSConnectionRetryHandler {
     boolean retry() throws JMSConnectorException {
 
         if (retrying) {
-
             if (logger.isDebugEnabled()) {
                 logger.debug("Retrying is in progress from a different thread, hence not retrying");
             }
-
             return false;
         } else {
             retrying = true;
@@ -115,20 +111,17 @@ class JMSConnectionRetryHandler {
                     logger.error("Retry connection attempt " + retryCount + " to JMS Provider failed. Retry will be " +
                             "attempted again after " +
                             TimeUnit.SECONDS.convert(currentRetryInterval, TimeUnit.MILLISECONDS) + " seconds");
-
                     try {
                         TimeUnit.MILLISECONDS.sleep(currentRetryInterval);
                     } catch (InterruptedException ex) {
                         Thread.currentThread().interrupt();
                     }
-
                     currentRetryInterval = currentRetryInterval * 2;
                 }
             }
         }
 
         retrying = false;
-
         throw new JMSConnectorException(
                 "Connection to the jms provider failed after retrying for " + retryCount + " times");
     }
