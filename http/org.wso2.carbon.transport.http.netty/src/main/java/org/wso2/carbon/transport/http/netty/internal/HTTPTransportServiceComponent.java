@@ -27,8 +27,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.kernel.startupresolver.RequiredCapabilityListener;
+import org.wso2.carbon.kernel.startupresolver.StartupServiceUtils;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
-import org.wso2.carbon.messaging.TransportListenerManager;
 import org.wso2.carbon.messaging.handler.MessagingHandler;
 
 /**
@@ -63,24 +63,11 @@ public class HTTPTransportServiceComponent implements RequiredCapabilityListener
             unbind = "removeMessageProcessor")
     protected void addMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
         HTTPTransportContextHolder.getInstance().setMessageProcessor(carbonMessageProcessor);
+        StartupServiceUtils.updateServiceCache("netty-transports-mgt", CarbonMessageProcessor.class);
     }
 
     protected void removeMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
         HTTPTransportContextHolder.getInstance().removeMessageProcessor(carbonMessageProcessor);
-    }
-
-    @Reference(
-            name = "transport-listener-manager",
-            service = TransportListenerManager.class,
-            cardinality = ReferenceCardinality.OPTIONAL,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "removeManager")
-    protected void addManager(TransportListenerManager manager) {
-        HTTPTransportContextHolder.getInstance().setManager(manager);
-    }
-
-    protected void removeManager(TransportListenerManager manager) {
-        HTTPTransportContextHolder.getInstance().removeManager();
     }
 
     @Reference(

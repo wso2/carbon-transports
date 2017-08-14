@@ -59,4 +59,9 @@ public class JMSServerConnectorProvider extends ServerConnectorProvider {
     public ServerConnector createConnector(String id, Map<String, String> properties) {
         return new JMSServerConnector(id, properties);
     }
+
+    @Override
+    public int getCount() {
+        return 0;
+    }
 }
