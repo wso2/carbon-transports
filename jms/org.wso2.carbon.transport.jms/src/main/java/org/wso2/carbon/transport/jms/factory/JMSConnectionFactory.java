@@ -266,6 +266,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
                 if (isDurable && !isSharedSubscription) {
                     connection.setClientID(clientId);
                 }
+//                connection.setExceptionListener();
                 return connection;
             }
         } catch (JMSException e) {
