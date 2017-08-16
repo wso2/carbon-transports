@@ -5,7 +5,7 @@
     <parent>
         <artifactId>org.wso2.carbon.transport.email.feature.parent</artifactId>
         <groupId>org.wso2.carbon.transport</groupId>
-        <version>4.4.30-SNAPSHOT</version>
+        <version>5.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -17,6 +17,7 @@
         <dependency>
             <groupId>org.wso2.carbon.transport</groupId>
             <artifactId>org.wso2.carbon.transport.email</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
