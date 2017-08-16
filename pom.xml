@@ -34,6 +34,7 @@
         <module>jms</module>
         <module>file</module>
         <module>features</module>
+        <module>email</module>
     </modules>
 
     <scm>
@@ -223,6 +224,22 @@
                 <artifactId>commons-net</artifactId>
                 <version>${commons-net.version}</version>
             </dependency>
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>javax.mail-api</artifactId>
+                <version>${javax.mail.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
+                <version>${com.sun.mail.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.icegreen</groupId>
+                <artifactId>greenmail</artifactId>
+                <version>${com.icegreen.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -342,6 +359,12 @@
         <org.snakeyaml.version>1.16.0.wso2v1</org.snakeyaml.version>
         <org.snakeyaml.package.import.version.range>[1.16.0, 2.0.0)</org.snakeyaml.package.import.version.range>
         <javax.jms.import.version.range>[2.0.1, 3.0.0)</javax.jms.import.version.range>
+        <javax.mail.import.version.range>[1.5.0, 1.6.0-rc2)</javax.mail.import.version.range>
+        <com.sun.mail.version>1.6.0-rc2</com.sun.mail.version>
+        <com.icegreen.version>1.5.5</com.icegreen.version>
+
+
+        <email.transport.package.export.version>${project.version}</email.transport.package.export.version>
         <file.transport.package.export.version>${project.version}</file.transport.package.export.version>
 
         <!-- Package exports -->
@@ -361,6 +384,8 @@
         <activemq.broker.vesion>5.14.3</activemq.broker.vesion>
 
         <javax.jms.version>2.0.1</javax.jms.version>
+
+        <javax.mail.version>1.5.6</javax.mail.version>
     </properties>
 
 </project>
