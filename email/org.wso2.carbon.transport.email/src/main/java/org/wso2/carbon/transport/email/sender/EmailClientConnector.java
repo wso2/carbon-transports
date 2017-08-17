@@ -39,17 +39,49 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-
 /**
  * Class is implementing email client connector
  */
 public class EmailClientConnector implements ClientConnector {
     private static final Logger logger = LoggerFactory.getLogger(EmailClientConnector.class);
+    private Session session;
+    private Boolean isInitMethodCalled = false;
 
     @Override
-    public Object init(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, Object> map)
+    public Object init(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, Object> properties)
             throws ClientConnectorException {
-        throw new ClientConnectorException("Method not supported for Email.");
+        Properties serverProperties = new Properties();
+
+        try {
+            properties.forEach((key, value) -> {
+                if (key.startsWith("mail.smtp")) {
+                    serverProperties.put(key, (String) value);
+                }
+            });
+        } catch (Exception e) {
+            throw new ClientConnectorException(
+                    "Error is encountered while" + " casting value of property map"
+                            + " into String." + e.getMessage(), e);
+        }
+
+        String username = (String) properties.get(EmailConstants.MAIL_SENDER_USERNAME);
+        String password = (String) properties.get(EmailConstants.MAIL_SENDER_PASSWORD);
+
+
+        if (null == username || username.isEmpty()) {
+            throw new ClientConnectorException(
+                    "Username of the email account is" + " a mandatory parameter."
+                            + "It is not given in the email property map.");
+        }
+
+        if (null == password || password.isEmpty()) {
+            throw new ClientConnectorException("Password of the email account is"
+                    + " a mandatory parameter." + "It is not given in the email property map.");
+        }
+
+        session = Session.getInstance(serverProperties, new EmailAuthenticator(username, password));
+        isInitMethodCalled = true;
+        return true;
     }
 
     /**
@@ -67,41 +99,11 @@ public class EmailClientConnector implements ClientConnector {
     @Override
     public synchronized boolean  send(CarbonMessage carbonMessage, CarbonCallback carbonCallback,
             Map<String, String> emailProperties) throws ClientConnectorException {
-        String username;
-        String password;
 
-        Properties serverProperties = new Properties();
-
-        if (emailProperties.get(EmailConstants.MAIL_SENDER_USERNAME) != null &&
-                !emailProperties.get(EmailConstants.MAIL_SENDER_USERNAME).isEmpty()) {
-            username = emailProperties.get(EmailConstants.MAIL_SENDER_USERNAME);
-        } else {
-            throw new ClientConnectorException(
-                    "Username (email address) of the email account is" + " a mandatory parameter."
-                            + "It is not given in the email property map.");
+        if (!isInitMethodCalled) {
+            throw new ClientConnectorException("Should call 'init' method first,"
+                    + " before calling the 'send' method");
         }
-
-        if (emailProperties.get(EmailConstants.MAIL_SENDER_PASSWORD) != null &&
-                !emailProperties.get(EmailConstants.MAIL_SENDER_PASSWORD).isEmpty()) {
-            password = emailProperties.get(EmailConstants.MAIL_SENDER_PASSWORD);
-        } else {
-            throw new ClientConnectorException("Password of the email account is" + " a mandatory parameter."
-                    + "It is not given in the email property map.");
-        }
-
-
-        if (!(carbonMessage instanceof TextCarbonMessage)) {
-            throw new ClientConnectorException("Email client connector is support Text Carbon Message only.");
-        }
-
-
-        for (Map.Entry<String, String> entry : emailProperties.entrySet()) {
-            if (entry.getKey().startsWith("mail.")) {
-                serverProperties.put(entry.getKey(), entry.getValue());
-            }
-        }
-
-        Session session = Session.getInstance(serverProperties, new EmailAuthenticator(username, password));
 
         Message message = createMessage(session, carbonMessage, emailProperties);
 

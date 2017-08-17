@@ -52,21 +52,24 @@ public class SmtpServerMailTestCase {
     private static final String SUBJECT = "This is smtp server test email";
     private static final String CONTENT = "This is mail send to test the carbon transport";
     private static Map<String, String> properties = new HashMap<>();
+    private static Map<String, Object> initProperties = new HashMap<>();
     private GreenMail mailServer;
 
     @BeforeClass(description = "setup parameters need to create a smtp server.")
     public void setMailSenderParameters() {
-        properties.put(EmailTestConstant.MAIL_SENDER_HOST_NAME, HOST);
-        properties.put(EmailTestConstant.MAIL_SENDER_USERNAME, USERNAME);
-        properties.put(EmailTestConstant.MAIL_SENDER_PASSWORD, PASSWORD);
+
+        initProperties.put(EmailTestConstant.MAIL_SENDER_USERNAME, USERNAME);
+        initProperties.put(EmailTestConstant.MAIL_SENDER_PASSWORD, PASSWORD);
+        //green mail server use port 3025 to create a connection to local email server.
+        initProperties.put("mail.smtp.port", "3025");
+        //It is required to set auth 'true' to create connection.
+        initProperties.put("mail.smtp.auth", "true");
+        initProperties.put("mail.smtp.host", "127.0.0.1");
+
         properties.put(EmailTestConstant.MAIL_HEADER_FROM, ADDRESS);
         properties.put(EmailTestConstant.MAIL_HEADER_TO, TO_RECEPIENTS);
         properties.put(EmailTestConstant.MAIL_HEADER_SUBJECT, SUBJECT);
         properties.put(EmailTestConstant.MAIL_HEADER_CONTENT_TYPE, EmailTestConstant.CONTENT_TYPE_TEXT_HTML);
-        //green mail server use port 3025 to create a connection to local email server.
-        properties.put("mail.smtp.port", "3025");
-        //It is required to set auth 'true' to create connection.
-        properties.put("mail.smtp.auth", "true");
     }
 
     @BeforeMethod(description = "start the green mail server")
@@ -81,13 +84,14 @@ public class SmtpServerMailTestCase {
     }
 
     @Test(description = "Test case to send emails via smtp server.")
-    public void sendingEmailViaSmtpServerTestCase1() throws IOException, MessagingException, ClientConnectorException {
+    public void sendingEmailViaSmtpServerTestCase1()
+            throws IOException, MessagingException, ClientConnectorException, InterruptedException {
         // create user on mail server
         mailServer.setUser(ADDRESS, USERNAME, PASSWORD);
         CarbonMessage emailCarbonMessage = new TextCarbonMessage(CONTENT);
         ClientConnector emailClientConnector = new EmailClientConnector();
+        emailClientConnector.init(null, null, initProperties);
         emailClientConnector.send(emailCarbonMessage, null, properties);
-
         MimeMessage[] messages = mailServer.getReceivedMessages();
         Assert.assertEquals(messages.length, 1);
     }

@@ -301,7 +301,7 @@ public class EmailConsumer {
                 }
 
                 store.connect(host, username, password);
-            } catch (Exception e) {
+            } catch (MessagingException e) {
                 log.error("Error connecting to mail server for address '" + username
                         + "' in the email server connector with id : " + serviceId + ".", e);
                 if (maxRetryCount <= retryCount) {

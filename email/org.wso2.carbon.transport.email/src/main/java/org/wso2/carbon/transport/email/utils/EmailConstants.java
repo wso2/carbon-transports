@@ -23,6 +23,7 @@ package org.wso2.carbon.transport.email.utils;
  */
 public class EmailConstants {
 
+    private EmailConstants(){};
     /**
      * Email server Connector property
      */
