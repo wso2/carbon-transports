@@ -110,6 +110,11 @@ public class EmailConstants {
     public static final String MAIL_HEADER_CONTENT_TYPE = "Content-Type";
 
     /**
+     * time in minutes that wait client connector
+     * to close the connection after send method call
+     */
+    public static final int WAIT_TIME = 5;
+    /**
      * Enum for the action which has to carry out for the processed mails.
      */
     public enum ActionAfterProcessed {

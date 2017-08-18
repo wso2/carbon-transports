@@ -262,9 +262,10 @@ public class EmailConsumer {
                     ActionForProcessedMail.carryOutAction(message, folder, action, moveToFolder);
 
                 } catch (RuntimeException e) {
-                    log.error("Catch a run time exception while processing the message.", e);
+                    log.error("Catch a run time exception while processing the message. " + e.getMessage(), e);
                 } catch (Exception e) {
-                    log.warn("Skip the message #: " + message.getMessageNumber() + " by further processing.", e);
+                    log.warn("Skip the message #: " + message.getMessageNumber() + " by further processing. " +
+                            e.getMessage(), e);
                 }
             }
 

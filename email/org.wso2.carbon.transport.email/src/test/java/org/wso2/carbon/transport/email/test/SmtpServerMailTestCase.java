@@ -92,8 +92,11 @@ public class SmtpServerMailTestCase {
         ClientConnector emailClientConnector = new EmailClientConnector();
         emailClientConnector.init(null, null, initProperties);
         emailClientConnector.send(emailCarbonMessage, null, properties);
+        emailClientConnector.send(emailCarbonMessage, null, properties);
+
+        Thread.sleep(1000);
         MimeMessage[] messages = mailServer.getReceivedMessages();
-        Assert.assertEquals(messages.length, 1);
+        Assert.assertEquals(messages.length, 2);
     }
 
 }

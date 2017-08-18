@@ -30,9 +30,14 @@ import org.wso2.carbon.transport.email.utils.EmailConstants;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -44,14 +49,17 @@ import javax.mail.internet.MimeMessage;
  */
 public class EmailClientConnector implements ClientConnector {
     private static final Logger logger = LoggerFactory.getLogger(EmailClientConnector.class);
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> waitTillTimeOut;
     private Session session;
+    private Transport transport;
     private Boolean isInitMethodCalled = false;
 
-    @Override
-    public Object init(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, Object> properties)
-            throws ClientConnectorException {
+    @Override public Object init(CarbonMessage carbonMessage, CarbonCallback carbonCallback,
+            Map<String, Object> properties) throws ClientConnectorException {
         Properties serverProperties = new Properties();
 
+        //mail server properties start with mail.smtp. Get them from properties map and put into serverProperties
         try {
             properties.forEach((key, value) -> {
                 if (key.startsWith("mail.smtp")) {
@@ -60,26 +68,37 @@ public class EmailClientConnector implements ClientConnector {
             });
         } catch (Exception e) {
             throw new ClientConnectorException(
-                    "Error is encountered while" + " casting value of property map"
-                            + " into String." + e.getMessage(), e);
+                    "Error is encountered while" + " casting value of property map" + " into String." + e.getMessage(),
+                    e);
         }
 
         String username = (String) properties.get(EmailConstants.MAIL_SENDER_USERNAME);
         String password = (String) properties.get(EmailConstants.MAIL_SENDER_PASSWORD);
 
-
         if (null == username || username.isEmpty()) {
-            throw new ClientConnectorException(
-                    "Username of the email account is" + " a mandatory parameter."
-                            + "It is not given in the email property map.");
+            throw new ClientConnectorException("Username of the email account is" + " a mandatory parameter."
+                    + "It is not given in the email property map.");
         }
 
         if (null == password || password.isEmpty()) {
-            throw new ClientConnectorException("Password of the email account is"
-                    + " a mandatory parameter." + "It is not given in the email property map.");
+            throw new ClientConnectorException("Password of the email account is" + " a mandatory parameter."
+                    + "It is not given in the email property map.");
         }
 
         session = Session.getInstance(serverProperties, new EmailAuthenticator(username, password));
+
+        try {
+            transport = session.getTransport();
+            transport.connect();
+        } catch (NoSuchProviderException e) {
+            throw new ClientConnectorException(
+                    "Error is encountered while creating transport" + " using the session." + e.getMessage(), e);
+        } catch (MessagingException e) {
+            throw new ClientConnectorException(
+                    "Error is encountered while creating " + " the connection using the session." + e.getMessage(), e);
+
+        }
+
         isInitMethodCalled = true;
         return true;
     }
@@ -87,8 +106,7 @@ public class EmailClientConnector implements ClientConnector {
     /**
      * @return false because, in this instance, the send method with a map parameter is required.
      */
-    @Override
-    public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
+    @Override public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback)
             throws ClientConnectorException {
         return false;
     }
@@ -96,38 +114,78 @@ public class EmailClientConnector implements ClientConnector {
     /**
      * {@inheritDoc}
      */
-    @Override
-    public synchronized boolean  send(CarbonMessage carbonMessage, CarbonCallback carbonCallback,
+    @Override public synchronized boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback,
             Map<String, String> emailProperties) throws ClientConnectorException {
 
         if (!isInitMethodCalled) {
-            throw new ClientConnectorException("Should call 'init' method first,"
-                    + " before calling the 'send' method");
+            throw new ClientConnectorException(
+                    "Should call 'init' method first," + " before calling the 'send' method");
+        }
+
+        // cancel the thread which wait to close the connection
+        if (waitTillTimeOut != null && !waitTillTimeOut.isDone()) {
+            waitTillTimeOut.cancel(true);
         }
 
         Message message = createMessage(session, carbonMessage, emailProperties);
 
         try {
-            Transport.send(message);
+            message.saveChanges();
         } catch (MessagingException e) {
-            throw new ClientConnectorException("Error occurred while sending the message.", e);
+            throw new ClientConnectorException("Error is encountered while saving the messages" + e.getMessage(), e);
+        }
+
+        if (transport.isConnected()) {
+            try {
+                transport.sendMessage(message, message.getAllRecipients());
+            } catch (Exception e) {
+                throw new ClientConnectorException(
+                        "Error is encountered while sending" + " the message. " + e.getMessage(), e);
+            }
+        } else {
+            try {
+                transport.connect();
+            } catch (MessagingException e) {
+                throw new ClientConnectorException("Error is encountered while connecting " + e.getMessage(), e);
+            }
+
+            try {
+                transport.sendMessage(message, message.getAllRecipients());
+            } catch (MessagingException e) {
+                throw new ClientConnectorException(
+                        "Error is encountered while sending" + " the message." + e.getMessage(), e);
+            }
         }
 
         if (logger.isDebugEnabled()) {
             logger.debug("Message is send successfully" + message.toString());
         }
+
+        //scheduler to close the connection after 5 minutes if send method is not called during that period.
+        //If send method is call during the period then schedule is reset.
+        waitTillTimeOut = scheduler.schedule(() -> {
+            if (transport.isConnected()) {
+                try {
+                    transport.close();
+                } catch (Exception e) {
+                    logger.warn("Error is encountered while closing the connection after waiting "
+                            + EmailConstants.WAIT_TIME + " minutes. " + e.getMessage(), e);
+                }
+            }
+        }, EmailConstants.WAIT_TIME, TimeUnit.MINUTES);
+
         return false;
     }
 
     /**
      * Create email message from the carbon message and given properties.
      *
-     * @param session Instance of the session relevant to smtp server
-     * @param carbonMessage Carbon message which have o convert the email message
+     * @param session         Instance of the session relevant to smtp server
+     * @param carbonMessage   Carbon message which have o convert the email message
      * @param emailProperties Properties of the email client connector
      * @return Message is to be send to the given recipients
      * @throws ClientConnectorException ClientConnectorException when action is failed
-     *                                 due to a email layer error.
+     *                                  due to a email layer error.
      */
     private Message createMessage(Session session, CarbonMessage carbonMessage, Map<String, String> emailProperties)
             throws ClientConnectorException {
@@ -143,9 +201,9 @@ public class EmailClientConnector implements ClientConnector {
                 contentType = EmailConstants.CONTENT_TYPE_TEXT_HTML;
             } else {
                 throw new ClientConnectorException(
-                        "Email content type should be either '" + EmailConstants.CONTENT_TYPE_TEXT_PLAIN +
-                                "' or '" + EmailConstants.CONTENT_TYPE_TEXT_HTML + "'. But found '"
-                                + emailProperties.get(EmailConstants.CONTENT_TYPE) + "'");
+                        "Email content type should be either '" + EmailConstants.CONTENT_TYPE_TEXT_PLAIN + "' or '"
+                                + EmailConstants.CONTENT_TYPE_TEXT_HTML + "'. But found '" + emailProperties
+                                .get(EmailConstants.CONTENT_TYPE) + "'");
             }
         } else {
             if (logger.isDebugEnabled()) {
@@ -208,28 +266,25 @@ public class EmailClientConnector implements ClientConnector {
             }
 
         } catch (MessagingException e) {
-            throw new ClientConnectorException("Error occurred while creating the email "
-                    + "using given carbon message. " +  e.getMessage() , e);
+            throw new ClientConnectorException(
+                    "Error occurred while creating the email " + "using given carbon message. " + e.getMessage(), e);
         }
 
         return message;
 
     }
 
-
     /**
      * {@inheritDoc}
      */
-    @Override
-    public String getProtocol() {
+    @Override public String getProtocol() {
         return EmailConstants.PROTOCOL_MAIL;
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
-    public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
+    @Override public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
 
     }
 
@@ -246,7 +301,7 @@ public class EmailClientConnector implements ClientConnector {
         }
 
         protected PasswordAuthentication getPasswordAuthentication() {
-             return new PasswordAuthentication(username, password);
-         }
+            return new PasswordAuthentication(username, password);
+        }
     }
 }
