@@ -33,7 +33,6 @@ import java.util.Map;
 public class FileServerConnector extends PollingServerConnector {
     private static final Logger log = LoggerFactory.getLogger(FileServerConnector.class);
 
-
     private static final long FILE_CONNECTOR_DEFAULT_INTERVAL = 10000L;
     private CarbonMessageProcessor messageProcessor;
     private FileConsumer consumer;
@@ -58,14 +57,13 @@ public class FileServerConnector extends PollingServerConnector {
         stop();
     }
 
-
     @Override
     public void start() throws ServerConnectorException {
         try {
             consumer = new FileConsumer(id, getProperties(), messageProcessor);
             super.start();
         } catch (RuntimeException e) {
-            throw new ServerConnectorException("Failed to start File server connector for Service: " + id, e);
+            throw new ServerConnectorException("Failed to start File Server Connector for service: " + id, e);
         }
     }
 
@@ -74,7 +72,7 @@ public class FileServerConnector extends PollingServerConnector {
         try {
             consumer.consume();
         } catch (FileServerConnectorException e) {
-            log.error("Error executing the polling cycle of File " + "server connector for service: " + id, e);
+            log.error("Error in executing the polling cycle of File Server Connector for service: " + id, e);
         } 
     }
 }

@@ -24,6 +24,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.Selectors;
 import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.BinaryCarbonMessage;
@@ -53,7 +54,17 @@ public class VFSClientConnector implements ClientConnector {
     @Override
     public Object init(CarbonMessage cMsg, CarbonCallback callback, Map<String, Object> properties)
             throws ClientConnectorException {
-        throw new ClientConnectorException("Method not supported for VFS.");
+        //TODO: Handle FS options configuration for other protocols as well
+        if (Constants.PROTOCOL_FTP.equals(properties.get("PROTOCOL"))) {
+            properties.forEach((property, value) -> {
+                // TODO: Add support for other FTP related configurations
+                if (Constants.FTP_PASSIVE_MODE.equals(property)) {
+                    FtpFileSystemConfigBuilder.getInstance().setPassiveMode(opts, (Boolean) value);
+                }
+            });
+        }
+
+        return Boolean.TRUE;
     }
 
     @Override
@@ -65,12 +76,13 @@ public class VFSClientConnector implements ClientConnector {
     @Override
     public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, String> map)
             throws ClientConnectorException {
+        FtpFileSystemConfigBuilder.getInstance().setPassiveMode(opts, true);
         String fileURI = map.get(Constants.FILE_URI);
         String action = map.get(Constants.ACTION);
         FileType fileType;
         ByteBuffer byteBuffer;
-        InputStream is = null;
-        OutputStream os = null;
+        InputStream inputStream = null;
+        OutputStream outputStream = null;
         try {
             FileSystemManager fsManager = VFS.getManager();
             FileObject path = fsManager.resolveFile(fileURI, opts);
@@ -80,8 +92,7 @@ public class VFSClientConnector implements ClientConnector {
                 case Constants.CREATE:
                     boolean isFolder = Boolean.parseBoolean(map.getOrDefault("create-folder", "false"));
                     if (path.exists()) {
-                        logger.info("Deleting existing file/folder");
-                        path.delete();
+                        throw new ClientConnectorException("File already exists: " + path.getName().getURI());
                     }
                     if (isFolder) {
                         path.createFolder();
@@ -100,27 +111,28 @@ public class VFSClientConnector implements ClientConnector {
                             BinaryCarbonMessage binaryCarbonMessage = (BinaryCarbonMessage) carbonMessage;
                             byteBuffer = binaryCarbonMessage.readBytes();
                         } else {
-                            throw new ClientConnectorException(
-                                    "received carbon message " + "isn't a BinaryCarbonMessage");
+                            throw new ClientConnectorException("Carbon message received is not a BinaryCarbonMessage");
                         }
                         byte[] bytes = byteBuffer.array();
                         if (map.get(Constants.APPEND) != null) {
-                            os = path.getContent().
-                                    getOutputStream(Boolean.parseBoolean(map.get(Constants.APPEND)));
+                            outputStream = path.getContent().getOutputStream(
+                                    Boolean.parseBoolean(map.get(Constants.APPEND)));
                         } else {
-                            os = path.getContent().getOutputStream();
+                            outputStream = path.getContent().getOutputStream();
                         }
-                        os.write(bytes);
-                        os.flush();
+                        outputStream.write(bytes);
+                        outputStream.flush();
                     }
                     break;
                 case Constants.DELETE:
                     if (path.exists()) {
                         int filesDeleted = path.delete(Selectors.SELECT_ALL);
-                        logger.debug(filesDeleted + "files Successfully Deleted");
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(filesDeleted + " files successfully deleted");
+                        }
                     } else {
-                        throw new ClientConnectorException("failed to delete file: file " +
-                                                           "not found:" + path.getName());
+                        throw new ClientConnectorException(
+                                "Failed to delete file: " + path.getName().getURI() + " not found");
                     }
                     break;
                 case Constants.COPY:
@@ -129,12 +141,13 @@ public class VFSClientConnector implements ClientConnector {
                         FileObject dest = fsManager.resolveFile(destination, opts);
                         dest.copyFrom(path, Selectors.SELECT_ALL);
                     } else {
-                        throw new ClientConnectorException("failed to copy file: file " +
-                                                           "not found:" + path.getName());
+                        throw new ClientConnectorException(
+                                "Failed to copy file: " + path.getName().getURI() + " not found");
                     }
                     break;
                 case Constants.MOVE:
                     if (path.exists()) {
+                        //TODO: Improve this to fix issue #331
                         String destination = map.get("destination");
                         FileObject newPath = fsManager.resolveFile(destination, opts);
                         FileObject parent = newPath.getParent();
@@ -144,23 +157,26 @@ public class VFSClientConnector implements ClientConnector {
                         if (!newPath.exists()) {
                             path.moveTo(newPath);
                         } else {
-                            throw new ClientConnectorException("the file at " + newPath.getURL().toString() +
+                            throw new ClientConnectorException("The file at " + newPath.getURL().toString() +
                                                                        " already exists or it is a directory");
                         }
                     } else {
-                        throw new ClientConnectorException("failed to move file: file not found:" + path.getName());
+                        throw new ClientConnectorException(
+                                "Failed to move file: " + path.getName().getURI() + " not found");
                     }
                     break;
                 case Constants.READ:
                     if (path.exists()) {
-                        is = path.getContent().getInputStream();
-                        byte[] bytes = toByteArray(is);
+                        //TODO: Do not assume 'path' always refers to a file
+                        inputStream = path.getContent().getInputStream();
+                        byte[] bytes = toByteArray(inputStream);
                         BinaryCarbonMessage message = new BinaryCarbonMessage(ByteBuffer.wrap(bytes), true);
                         message.setProperty(org.wso2.carbon.messaging.Constants.DIRECTION,
                                             org.wso2.carbon.messaging.Constants.DIRECTION_RESPONSE);
                         carbonMessageProcessor.receive(message, carbonCallback);
                     } else {
-                        throw new ClientConnectorException("failed to read file: file not found:" + path.getName());
+                        throw new ClientConnectorException(
+                                "Failed to read file: " + path.getName().getURI() + " not found");
                     }
                     break;
                 case Constants.EXISTS:
@@ -177,15 +193,16 @@ public class VFSClientConnector implements ClientConnector {
         } catch (Exception e) {
             throw new ClientConnectorException("Exception occurred while processing file: " + e.getMessage(), e);
         } finally {
-            closeQuietly(is);
-            closeQuietly(os);
+            closeQuietly(inputStream);
+            closeQuietly(outputStream);
         }
         return true;
     }
 
     @Override
     public String getProtocol() {
-        return Constants.PROTOCOL_NAME;
+        // TODO: Revisit this
+        return Constants.PROTOCOL_FILE;
     }
 
     /**
@@ -203,7 +220,9 @@ public class VFSClientConnector implements ClientConnector {
         for (; -1 != (n1 = input.read(buffer)); count += (long) n1) {
             output.write(buffer, 0, n1);
         }
-        logger.debug(count + " no. of bytes read");
+        if (logger.isDebugEnabled()) {
+            logger.debug(count + " bytes read");
+        }
         byte[] bytes = output.toByteArray();
         closeQuietly(output);
         return bytes;
@@ -221,7 +240,6 @@ public class VFSClientConnector implements ClientConnector {
         } catch (IOException e) {
             logger.error("Error occurred when closing stream", e);
         }
-
     }
 
     @Override

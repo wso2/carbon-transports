@@ -133,9 +133,11 @@ public class FileTransportUtils {
      *
      * @param fsManager     The file system manager instance
      * @param fileObject    The file object to get the lock from
+     * @param fsOpts        The file system options to be used with the file system manager
      * @return              Boolean value whether lock was successful
      */
-    public static synchronized boolean acquireLock(FileSystemManager fsManager, FileObject fileObject) {
+    public static synchronized boolean acquireLock(FileSystemManager fsManager, FileObject fileObject,
+                                                   FileSystemOptions fsOpts) {
         String strContext = fileObject.getName().getURI();
 
         // When processing a directory list is fetched initially. Therefore
@@ -147,7 +149,7 @@ public class FileTransportUtils {
                 String suffix = parentURI.substring(parentURI.indexOf("?"));
                 strContext += suffix;
             }
-            FileObject sourceFile = fsManager.resolveFile(strContext);
+            FileObject sourceFile = fsManager.resolveFile(strContext, fsOpts);
             if (!sourceFile.exists()) {
                 return false;
             }
@@ -166,7 +168,7 @@ public class FileTransportUtils {
             if (pos != -1) {
                 fullPath = fullPath.substring(0, pos);
             }
-            lockObject = fsManager.resolveFile(fullPath + ".lock");
+            lockObject = fsManager.resolveFile(fullPath + ".lock", fsOpts);
             if (lockObject.exists()) {
                 log.debug("There seems to be an external lock, aborting the processing of the file " +
                           maskURLPassword(fileObject.getName().getURI()) +
@@ -176,7 +178,7 @@ public class FileTransportUtils {
                 log.debug(maskURLPassword(fileObject.getName().getURI()) + "is already being processed.");
             } else {
                 //Check the original file existence before the lock file to handle concurrent access scenario
-                FileObject originalFileObject = fsManager.resolveFile(fullPath);
+                FileObject originalFileObject = fsManager.resolveFile(fullPath, fsOpts);
                 if (!originalFileObject.exists()) {
                     return false;
                 }
@@ -200,10 +202,10 @@ public class FileTransportUtils {
     /**
      * Release a file item lock acquired at the start of processing.
      *
-     * @param fo    File that needs the lock to be removed
+     * @param fileObject    File that needs the lock to be removed
      */
-    public static synchronized void releaseLock(FileObject fo) {
-        String fullPath = fo.getName().getURI();
+    public static synchronized void releaseLock(FileObject fileObject) {
+        String fullPath = fileObject.getName().getURI();
         processing.remove(fullPath);
     }
 }
