@@ -23,7 +23,8 @@ package org.wso2.carbon.transport.file.connector.sender;
  */
 public final class Constants {
 
-    public static final String PROTOCOL_NAME = "file";
+    public static final String PROTOCOL_FILE = "file";
+    public static final String PROTOCOL_FTP = "ftp";
 
     public static final String APPEND = "append";
     public static final String FILE_URI = "uri";
@@ -35,6 +36,9 @@ public final class Constants {
     public static final String MOVE = "move";
     public static final String READ = "read";
     public static final String EXISTS = "exists";
+
+    // Constants for FTP protocol related configurations
+    public static final String FTP_PASSIVE_MODE = "FTP_PASSIVE_MODE";
 
     private Constants() {
     }
