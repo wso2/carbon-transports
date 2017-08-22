@@ -423,6 +423,7 @@ public class JMSConnectionFactory implements ConnectionFactory, QueueConnectionF
      *
      * @param destinationName name of the {@link Destination}
      * @return Destination
+     * @throws NamingException if any naming error occurred when looking up destination.
      */
     public Destination getDestination(String destinationName) throws NamingException {
         return JMSUtils.lookupDestination(ctx, destinationName, "");

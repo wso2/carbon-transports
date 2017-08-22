@@ -29,6 +29,7 @@ public interface JMSListener {
      * Transport will trigger this method when for each jms message.
      *
      * @param jmsMessage contains the msg data.
+     * @param jmsCallback callback for the message.
      */
     void onMessage(CarbonMessage jmsMessage, JMSCallback jmsCallback);
 

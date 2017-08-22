@@ -34,7 +34,7 @@ public interface JMSConnectorFactory {
      * @param connectorConfig       properties required for the {@link JMSServerConnector} class.
      * @param jmsListener           listener which gets triggered when message comes.
      * @return jmsServerConnector   newly created JMS server connector instance.
-     * @throws JMSConnectorException
+     * @throws JMSConnectorException if any error occurred when creating the server connector.
      */
     JMSServerConnector createServerConnector(String serviceId, Map<String, String> connectorConfig,
                                              JMSListener jmsListener) throws JMSConnectorException;
@@ -43,7 +43,7 @@ public interface JMSConnectorFactory {
      * Returns an instance of the {@link JMSClientConnector} class.
      *
      * @return jmsClientConnector   instance.
-     * @throws JMSConnectorException
+     * @throws JMSConnectorException if any error occurred when creating the client connector.
      */
     JMSClientConnector createClientConnector() throws JMSConnectorException;
 }

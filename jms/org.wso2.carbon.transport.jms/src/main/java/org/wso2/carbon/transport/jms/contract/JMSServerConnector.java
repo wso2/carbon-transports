@@ -27,6 +27,8 @@ public interface JMSServerConnector {
 
     /**
      * Start the server connector which actually starts listening for jms messages.
+     *
+     * @throws JMSConnectorException if error occurred while starting the server connector.
      */
     void start() throws JMSConnectorException;
 
@@ -34,6 +36,7 @@ public interface JMSServerConnector {
      * Stops the server connector which actually closes the port.
      *
      * @return state of action.
+     * @throws JMSConnectorException if error occurred while stopping the server connector.
      */
     boolean stop() throws JMSConnectorException;
 }
