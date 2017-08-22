@@ -51,6 +51,7 @@ public class JMSUtils {
      * @param destinationName name of the destination to be looked up
      * @param destinationType type of the destination to be looked up
      * @return the JMS destination, or null if it does not exist
+     * @throws NamingException if any naming error occurred when looking up destination.
      */
     public static Destination lookupDestination(Context context, String destinationName, String destinationType)
             throws NamingException {
@@ -97,6 +98,7 @@ public class JMSUtils {
      *
      * @param message JMS message that need to be changed as carbon message
      * @return the carbon message converted from jms message
+     * @throws JMSConnectorException if error occurred while changing the jms message to carbon message.
      */
     public static CarbonMessage createJMSCarbonMessage(Message message) throws JMSConnectorException {
         CarbonMessage jmsCarbonMessage;

@@ -114,7 +114,7 @@ public class JMSMessageConsumer implements MessageConsumer {
      * @param password The password to use when connecting to the JMS provider
      * @param retryInterval The retry interval in milliseconds to retry connection to JMS provider when failed
      * @param maxRetryCount The maximum retry count to retry when connection to the JMS provider fails
-     * @throws JMSConnectorException
+     * @throws JMSConnectorException if any error occurred staring consuming data.
      */
     public JMSMessageConsumer(JMSConnectionFactory connectionFactory, boolean useReceiver,
                               JMSServerConnectorFuture jmsServerConnectorFuture, String serviceId, String username,
