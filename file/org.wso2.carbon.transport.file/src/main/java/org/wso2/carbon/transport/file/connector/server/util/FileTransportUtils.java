@@ -43,8 +43,9 @@ public class FileTransportUtils {
      *
      * @param options   A map containing the options to be attached to the file system
      * @param fsManager The file system manager instance
-     * @return
-     * @throws FileServerConnectorException
+     * @return          A FileSystemOption instance
+     * @throws FileServerConnectorException Throws an exception if there are any issues in configuring the
+     *                                      connector
      */
     public static FileSystemOptions attachFileSystemOptions(
             Map<String, String> options, FileSystemManager fsManager) throws FileServerConnectorException {
