@@ -49,10 +49,11 @@ public class FileTransportUtils {
     /**
      * A utility method for setting the relevant configurations for the file system in question
      *
-     * @param options
-     * @param fsManager
-     * @return
-     * @throws FileSystemServerConnectorException
+     * @param options   Options to be used with the file system manager
+     * @param fsManager File system manager instance
+     * @return A FileSystemOptions instance
+     * @throws FileSystemServerConnectorException   Throws an exception if there are any issues in configuring the
+     *                                              connector
      */
     public static FileSystemOptions attachFileSystemOptions(
             Map<String, String> options, FileSystemManager fsManager) throws FileSystemServerConnectorException {
@@ -100,8 +101,8 @@ public class FileTransportUtils {
     /**
      * A utility method for masking the password in a file URI
      *
-     * @param url
-     * @return
+     * @param url   URL to be masked
+     * @return The masked URL
      */
     public static String maskURLPassword(String url) {
         Matcher urlMatcher = URL_PATTERN.matcher(url);
@@ -117,8 +118,8 @@ public class FileTransportUtils {
     /**
      * A utility method for retrieving the type of the file
      *
-     * @param fileType
-     * @return
+     * @param fileType  A string representing the type of a given file
+     * @return An integer representing the file type
      */
     private static Integer getFileType(String fileType) {
         fileType = fileType.toUpperCase(Locale.US);

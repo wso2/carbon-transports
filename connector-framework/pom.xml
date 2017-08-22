@@ -18,7 +18,7 @@
     <parent>
         <artifactId>org.wso2.carbon.transport.parent</artifactId>
         <groupId>org.wso2.carbon.transport</groupId>
-        <version>4.4.30-SNAPSHOT</version>
+        <version>5.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -51,6 +51,10 @@
             <groupId>org.wso2.orbit.org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-api</artifactId>
+        </dependency>
     </dependencies>
 
     <properties>
@@ -67,7 +71,7 @@
             org.quartz.*;version="${quartz.version.range}"
         </import.package>
         <carbon.component>
-            startup.listener;componentName="wso2-server-connector-sc";requiredService="org.wso2.carbon.messaging.ServerConnectorProvider"
+            startup.connectorListener;componentName="wso2-server-connector-sc";requiredService="org.wso2.carbon.messaging.ServerConnectorProvider"
         </carbon.component>
         <bundle.activator>org.wso2.carbon.connector.framework.server.internal.ServerConnectorBundleActivator</bundle.activator>
     </properties>

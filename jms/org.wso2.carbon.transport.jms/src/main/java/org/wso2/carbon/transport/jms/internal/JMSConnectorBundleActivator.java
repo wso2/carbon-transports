@@ -17,8 +17,6 @@ package org.wso2.carbon.transport.jms.internal;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.messaging.ServerConnectorProvider;
-import org.wso2.carbon.transport.jms.provider.JMSServerConnectorProvider;
 
 /**
  * OSGi BundleActivator of the JMS Server Connector Bundle.
@@ -26,7 +24,7 @@ import org.wso2.carbon.transport.jms.provider.JMSServerConnectorProvider;
 public class JMSConnectorBundleActivator implements BundleActivator {
     @Override
     public void start(BundleContext bundleContext) throws Exception {
-        bundleContext.registerService(ServerConnectorProvider.class.toString(), new JMSServerConnectorProvider(), null);
+//      bundleContext.registerService(ServerConnectorProvider.class.toString(), new JMSServerConnectorProvider(), null);
     }
 
     @Override

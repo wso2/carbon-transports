@@ -106,7 +106,7 @@ public class FileConsumer {
         }
     }
 
-    /**
+    /*
      * Do the file processing operation for the given set of properties. Do the
      * checks and pass the control to processFile method
      */
