@@ -21,8 +21,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.messaging.CarbonMessageProcessor;
-import org.wso2.carbon.messaging.TextCarbonMessage;
+import org.wso2.carbon.transport.filesystem.connector.server.contract.FileSystemMessage;
+import org.wso2.carbon.transport.filesystem.connector.server.contract.FileSystemServerConnectorFuture;
 import org.wso2.carbon.transport.filesystem.connector.server.exception.FileSystemServerConnectorException;
 import org.wso2.carbon.transport.filesystem.connector.server.util.Constants;
 import org.wso2.carbon.transport.filesystem.connector.server.util.FileTransportUtils;
@@ -36,7 +36,7 @@ class FileSystemProcessor implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(FileSystemProcessor.class);
 
-    private CarbonMessageProcessor messageProcessor;
+    private FileSystemServerConnectorFuture fileSystemServerConnectorFuture;
     private FileObject file;
     private long timeOutInterval;
     private String serviceName;
@@ -47,7 +47,7 @@ class FileSystemProcessor implements Runnable {
     /**
      * Initializes the message processor with file details.
      *
-     * @param messageProcessor   The message processor instance
+     * @param fileSystemServerConnectorFuture   The FileSystemServerConnectorFuture instance to notify callback
      * @param serviceName        The name of the destination service
      * @param file               The file to be processed
      * @param timeOutInterval    Time-out interval in milliseconds for waiting for the acknowledgement
@@ -55,10 +55,10 @@ class FileSystemProcessor implements Runnable {
      * @param fileSystemConsumer FileSystemConsumer instance of processed file/directory
      * @param postProcessAction  Action to be applied to file once it is processed
      */
-    FileSystemProcessor(CarbonMessageProcessor messageProcessor, String serviceName, FileObject file,
-                        long timeOutInterval, String fileURI,
+    FileSystemProcessor(FileSystemServerConnectorFuture fileSystemServerConnectorFuture, String serviceName,
+                        FileObject file, long timeOutInterval, String fileURI,
                         FileSystemConsumer fileSystemConsumer, String postProcessAction) {
-        this.messageProcessor = messageProcessor;
+        this.fileSystemServerConnectorFuture = fileSystemServerConnectorFuture;
         this.file = file;
         this.timeOutInterval = timeOutInterval;
         this.serviceName = serviceName;
@@ -75,7 +75,7 @@ class FileSystemProcessor implements Runnable {
         String uri = file.getName().getURI();
         uri = uri.startsWith("file://") ? uri.replace("file://", "") : uri;
 
-        TextCarbonMessage message = new TextCarbonMessage(uri);
+        FileSystemMessage message = new FileSystemMessage(uri);
         try {
             String protocol = file.getURL().getProtocol();
 
@@ -100,7 +100,7 @@ class FileSystemProcessor implements Runnable {
         boolean processFailed = false;
         FileSystemServerConnectorCallback callback = new FileSystemServerConnectorCallback();
         try {
-            messageProcessor.receive(message, callback);
+            fileSystemServerConnectorFuture.notifyFileSystemListener(message);
         } catch (Exception e) {
             logger.warn(
                     "Failed to send stream from file: " + FileTransportUtils.maskURLPassword(fileURI)

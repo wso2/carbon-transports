@@ -28,9 +28,9 @@ import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.ServerConnectorErrorHandler;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
+import org.wso2.carbon.transport.filesystem.connector.server.contract.FileSystemServerConnectorFuture;
 import org.wso2.carbon.transport.filesystem.connector.server.exception.FileSystemServerConnectorException;
 import org.wso2.carbon.transport.filesystem.connector.server.util.Constants;
 import org.wso2.carbon.transport.filesystem.connector.server.util.FileTransportUtils;
@@ -57,7 +57,7 @@ public class FileSystemConsumer {
     private Map<String, String> fileProperties;
     private FileSystemManager fsManager = null;
     private String serviceName;
-    private CarbonMessageProcessor messageProcessor;
+    private FileSystemServerConnectorFuture fileSystemServerConnectorFuture;
     private String listeningDirURI; // The URI of the currently listening directory
     private FileObject listeningDir; // The directory we are currently listening to
     private FileSystemOptions fso;
@@ -79,13 +79,14 @@ public class FileSystemConsumer {
      *
      * @param id                Name of the service that creates the consumer
      * @param fileProperties    Map of property values
-     * @param messageProcessor  Message processor instance
+     * @param fileSystemServerConnectorFuture  FileSystemServerConnectorFuture instance to send callback
      */
-    FileSystemConsumer(String id, Map<String, String> fileProperties, CarbonMessageProcessor messageProcessor,
-                       ServerConnectorErrorHandler errorHandler) throws ServerConnectorException {
+    public FileSystemConsumer(String id, Map<String, String> fileProperties,
+                              FileSystemServerConnectorFuture fileSystemServerConnectorFuture,
+                              ServerConnectorErrorHandler errorHandler) throws ServerConnectorException {
         this.serviceName = id;
         this.fileProperties = fileProperties;
-        this.messageProcessor = messageProcessor;
+        this.fileSystemServerConnectorFuture = fileSystemServerConnectorFuture;
         this.errorHandler = errorHandler;
 
         setupParams();
@@ -237,7 +238,7 @@ public class FileSystemConsumer {
      * Do the file processing operation for the given set of properties. Do the
      * checks and pass the control to file system processor thread/threads.
      */
-    void consume() throws FileSystemServerConnectorException {
+    public void consume() throws FileSystemServerConnectorException {
         if (log.isDebugEnabled()) {
             log.debug("Thread name: " + Thread.currentThread().getName());
             log.debug("File System Consumer hashcode: " + this.hashCode());
@@ -428,7 +429,7 @@ public class FileSystemConsumer {
                     log.info("Processing file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 }
                 FileSystemProcessor fsp =
-                        new FileSystemProcessor(messageProcessor, serviceName, file, timeOutInterval,
+                        new FileSystemProcessor(fileSystemServerConnectorFuture, serviceName, file, timeOutInterval,
                                                                 uri, this, postProcessAction);
                 fsp.startProcessThread();
                 processCount++;

@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.connector.framework.server.polling.PollingServerConnector;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
+import org.wso2.carbon.transport.filesystem.connector.server.contract.FileSystemServerConnectorFuture;
 import org.wso2.carbon.transport.filesystem.connector.server.exception.FileSystemServerConnectorException;
 
 import java.util.Map;
@@ -35,17 +36,18 @@ class FileSystemServerConnector extends PollingServerConnector {
     private static final Logger log = LoggerFactory.getLogger(FileSystemServerConnector.class);
 
     private static final long FILE_CONNECTOR_DEFAULT_INTERVAL = 10000L;
-    private CarbonMessageProcessor messageProcessor;
     private FileSystemConsumer consumer;
+    private FileSystemServerConnectorFuture fileSystemServerConnectorFuture;
 
-    FileSystemServerConnector(String id, Map<String, String> properties) {
+    FileSystemServerConnector(String id, Map<String, String> properties,
+                              FileSystemServerConnectorFuture fileSystemServerConnectorFuture) {
         super(id, properties);
         interval = FILE_CONNECTOR_DEFAULT_INTERVAL; //this might be overridden in super.start()
+        this.fileSystemServerConnectorFuture = fileSystemServerConnectorFuture;
     }
 
     @Override
     public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
-        messageProcessor = carbonMessageProcessor;
     }
 
     @Override
@@ -61,7 +63,7 @@ class FileSystemServerConnector extends PollingServerConnector {
     @Override
     public void start() throws ServerConnectorException {
         try {
-            consumer = new FileSystemConsumer(id, getProperties(), messageProcessor, errorHandler);
+            consumer = new FileSystemConsumer(id, getProperties(), fileSystemServerConnectorFuture, errorHandler);
             super.start();
         } catch (RuntimeException e) {
             throw new ServerConnectorException("Failed to start File server connector for Service: " + id, e);

@@ -26,8 +26,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Server connector provider for File transport.
+ * Server connector provider for FileSystem transport.
  */
+@Deprecated
 public class FileSystemServerConnectorProvider extends ServerConnectorProvider {
 
     public FileSystemServerConnectorProvider() {
@@ -41,6 +42,6 @@ public class FileSystemServerConnectorProvider extends ServerConnectorProvider {
 
     @Override
     public ServerConnector createConnector(String s, Map<String, String> properties) {
-        return new FileSystemServerConnector(s, properties);
+        return new FileSystemServerConnector(s, properties, null);
     }
 }
