@@ -57,8 +57,7 @@ public class FileSystemServerConnectorTestCase {
                 connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
         testConnector.start();
         fileSystemListener.waitTillDone();
-        String completeFilePath = "/home/gihan/wso2/source/git/int/carbon-transports/file/" +
-                "org.wso2.carbon.transport.file-system/target/test-classes/test/test.txt";
+        String completeFilePath = fileURI + "/test.txt";
         Assert.assertEquals(completeFilePath, fileSystemListener.getText());
         testConnector.stop();
     }
@@ -79,8 +78,7 @@ public class FileSystemServerConnectorTestCase {
                 connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
         testConnector.start();
         fileSystemListener.waitTillDone();
-        String completeFilePath = "/home/gihan/wso2/source/git/int/carbon-transports/file/" +
-                "org.wso2.carbon.transport.file-system/target/test-classes/fs-cron/testCron.txt";
+        String completeFilePath = fileURI + "/testCron.txt";
         Assert.assertEquals(completeFilePath, fileSystemListener.getText());
         testConnector.stop();
     }
