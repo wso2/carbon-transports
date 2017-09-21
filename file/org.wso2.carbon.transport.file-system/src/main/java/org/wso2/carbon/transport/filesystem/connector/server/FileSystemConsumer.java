@@ -66,7 +66,6 @@ public class FileSystemConsumer {
     private int threadPoolSize = 10;
     private int fileProcessCount;
     private int processCount;
-    private long timeOutInterval = 30000; // Time-out interval (in milli-seconds) to wait for the callback.
     private String fileNamePattern = null;
     private String postProcessAction = Constants.ACTION_NONE;
     private String postFailureAction = Constants.ACTION_NONE;
@@ -150,32 +149,18 @@ public class FileSystemConsumer {
                     new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " parameter cannot be empty for " +
                     Constants.PROTOCOL_FILE_SYSTEM + " transport."), null, null);
         }
-
-        String timeOut = fileProperties.get(Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT);
-        if (timeOut != null) {
-            try {
-                timeOutInterval = Long.parseLong(timeOut);
-            } catch (NumberFormatException e) {
-                log.error("Provided " + Constants.FILE_ACKNOWLEDGEMENT_TIME_OUT + " is invalid. " +
-                          "Using the default callback timeout, " + timeOutInterval + " milliseconds", e);
-            }
-        }
-
         String strParallel = fileProperties.get(Constants.PARALLEL);
         if (strParallel != null) {
             parallelProcess = Boolean.parseBoolean(strParallel);
         }
-
         String strPoolSize = fileProperties.get(Constants.THREAD_POOL_SIZE);
         if (strPoolSize != null) {
             threadPoolSize = Integer.parseInt(strPoolSize);
         }
-
         String strProcessCount = fileProperties.get(Constants.FILE_PROCESS_COUNT);
         if (strProcessCount != null) {
             fileProcessCount = Integer.parseInt(strProcessCount);
         }
-
         if (fileProperties.get(Constants.ACTION_AFTER_FAILURE) != null) {
             switch (fileProperties.get(Constants.ACTION_AFTER_FAILURE)) {
                 case Constants.ACTION_MOVE:
@@ -308,10 +293,10 @@ public class FileSystemConsumer {
         String strSortParam = fileProperties.get(Constants.FILE_SORT_PARAM);
 
         // TODO: rethink the way the string constants are handled
-        if (strSortParam != null && !"NONE".equals(strSortParam)) {
+        if (strSortParam != null && !Constants.ACTION_NONE.equals(strSortParam)) {
             if (log.isDebugEnabled()) {
-                log.debug(
-                        "Starting to sort the files in folder: " + FileTransportUtils.maskURLPassword(listeningDirURI));
+                log.debug("Starting to sort the files in folder: " +
+                        FileTransportUtils.maskURLPassword(listeningDirURI));
             }
 
             String strSortOrder = fileProperties.get(Constants.FILE_SORT_ORDER);
@@ -429,8 +414,8 @@ public class FileSystemConsumer {
                     log.info("Processing file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 }
                 FileSystemProcessor fsp =
-                        new FileSystemProcessor(fileSystemServerConnectorFuture, serviceName, file, timeOutInterval,
-                                                                uri, this, postProcessAction);
+                        new FileSystemProcessor(fileSystemServerConnectorFuture, serviceName, file, uri, this,
+                                postProcessAction);
                 fsp.startProcessThread();
                 processCount++;
             } else {

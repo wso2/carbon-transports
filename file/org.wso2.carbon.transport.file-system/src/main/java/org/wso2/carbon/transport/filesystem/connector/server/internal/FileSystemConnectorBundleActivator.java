@@ -18,8 +18,6 @@ package org.wso2.carbon.transport.filesystem.connector.server.internal;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.messaging.ServerConnectorProvider;
-import org.wso2.carbon.transport.filesystem.connector.server.FileSystemServerConnectorProvider;
 
 /**
  * OSGi BundleActivator of the File System Server Connector Bundle.
@@ -28,8 +26,6 @@ public class FileSystemConnectorBundleActivator implements BundleActivator {
 
     @Override
     public void start(BundleContext bundleContext) throws Exception {
-        bundleContext.registerService(ServerConnectorProvider.class.toString(), new FileSystemServerConnectorProvider(),
-                                      null);
     }
 
     @Override

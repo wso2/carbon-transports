@@ -38,7 +38,6 @@ class FileSystemProcessor implements Runnable {
 
     private FileSystemServerConnectorFuture fileSystemServerConnectorFuture;
     private FileObject file;
-    private long timeOutInterval;
     private String serviceName;
     private String fileURI;
     private FileSystemConsumer fileSystemConsumer;
@@ -50,17 +49,15 @@ class FileSystemProcessor implements Runnable {
      * @param fileSystemServerConnectorFuture   The FileSystemServerConnectorFuture instance to notify callback
      * @param serviceName        The name of the destination service
      * @param file               The file to be processed
-     * @param timeOutInterval    Time-out interval in milliseconds for waiting for the acknowledgement
      * @param fileURI            The URI of the file which is being processed
      * @param fileSystemConsumer FileSystemConsumer instance of processed file/directory
      * @param postProcessAction  Action to be applied to file once it is processed
      */
     FileSystemProcessor(FileSystemServerConnectorFuture fileSystemServerConnectorFuture, String serviceName,
-                        FileObject file, long timeOutInterval, String fileURI,
+                        FileObject file, String fileURI,
                         FileSystemConsumer fileSystemConsumer, String postProcessAction) {
         this.fileSystemServerConnectorFuture = fileSystemServerConnectorFuture;
         this.file = file;
-        this.timeOutInterval = timeOutInterval;
         this.serviceName = serviceName;
         this.fileURI = fileURI;
         this.fileSystemConsumer = fileSystemConsumer;
@@ -98,22 +95,12 @@ class FileSystemProcessor implements Runnable {
         }
 
         boolean processFailed = false;
-        FileSystemServerConnectorCallback callback = new FileSystemServerConnectorCallback();
         try {
             fileSystemServerConnectorFuture.notifyFileSystemListener(message);
         } catch (Exception e) {
             logger.warn(
                     "Failed to send stream from file: " + FileTransportUtils.maskURLPassword(fileURI)
                     + " to message processor. ", e);
-        }
-        try {
-            callback.waitTillDone(timeOutInterval, fileURI);
-        } catch (InterruptedException e) {
-            logger.warn("Interrupted while waiting for message processor to consume" +
-                                                         " the file input stream. Aborting processing of file: " +
-                                                         FileTransportUtils.maskURLPassword(fileURI), e);
-        } catch (FileSystemServerConnectorException e) {
-            logger.warn(e.getMessage());
             processFailed = true;
         }
 

@@ -45,7 +45,6 @@ public final class Constants {
     public static final String FILE_SORT_VALUE_SIZE = "size";
     public static final String FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP = "lastModifiedTimestamp";
     public static final String FILE_SORT_ORDER = "fileSortAscending";
-    public static final String FILE_ACKNOWLEDGEMENT_TIME_OUT = "ackTimeOut";
     public static final String FILE_NAME_PATTERN = "fileNamePattern";
     public static final String ACTION_AFTER_PROCESS = "actionAfterProcess";
     public static final String ACTION_AFTER_FAILURE = "actionAfterFailure";

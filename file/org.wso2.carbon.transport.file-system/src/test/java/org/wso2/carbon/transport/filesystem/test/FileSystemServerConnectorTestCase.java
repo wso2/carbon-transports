@@ -19,13 +19,12 @@
 package org.wso2.carbon.transport.filesystem.test;
 
 import org.testng.Assert;
-
 import org.testng.annotations.Test;
-import org.wso2.carbon.messaging.ServerConnector;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
-import org.wso2.carbon.transport.filesystem.connector.server.FileSystemServerConnectorProvider;
+import org.wso2.carbon.transport.filesystem.connector.server.contract.FileSystemServerConnector;
+import org.wso2.carbon.transport.filesystem.connector.server.contractimpl.FileSystemConnectorFactoryImpl;
 import org.wso2.carbon.transport.filesystem.connector.server.util.Constants;
-import org.wso2.carbon.transport.filesystem.test.util.TestMessageProcessor;
+import org.wso2.carbon.transport.filesystem.test.util.TestFileSystemListener;
 
 import java.io.File;
 import java.net.URL;
@@ -37,12 +36,13 @@ import java.util.Map;
  */
 public class FileSystemServerConnectorTestCase {
 
-    @Test(description = "Testing the scenario: reading a file and asserting whether its content " +
-            "is equal to what is expected.")
+    @Test(description = "Testing whether correctly getting the file path.")
     public void filePollingTestCase() throws ServerConnectorException, InterruptedException {
-        FileSystemServerConnectorProvider provider = new FileSystemServerConnectorProvider();
         ClassLoader classLoader = getClass().getClassLoader();
         URL url = classLoader.getResource("test");
+        if (url == null) {
+            Assert.fail("Unable to load the resource file.");
+        }
         String file = url.getFile();
         File testFile = new File(file);
         String fileURI = testFile.getAbsolutePath();
@@ -50,34 +50,38 @@ public class FileSystemServerConnectorTestCase {
         parameters.put(Constants.TRANSPORT_FILE_FILE_URI, fileURI);
         parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "1000");
         parameters.put(Constants.ACTION_AFTER_PROCESS, Constants.ACTION_NONE);
-        ServerConnector connector = provider.createConnector("testService", parameters);
 
-        TestMessageProcessor messageProcessor = new TestMessageProcessor();
-        connector.setMessageProcessor(messageProcessor);
-
-        connector.start();
-        messageProcessor.waitTillDone();
-        Assert.assertEquals(messageProcessor.getFileContent(), "File Server Connector test");
-        connector.stop();
+        FileSystemConnectorFactoryImpl connectorFactory = new FileSystemConnectorFactoryImpl();
+        TestFileSystemListener fileSystemListener = new TestFileSystemListener();
+        FileSystemServerConnector testConnector =
+                connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
+        testConnector.start();
+        fileSystemListener.waitTillDone();
+        String completeFilePath = "/home/gihan/wso2/source/git/int/carbon-transports/file/" +
+                "org.wso2.carbon.transport.file-system/target/test-classes/test/test.txt";
+        Assert.assertEquals(completeFilePath, fileSystemListener.getText());
+        testConnector.stop();
     }
 
-    @Test(description = "Testing the scenario: reading a file and asserting whether its content " +
-                        "is equal to what is expected with cron expression.")
+    @Test(description = "Testing whether correctly getting the file path with cron expression.")
     public void filePollingCronTestCase() throws ServerConnectorException, InterruptedException {
-        FileSystemServerConnectorProvider provider = new FileSystemServerConnectorProvider();
+
         ClassLoader classLoader = getClass().getClassLoader();
         String fileURI = new File(classLoader.getResource("fs-cron/").getFile()).getAbsolutePath();
         Map<String, String> parameters = new HashMap<>();
         parameters.put(Constants.TRANSPORT_FILE_FILE_URI, fileURI);
         parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.CRON_EXPRESSION, "0/5 * * * * ?");
-        ServerConnector connector = provider.createConnector("testService", parameters);
+        parameters.put(Constants.ACTION_AFTER_PROCESS, Constants.ACTION_NONE);
 
-        TestMessageProcessor messageProcessor = new TestMessageProcessor();
-        connector.setMessageProcessor(messageProcessor);
-
-        connector.start();
-        messageProcessor.waitTillDone();
-        Assert.assertEquals(messageProcessor.getFileContent(), "File Server Connector cron test");
-        connector.stop();
+        FileSystemConnectorFactoryImpl connectorFactory = new FileSystemConnectorFactoryImpl();
+        TestFileSystemListener fileSystemListener = new TestFileSystemListener();
+        FileSystemServerConnector testConnector =
+                connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
+        testConnector.start();
+        fileSystemListener.waitTillDone();
+        String completeFilePath = "/home/gihan/wso2/source/git/int/carbon-transports/file/" +
+                "org.wso2.carbon.transport.file-system/target/test-classes/fs-cron/testCron.txt";
+        Assert.assertEquals(completeFilePath, fileSystemListener.getText());
+        testConnector.stop();
     }
 }

@@ -39,7 +39,6 @@ public class FileSystemServerConnectorImpl extends PollingServerConnector implem
     private static final Logger log = LoggerFactory.getLogger(FileSystemServerConnectorImpl.class);
 
     private static final long FILE_CONNECTOR_DEFAULT_INTERVAL = 10000L;
-    private CarbonMessageProcessor messageProcessor;
     private FileSystemConsumer consumer;
 
     public FileSystemServerConnectorImpl(String id, Map<String, String> properties,
@@ -57,7 +56,6 @@ public class FileSystemServerConnectorImpl extends PollingServerConnector implem
 
     @Override
     public void setMessageProcessor(CarbonMessageProcessor carbonMessageProcessor) {
-        this.messageProcessor = carbonMessageProcessor;
     }
 
     @Override
