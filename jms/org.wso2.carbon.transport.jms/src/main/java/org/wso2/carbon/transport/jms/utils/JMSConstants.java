@@ -55,6 +55,7 @@ public class JMSConstants {
     public static final String BYTES_MESSAGE_TYPE = "BytesMessage";
     public static final String OBJECT_MESSAGE_TYPE = "ObjectMessage";
     public static final String MAP_MESSAGE_TYPE = "MapMessage";
+    public static final String STREAM_MESSAGE_TYPE = "StreamMessage";
 
     public static final String TOPIC_PREFIX = "topic.";
     public static final String QUEUE_PREFIX = "queue.";

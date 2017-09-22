@@ -55,16 +55,17 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
     private Session session;
     private Connection connection;
     private JMSConnectionFactory jmsConnectionFactory;
+    private String id = "";
 
     @Override
-    public boolean send(CarbonMessage message, Map<String, String> propertyMap) throws JMSConnectorException {
+    public boolean send(Message jmsMessage, Map<String, String> propertyMap) throws JMSConnectorException {
         try {
 
             setupMessageProducer(propertyMap);
 
-            Message jmsMessage = createJmsMessage(message, propertyMap);
+            //Message jmsMessage = createJmsMessage(message, propertyMap);
 
-            sendMessage(message, jmsMessage);
+            sendJMSMessage(jmsMessage);
 
         } finally {
             if (jmsConnectionFactory != null) {
@@ -78,6 +79,59 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
             }
         }
         return false;
+    }
+
+    @Override
+    public Message createJMSMessage(Map<String, String> propertyMap, String messageType) throws JMSConnectorException {
+        Message jmsMessage = null;
+        try {
+
+            setupMessageProducer(propertyMap);
+            switch (messageType) {
+            case JMSConstants.TEXT_MESSAGE_TYPE:
+                jmsMessage = session.createTextMessage();
+                break;
+            case JMSConstants.MAP_MESSAGE_TYPE:
+                jmsMessage = session.createMapMessage();
+                break;
+            case JMSConstants.BYTES_MESSAGE_TYPE:
+                jmsMessage = session.createBytesMessage();
+                break;
+            case JMSConstants.STREAM_MESSAGE_TYPE:
+                jmsMessage = session.createStreamMessage();
+                break;
+            case JMSConstants.OBJECT_MESSAGE_TYPE:
+                jmsMessage = session.createMapMessage();
+                break;
+            default:
+                logger.error("Unsupported JMS Message type");
+            }
+//            jmsMessage = session.createTextMessage();
+
+        } catch (JMSException e) {
+            throw new JMSConnectorException("Error creating the JMS Message. " + e.getMessage(), e);
+        } finally {
+            if (jmsConnectionFactory != null) {
+                try {
+                    jmsConnectionFactory.closeMessageProducer(messageProducer);
+                    jmsConnectionFactory.closeSession(session);
+                    jmsConnectionFactory.closeConnection(connection);
+                } catch (JMSConnectorException e) {
+                    logger.error("Exception occurred when closing connection. Error: " + e.getMessage(), e);
+                }
+            }
+        }
+        return jmsMessage;
+    }
+
+    @Override
+    public void setID(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public Session getSession() {
+        return this.session;
     }
 
     private void sendMessage(CarbonMessage carbonMessage, Message jmsMessage) throws JMSConnectorException {
@@ -102,6 +156,15 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         } catch (JMSException e) {
             throw new JMSConnectorException("Send Failed with priority " + priority + " , delivery mode "
                     + deliveryMode + " [ " + e.getMessage() + " ]", e);
+        }
+
+    }
+
+    private void sendJMSMessage(Message jmsMessage) throws JMSConnectorException {
+        try {
+            messageProducer.send(jmsMessage);
+        } catch (JMSException e) {
+            throw new JMSConnectorException("JMS Send Failed with [" + e.getMessage() + " ]", e);
         }
 
     }

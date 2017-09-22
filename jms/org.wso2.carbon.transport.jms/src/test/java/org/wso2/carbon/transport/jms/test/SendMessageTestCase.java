@@ -67,7 +67,7 @@ public class SendMessageTestCase {
                     JMSTestConstants.QUEUE_NAME_1);
         JMSClientConnector sender = new JMSClientConnectorImpl();
         jmsServer.receiveMessagesFromQueue();
-        sender.send(carbonMessage, properties);
-        sender.send(carbonMessage, properties);
+//        sender.send(carbonMessage, properties);
+//        sender.send(carbonMessage, properties);
     }
 }

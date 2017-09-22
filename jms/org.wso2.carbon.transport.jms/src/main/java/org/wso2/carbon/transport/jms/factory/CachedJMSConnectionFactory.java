@@ -163,6 +163,7 @@ public class CachedJMSConnectionFactory extends JMSConnectionFactory {
             } catch (JMSException e) {
                 if (cachedConnection != null) {
                     resetCache();
+                    //TODO: recursive will lead to an error??
                     connection = createConnection(userName, password);
                 } else {
                     throw e;

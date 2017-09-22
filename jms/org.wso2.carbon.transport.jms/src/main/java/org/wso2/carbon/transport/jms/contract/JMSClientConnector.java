@@ -18,10 +18,11 @@
 
 package org.wso2.carbon.transport.jms.contract;
 
-import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 
 import java.util.Map;
+import javax.jms.Message;
+import javax.jms.Session;
 
 /**
  * Allows to send outbound messages
@@ -37,5 +38,11 @@ public interface JMSClientConnector {
      * @return return true if the sending was successful, false otherwise.
      * @throws JMSConnectorException on error while trying to send message to backend.
      */
-    boolean send(CarbonMessage message, Map<String, String> propertyMap) throws JMSConnectorException;
+    boolean send(Message message, Map<String, String> propertyMap) throws JMSConnectorException;
+
+    Message createJMSMessage(Map<String, String> propertyMap, String messageType) throws JMSConnectorException;
+
+    void setID(String id);
+
+    Session getSession();
 }
