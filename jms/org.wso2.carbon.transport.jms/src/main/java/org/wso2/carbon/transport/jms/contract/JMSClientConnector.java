@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.transport.jms.contract;
 
+import org.wso2.carbon.transport.jms.clientfactory.SessionWrapper;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 
 import java.util.Map;
 import javax.jms.Message;
-import javax.jms.Session;
 
 /**
  * Allows to send outbound messages
@@ -33,16 +33,19 @@ public interface JMSClientConnector {
      * Message sending logic to send message to a backend endpoint. Additionally, this method accepts a map of
      * parameters that is used as data to create the connection and construct the message to be send.
      *
-     * @param message the carbon message used with sending the a message to backend.
-     * @param propertyMap data passed from application level to be used with creating the message.
+     * @param message     the carbon message used with sending the a message to backend.
      * @return return true if the sending was successful, false otherwise.
      * @throws JMSConnectorException on error while trying to send message to backend.
      */
-    boolean send(Message message, Map<String, String> propertyMap) throws JMSConnectorException;
+    boolean send(Message message, String destinationName) throws JMSConnectorException;
 
-    Message createJMSMessage(Map<String, String> propertyMap, String messageType) throws JMSConnectorException;
+    Message createJMSMessage(String messageType) throws JMSConnectorException;
 
-    void setID(String id);
+    SessionWrapper acquireSession() throws JMSConnectorException;
 
-    Session getSession();
+    boolean sendTransactedMessage(Message jmsMessage, String destinationName, SessionWrapper sessionWrapper)
+            throws JMSConnectorException;
+
+    void releaseSession(SessionWrapper sessionWrapper) throws JMSConnectorException;
+
 }

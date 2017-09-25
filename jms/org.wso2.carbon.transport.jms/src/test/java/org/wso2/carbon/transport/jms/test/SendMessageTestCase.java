@@ -65,7 +65,7 @@ public class SendMessageTestCase {
     public void queueListeningTestCase() throws InterruptedException, JMSException, JMSConnectorException {
         logger.info("JMS Transport Sender is sending a message to the queue " +
                     JMSTestConstants.QUEUE_NAME_1);
-        JMSClientConnector sender = new JMSClientConnectorImpl();
+//        JMSClientConnector sender = new JMSClientConnectorImpl();
         jmsServer.receiveMessagesFromQueue();
 //        sender.send(carbonMessage, properties);
 //        sender.send(carbonMessage, properties);

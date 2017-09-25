@@ -42,7 +42,7 @@ public class JMSConnectorFactoryImpl implements JMSConnectorFactory {
     }
 
     @Override
-    public JMSClientConnector createClientConnector() throws JMSConnectorException {
-        return new JMSClientConnectorImpl();
+    public JMSClientConnector createClientConnector(Map<String, String> propertyMap) throws JMSConnectorException {
+        return new JMSClientConnectorImpl(propertyMap);
     }
 }
