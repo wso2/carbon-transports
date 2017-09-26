@@ -23,11 +23,11 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.jms.clientfactory.ConnectionWrapper;
 import org.wso2.carbon.transport.jms.clientfactory.ExtendedJMSClientConnectionFactory;
-import org.wso2.carbon.transport.jms.clientfactory.SessionWrapper;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.factory.JMSImprovedConnectionFactory;
+import org.wso2.carbon.transport.jms.wrappers.ConnectionWrapper;
+import org.wso2.carbon.transport.jms.wrappers.SessionWrapper;
 
 import java.util.List;
 import javax.jms.JMSException;

@@ -21,10 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.jms.clientfactory.ExtendedJMSClientConnectionFactory;
 import org.wso2.carbon.transport.jms.clientfactory.JMSConnectionFactoryManager;
-import org.wso2.carbon.transport.jms.clientfactory.SessionWrapper;
 import org.wso2.carbon.transport.jms.contract.JMSClientConnector;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
+import org.wso2.carbon.transport.jms.wrappers.SessionWrapper;
 
 import java.util.Map;
 import java.util.Properties;
@@ -118,7 +118,6 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         return jmsMessage;
     }
 
-
     private void setupConnectionFactory(Map<String, String> propertyMap) throws JMSConnectorException {
         try {
             Properties properties = new Properties();
@@ -143,8 +142,7 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
     }
 
     @Override
-    public void releaseSession(SessionWrapper sessionWrapper)
-            throws JMSConnectorException {
+    public void releaseSession(SessionWrapper sessionWrapper) throws JMSConnectorException {
         jmsConnectionFactory.returnSessionWrapper(sessionWrapper);
     }
 }

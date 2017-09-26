@@ -20,7 +20,6 @@ package org.wso2.carbon.transport.jms.factory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.jms.clientfactory.JMSErrorListener;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 import org.wso2.carbon.transport.jms.utils.JMSUtils;
@@ -29,6 +28,7 @@ import java.util.Properties;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
+import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
 import javax.jms.QueueConnectionFactory;
 import javax.jms.Session;
@@ -249,13 +249,13 @@ public class JMSImprovedConnectionFactory {
             if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) {
                 if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                     connection = ((QueueConnectionFactory) (this.connectionFactory)).createQueueConnection();
-                    connection.setExceptionListener(new JMSErrorListener(this));
+                    connection.setExceptionListener(new JMSErrorListener());
                 } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
                     connection = ((TopicConnectionFactory) (this.connectionFactory)).createTopicConnection();
                     if (isDurable) {
                         connection.setClientID(clientId);
                     }
-                    connection.setExceptionListener(new JMSErrorListener(this));
+                    connection.setExceptionListener(new JMSErrorListener());
                 }
                 return connection;
             } else {
@@ -274,7 +274,7 @@ public class JMSImprovedConnectionFactory {
                 if (isDurable && !isSharedSubscription) {
                     connection.setClientID(clientId);
                 }
-                connection.setExceptionListener(new JMSErrorListener(this));
+                connection.setExceptionListener(new JMSErrorListener());
                 return connection;
             }
         } catch (JMSException e) {
@@ -402,5 +402,12 @@ public class JMSImprovedConnectionFactory {
     }
 
     public void notifyError() {
+    }
+
+    private class JMSErrorListener implements ExceptionListener {
+        @Override
+        public void onException(JMSException e) {
+            notifyError();
+        }
     }
 }

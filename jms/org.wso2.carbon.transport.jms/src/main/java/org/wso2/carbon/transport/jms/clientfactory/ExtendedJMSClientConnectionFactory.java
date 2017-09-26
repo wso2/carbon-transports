@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.jms.clientfactory.sessionpool.SessionPoolFactory;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.factory.JMSImprovedConnectionFactory;
+import org.wso2.carbon.transport.jms.wrappers.ConnectionWrapper;
+import org.wso2.carbon.transport.jms.wrappers.SessionWrapper;
 
 import java.util.ArrayList;
 import java.util.List;

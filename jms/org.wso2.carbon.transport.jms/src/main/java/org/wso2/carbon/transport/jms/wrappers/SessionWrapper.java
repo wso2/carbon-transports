@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.clientfactory;
+package org.wso2.carbon.transport.jms.wrappers;
 
 import javax.jms.JMSException;
 import javax.jms.MessageProducer;

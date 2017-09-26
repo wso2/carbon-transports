@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.jms.contract;
 
-import org.wso2.carbon.transport.jms.clientfactory.SessionWrapper;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.wrappers.SessionWrapper;
 
 import javax.jms.Message;
 
@@ -32,7 +32,7 @@ public interface JMSClientConnector {
      * Message sending logic to send message to a backend endpoint. Additionally, this method accepts a map of
      * parameters that is used as data to create the connection and construct the message to be send.
      *
-     * @param message     the carbon message used with sending the a message to backend.
+     * @param message the carbon message used with sending the a message to backend.
      * @return return true if the sending was successful, false otherwise.
      * @throws JMSConnectorException on error while trying to send message to backend.
      */
