@@ -30,9 +30,16 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
+import javax.jms.QueueSession;
 import javax.jms.Session;
+import javax.jms.Topic;
+import javax.jms.TopicConnection;
 import javax.jms.TopicConnectionFactory;
+import javax.jms.TopicSession;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NameNotFoundException;
@@ -387,6 +394,43 @@ public class JMSImprovedConnectionFactory {
                     "Naming exception while looking up for the destination name " + destinationName, e);
         }
         return destination;
+    }
+
+    public Session createSession(Connection connection) throws JMSConnectorException {
+        try {
+            if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec) || JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec)) {
+                return connection.createSession(transactedSession, sessionAckMode);
+            } else if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
+                return ((QueueConnection) (connection))
+                        .createQueueSession(transactedSession, sessionAckMode);
+            } else {
+                return ((TopicConnection) (connection))
+                        .createTopicSession(transactedSession, sessionAckMode);
+
+            }
+        } catch (JMSException e) {
+            throw new JMSConnectorException(
+                    "JMS Exception while obtaining session for factory " + connectionFactoryString, e);
+        }
+    }
+
+    public MessageProducer createMessageProducer(Session session) throws JMSConnectorException {
+        try {
+            if ((JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) || (JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec))) {
+                return session.createProducer(null);
+            } else {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
+                    return ((QueueSession) session).createSender(null);
+                } else {
+                    return ((TopicSession) session).createPublisher(null);
+                }
+            }
+        } catch (JMSException e) {
+            throw new JMSConnectorException(
+                    "JMS Exception while creating the producer for the destination " + destinationName, e);
+        }
     }
 
     public boolean isTransactedSession() {

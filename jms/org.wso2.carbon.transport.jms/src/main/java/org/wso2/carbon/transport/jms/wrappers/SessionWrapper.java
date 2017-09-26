@@ -31,19 +31,16 @@ public class SessionWrapper {
     private Session session;
     private MessageProducer messageProducer;
 
-    public SessionWrapper(Session session) {
+    public SessionWrapper(Session session, MessageProducer messageProducer) {
         this.session = session;
-        messageProducer = null;
+        this.messageProducer = messageProducer;
     }
 
     public Session getSession() {
         return session;
     }
 
-    public MessageProducer getMessageProducer() throws JMSException {
-        if (messageProducer == null) {
-            messageProducer = session.createProducer(null);
-        }
+    public MessageProducer getMessageProducer() {
         return messageProducer;
     }
 

@@ -31,6 +31,7 @@ import org.wso2.carbon.transport.jms.wrappers.SessionWrapper;
 
 import java.util.List;
 import javax.jms.JMSException;
+import javax.jms.Session;
 
 /**
  * Class responsible for creation/deletion of pooled objects
@@ -65,9 +66,8 @@ public class SessionPoolFactory extends BasePooledObjectFactory<SessionWrapper> 
                 logger.info("creating connection " + connectionWrappers.size());
                 connectionWrappers.add(connectionWrapper);
             }
-            sessionWrapper = new SessionWrapper(connectionWrapper.getConnection()
-                    .createSession(jmsConnectionFactory.isTransactedSession(),
-                            jmsConnectionFactory.getSessionAckMode()));
+            Session session = jmsConnectionFactory.createSession(connectionWrapper.getConnection());
+            sessionWrapper = new SessionWrapper(session, jmsConnectionFactory.createMessageProducer(session));
             logger.info("creating session");
             connectionWrapper.incrementSessionCount();
         }
