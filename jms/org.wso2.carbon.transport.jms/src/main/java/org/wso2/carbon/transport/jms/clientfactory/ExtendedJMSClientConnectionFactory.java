@@ -73,9 +73,11 @@ public class ExtendedJMSClientConnectionFactory extends JMSImprovedConnectionFac
     }
 
     private void initSessionPool() {
+        //todo: make parameters configurable
         SessionPoolFactory sessionPoolFactory = new SessionPoolFactory(this);
         GenericObjectPoolConfig config = new GenericObjectPoolConfig();
         config.setMaxTotal(maxNumberOfConnections*maxSessionsPerConnection);
+        //todo: set the ideal limit and make the idle sessions timedout
         config.setMaxIdle(maxNumberOfConnections*maxSessionsPerConnection);
         config.setBlockWhenExhausted(true);
         config.setMaxWaitMillis(30 * 1000);
@@ -112,10 +114,12 @@ public class ExtendedJMSClientConnectionFactory extends JMSImprovedConnectionFac
     }
 
     public SessionWrapper getSessionWrapper() throws Exception {
+//        System.out.println("Session pool | get session wrapper object");
         return sessionPool.borrowObject();
     }
 
     public void returnSessionWrapper(SessionWrapper sessionWrapper) {
+//        System.out.println("Session pool | return session wrapper object");
         sessionPool.returnObject(sessionWrapper);
     }
 

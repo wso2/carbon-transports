@@ -173,13 +173,14 @@ public class JMSImprovedConnectionFactory {
         if (null != msgSelector) {
             messageSelector = msgSelector;
         }
+
+
+        this.destinationName = properties.getProperty(JMSConstants.PARAM_DESTINATION_NAME);
+        */
         this.connectionFactoryString = properties.getProperty(JMSConstants.PARAM_CONNECTION_FACTORY_JNDI_NAME);
         if (null == connectionFactoryString || "".equals(connectionFactoryString)) {
             connectionFactoryString = "QueueConnectionFactory";
         }
-
-        this.destinationName = properties.getProperty(JMSConstants.PARAM_DESTINATION_NAME);
-        */
         String strSessionAck = properties.getProperty(JMSConstants.PARAM_ACK_MODE);
         if (null == strSessionAck) {
             sessionAckMode = Session.AUTO_ACKNOWLEDGE;
