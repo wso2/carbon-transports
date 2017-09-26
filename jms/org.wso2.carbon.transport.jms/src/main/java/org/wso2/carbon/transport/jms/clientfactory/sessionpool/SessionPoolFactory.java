@@ -23,9 +23,9 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.jms.clientfactory.ExtendedJMSClientConnectionFactory;
+import org.wso2.carbon.transport.jms.clientfactory.JMSClientConnectionFactory;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.factory.JMSImprovedConnectionFactory;
+import org.wso2.carbon.transport.jms.factory.JMSConnectionResourceFactory;
 import org.wso2.carbon.transport.jms.wrappers.ConnectionWrapper;
 import org.wso2.carbon.transport.jms.wrappers.SessionWrapper;
 
@@ -39,9 +39,9 @@ import javax.jms.Session;
 public class SessionPoolFactory extends BasePooledObjectFactory<SessionWrapper> {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionPoolFactory.class);
-    private JMSImprovedConnectionFactory jmsConnectionFactory;
+    private JMSConnectionResourceFactory jmsConnectionFactory;
 
-    public SessionPoolFactory(JMSImprovedConnectionFactory jmsConnectionFactory) {
+    public SessionPoolFactory(JMSConnectionResourceFactory jmsConnectionFactory) {
         this.jmsConnectionFactory = jmsConnectionFactory;
     }
 
@@ -51,11 +51,11 @@ public class SessionPoolFactory extends BasePooledObjectFactory<SessionWrapper> 
         ConnectionWrapper connectionWrapper = null;
         SessionWrapper sessionWrapper = null;
 
-        if (jmsConnectionFactory instanceof ExtendedJMSClientConnectionFactory) {
-            connectionWrappers = ((ExtendedJMSClientConnectionFactory) jmsConnectionFactory).getConnections();
+        if (jmsConnectionFactory instanceof JMSClientConnectionFactory) {
+            connectionWrappers = ((JMSClientConnectionFactory) jmsConnectionFactory).getConnections();
 
             for (int i = 0; i < connectionWrappers.size(); i++) {
-                if (connectionWrappers.get(i).getSessionCount().get() < ExtendedJMSClientConnectionFactory
+                if (connectionWrappers.get(i).getSessionCount().get() < JMSClientConnectionFactory
                         .getMaxSessionsPerConnection()) {
                     connectionWrapper = connectionWrappers.get(i);
                     break;

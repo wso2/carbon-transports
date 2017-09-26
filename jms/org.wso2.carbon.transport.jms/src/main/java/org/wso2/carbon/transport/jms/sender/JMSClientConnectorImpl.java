@@ -19,7 +19,7 @@ package org.wso2.carbon.transport.jms.sender;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.jms.clientfactory.ExtendedJMSClientConnectionFactory;
+import org.wso2.carbon.transport.jms.clientfactory.JMSClientConnectionFactory;
 import org.wso2.carbon.transport.jms.clientfactory.JMSConnectionFactoryManager;
 import org.wso2.carbon.transport.jms.contract.JMSClientConnector;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
@@ -40,7 +40,7 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
 
     private static final Logger logger = LoggerFactory.getLogger(JMSClientConnectorImpl.class);
 
-    private ExtendedJMSClientConnectionFactory jmsConnectionFactory;
+    private JMSClientConnectionFactory jmsConnectionFactory;
 
     public JMSClientConnectorImpl(Map<String, String> propertyMap) throws JMSConnectorException {
         setupConnectionFactory(propertyMap);

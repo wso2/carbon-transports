@@ -31,12 +31,10 @@ import javax.jms.Destination;
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
 import javax.jms.MessageProducer;
-import javax.jms.Queue;
 import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
 import javax.jms.QueueSession;
 import javax.jms.Session;
-import javax.jms.Topic;
 import javax.jms.TopicConnection;
 import javax.jms.TopicConnectionFactory;
 import javax.jms.TopicSession;
@@ -48,8 +46,8 @@ import javax.naming.NamingException;
 /**
  * JMSConnectionFactory that handles the JMS Connection, Session creation and closing.
  */
-public class JMSImprovedConnectionFactory {
-    private static final Logger logger = LoggerFactory.getLogger(JMSImprovedConnectionFactory.class);
+public class JMSConnectionResourceFactory {
+    private static final Logger logger = LoggerFactory.getLogger(JMSConnectionResourceFactory.class);
     /**
      * The {@link Context} instance representing initial Context.
      */
@@ -123,7 +121,7 @@ public class JMSImprovedConnectionFactory {
      * @param properties Properties to be added to the initial context
      * @throws JMSConnectorException Thrown when initial context name is wrong or when creating connection factory.
      */
-    public JMSImprovedConnectionFactory(Properties properties) throws JMSConnectorException {
+    public JMSConnectionResourceFactory(Properties properties) throws JMSConnectorException {
         this.properties = properties;
         try {
             ctx = new InitialContext(properties);
@@ -160,29 +158,6 @@ public class JMSImprovedConnectionFactory {
         }
         clientId = properties.getProperty(JMSConstants.PARAM_CLIENT_ID);
 
-        /* JMS consumer features
-        isSharedSubscription = "true"
-                .equalsIgnoreCase(properties.getProperty(JMSConstants.PARAM_IS_SHARED_SUBSCRIPTION));
-
-        noPubSubLocal = Boolean.valueOf(properties.getProperty(JMSConstants.PARAM_PUBSUB_NO_LOCAL));
-
-        subscriptionName = properties.getProperty(JMSConstants.PARAM_DURABLE_SUB_ID);
-
-        if (isSharedSubscription && subscriptionName == null) {
-            logger.warn("Subscription name is not given. Therefore declaring a non-shared subscription");
-            isSharedSubscription = false;
-        }
-
-        isDurable = !StringUtils.isNullOrEmptyAfterTrim(properties.getProperty(JMSConstants.PARAM_DURABLE_SUB_ID));
-
-        String msgSelector = properties.getProperty(JMSConstants.PARAM_MSG_SELECTOR);
-        if (null != msgSelector) {
-            messageSelector = msgSelector;
-        }
-
-
-        this.destinationName = properties.getProperty(JMSConstants.PARAM_DESTINATION_NAME);
-        */
         this.connectionFactoryString = properties.getProperty(JMSConstants.PARAM_CONNECTION_FACTORY_JNDI_NAME);
         if (null == connectionFactoryString || "".equals(connectionFactoryString)) {
             connectionFactoryString = "QueueConnectionFactory";
@@ -241,6 +216,12 @@ public class JMSImprovedConnectionFactory {
         return this.connectionFactory;
     }
 
+    /**
+     * Create a {@link Connection} instance using the initialized configurations
+     *
+     * @return Connection instance
+     * @throws JMSException thrown when creating the connection object from JMS connection factory
+     */
     public Connection createConnection() throws JMSException {
         if (null == connectionFactory) {
             throw new JMSException("Connection cannot be establish to the broker. Connection Factory is null. Please "
@@ -396,6 +377,13 @@ public class JMSImprovedConnectionFactory {
         return destination;
     }
 
+    /**
+     * Create JMS {@link Session} instance on top of the provided {@link Connection} instance
+     *
+     * @param connection JMS Connection
+     * @return  Session instance
+     * @throws JMSConnectorException
+     */
     public Session createSession(Connection connection) throws JMSConnectorException {
         try {
             if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec) || JMSConstants.JMS_SPEC_VERSION_2_0
@@ -415,6 +403,13 @@ public class JMSImprovedConnectionFactory {
         }
     }
 
+    /**
+     * Create {@link MessageProducer} instance for the provided session
+     *
+     * @param session JMS Session instance
+     * @return Message producer
+     * @throws JMSConnectorException
+     */
     public MessageProducer createMessageProducer(Session session) throws JMSConnectorException {
         try {
             if ((JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) || (JMSConstants.JMS_SPEC_VERSION_2_0
@@ -445,9 +440,16 @@ public class JMSImprovedConnectionFactory {
         return properties;
     }
 
+    /**
+     * This method will get invoked by the JMS Connection Error listener whenever as error occurs in the
+     * JMS Connection level
+     */
     public void notifyError() {
     }
 
+    /**
+     * JMS Connection Error Listener class that implements {@link ExceptionListener} from JMS API
+     */
     private class JMSErrorListener implements ExceptionListener {
         @Override
         public void onException(JMSException e) {

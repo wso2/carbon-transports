@@ -38,13 +38,41 @@ public interface JMSClientConnector {
      */
     boolean send(Message message, String destinationName) throws JMSConnectorException;
 
+    /**
+     * Create a {@link Message} instance using a {@link javax.jms.Session}.
+     *
+     * @param messageType Type of the JMS Message
+     * @return  Created JMS Message instance
+     * @throws JMSConnectorException
+     */
     Message createJMSMessage(String messageType) throws JMSConnectorException;
 
+    /**
+     * Get a {@link SessionWrapper} instance on this particular connection factory
+     *
+     * @return
+     * @throws JMSConnectorException
+     */
     SessionWrapper acquireSession() throws JMSConnectorException;
 
+    /**
+     * Send a message using provided transacted session
+     *
+     * @param jmsMessage JMS Message instance
+     * @param destinationName Name of the outbound queue/topic
+     * @param sessionWrapper   SessionWrapper instance
+     * @return
+     * @throws JMSConnectorException
+     */
     boolean sendTransactedMessage(Message jmsMessage, String destinationName, SessionWrapper sessionWrapper)
             throws JMSConnectorException;
 
+    /**
+     * Release a SessionWrapper instance to the pool after completing the task
+     *
+     * @param sessionWrapper
+     * @throws JMSConnectorException
+     */
     void releaseSession(SessionWrapper sessionWrapper) throws JMSConnectorException;
 
 }

@@ -34,7 +34,7 @@ public class JMSConnectionFactoryManager {
 
     private static JMSConnectionFactoryManager jmsConnectionFactoryManager = null;
     private static Object mutex = new Object();
-    private Map<String, ExtendedJMSClientConnectionFactory> connectionFactoryMap = null;
+    private Map<String, JMSClientConnectionFactory> connectionFactoryMap = null;
 
     private JMSConnectionFactoryManager() {
         connectionFactoryMap = new HashMap<>();
@@ -47,6 +47,11 @@ public class JMSConnectionFactoryManager {
         return s1 == s2 || s1 != null && s1.equals(s2);
     }
 
+    /**
+     * Get an instance of this Singleton class
+     *
+     * @return
+     */
     public static JMSConnectionFactoryManager getInstance() {
         //todo: added for better performance, but findbugs prevents compiling
 //        if (jmsConnectionFactoryManager != null) {
@@ -61,10 +66,17 @@ public class JMSConnectionFactoryManager {
         }
     }
 
-    public synchronized ExtendedJMSClientConnectionFactory getJMSConnectionFactory(Properties properties)
+    /**
+     * Get the JMSConnectionFactory againest the passed parameters. Return if it already exists, create new if not
+     *
+     * @param properties JMS properties
+     * @return JMSConnectionFactory
+     * @throws JMSConnectorException
+     */
+    public synchronized JMSClientConnectionFactory getJMSConnectionFactory(Properties properties)
             throws JMSConnectorException {
         Iterator<String> it = connectionFactoryMap.keySet().iterator();
-        ExtendedJMSClientConnectionFactory jmsConnectionFactory;
+        JMSClientConnectionFactory jmsConnectionFactory;
         while (it.hasNext()) {
             jmsConnectionFactory = connectionFactoryMap.get(it.next());
             Properties facProperties = jmsConnectionFactory.getProperties();
@@ -81,7 +93,7 @@ public class JMSConnectionFactoryManager {
             }
         }
 
-        jmsConnectionFactory = new ExtendedJMSClientConnectionFactory(properties);
+        jmsConnectionFactory = new JMSClientConnectionFactory(properties);
 
         connectionFactoryMap.put(UUID.randomUUID().toString(), jmsConnectionFactory);
 //        Systemm.out.println("Connection factory created, size " + connectionFactoryMap.size());

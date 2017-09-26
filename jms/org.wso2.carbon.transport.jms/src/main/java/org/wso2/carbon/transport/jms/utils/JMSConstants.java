@@ -209,5 +209,10 @@ public class JMSConstants {
      */
     public static final String POOLED_CONNECTION_FACTORY = "pooled";
 
+    /**
+     * Parameter for passing in cache in client mode
+     */
+    public static final String PARAM_JMS_CACHING = "transport.jms.caching";
+
 
 }
