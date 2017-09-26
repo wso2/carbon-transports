@@ -21,7 +21,6 @@ package org.wso2.carbon.transport.jms.contract;
 import org.wso2.carbon.transport.jms.clientfactory.SessionWrapper;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 
-import java.util.Map;
 import javax.jms.Message;
 
 /**

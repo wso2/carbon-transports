@@ -27,11 +27,14 @@ import java.util.Properties;
 import java.util.UUID;
 import javax.naming.Context;
 
+/**
+ * Singleton class to manage JMSConnectionFactories
+ */
 public class JMSConnectionFactoryManager {
 
     private static JMSConnectionFactoryManager jmsConnectionFactoryManager = null;
-    private Map<String, ExtendedJMSClientConnectionFactory> connectionFactoryMap = null;
     private static Object mutex = new Object();
+    private Map<String, ExtendedJMSClientConnectionFactory> connectionFactoryMap = null;
 
     private JMSConnectionFactoryManager() {
         connectionFactoryMap = new HashMap<>();
@@ -45,11 +48,12 @@ public class JMSConnectionFactoryManager {
     }
 
     public static JMSConnectionFactoryManager getInstance() {
-        if(jmsConnectionFactoryManager != null) {
-            return jmsConnectionFactoryManager;
-        }
+        //todo: added for better performance, but findbugs prevents compiling
+//        if (jmsConnectionFactoryManager != null) {
+//            return jmsConnectionFactoryManager;
+//        }
         synchronized (mutex) {
-            if(jmsConnectionFactoryManager == null) {
+            if (jmsConnectionFactoryManager == null) {
                 jmsConnectionFactoryManager = new JMSConnectionFactoryManager();
             }
             return jmsConnectionFactoryManager;
@@ -57,19 +61,22 @@ public class JMSConnectionFactoryManager {
         }
     }
 
-    public synchronized ExtendedJMSClientConnectionFactory getJMSConnectionFactory(Properties properties) throws JMSConnectorException {
+    public synchronized ExtendedJMSClientConnectionFactory getJMSConnectionFactory(Properties properties)
+            throws JMSConnectorException {
         Iterator<String> it = connectionFactoryMap.keySet().iterator();
         ExtendedJMSClientConnectionFactory jmsConnectionFactory;
         while (it.hasNext()) {
             jmsConnectionFactory = connectionFactoryMap.get(it.next());
             Properties facProperties = jmsConnectionFactory.getProperties();
 
-            if (equals(facProperties.getProperty(Context.INITIAL_CONTEXT_FACTORY), properties.get(Context.INITIAL_CONTEXT_FACTORY)) &&
-                    equals(facProperties.getProperty(Context.PROVIDER_URL), properties.get(Context.PROVIDER_URL)) &&
-                    equals(facProperties.getProperty(Context.SECURITY_PRINCIPAL), properties.get(Context.SECURITY_PRINCIPAL)) &&
-                    equals(facProperties.getProperty(Context.SECURITY_CREDENTIALS), properties.get(Context.SECURITY_CREDENTIALS)) &&
-                    equals(facProperties.getProperty(JMSConstants.PARAM_ACK_MODE), properties.get(JMSConstants.PARAM_ACK_MODE))
-                    ) {
+            if (equals(facProperties.getProperty(Context.INITIAL_CONTEXT_FACTORY),
+                    properties.get(Context.INITIAL_CONTEXT_FACTORY)) && equals(
+                    facProperties.getProperty(Context.PROVIDER_URL), properties.get(Context.PROVIDER_URL)) && equals(
+                    facProperties.getProperty(Context.SECURITY_PRINCIPAL), properties.get(Context.SECURITY_PRINCIPAL))
+                    && equals(facProperties.getProperty(Context.SECURITY_CREDENTIALS),
+                    properties.get(Context.SECURITY_CREDENTIALS)) && equals(
+                    facProperties.getProperty(JMSConstants.PARAM_ACK_MODE),
+                    properties.get(JMSConstants.PARAM_ACK_MODE))) {
                 return jmsConnectionFactory;
             }
         }
@@ -77,7 +84,7 @@ public class JMSConnectionFactoryManager {
         jmsConnectionFactory = new ExtendedJMSClientConnectionFactory(properties);
 
         connectionFactoryMap.put(UUID.randomUUID().toString(), jmsConnectionFactory);
-        System.out.println("Connection factory created, size " + connectionFactoryMap.size());
+//        Systemm.out.println("Connection factory created, size " + connectionFactoryMap.size());
 
         return jmsConnectionFactory;
     }

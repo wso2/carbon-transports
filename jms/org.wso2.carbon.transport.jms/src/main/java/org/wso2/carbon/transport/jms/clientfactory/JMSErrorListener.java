@@ -23,6 +23,9 @@ import org.wso2.carbon.transport.jms.factory.JMSImprovedConnectionFactory;
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
 
+/**
+ * Error listener for listening JMS Connection errors
+ */
 public class JMSErrorListener implements ExceptionListener {
 
     private JMSImprovedConnectionFactory jmsConnectionFactory;

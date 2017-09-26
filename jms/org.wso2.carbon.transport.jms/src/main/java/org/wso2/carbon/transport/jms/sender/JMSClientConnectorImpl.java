@@ -31,7 +31,6 @@ import java.util.Properties;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.MessageProducer;
 import javax.jms.Session;
 
 /**
@@ -94,6 +93,7 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
                 jmsMessage = session.createTextMessage();
                 break;
             case JMSConstants.MAP_MESSAGE_TYPE:
+            case JMSConstants.OBJECT_MESSAGE_TYPE:
                 jmsMessage = session.createMapMessage();
                 break;
             case JMSConstants.BYTES_MESSAGE_TYPE:
@@ -101,9 +101,6 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
                 break;
             case JMSConstants.STREAM_MESSAGE_TYPE:
                 jmsMessage = session.createStreamMessage();
-                break;
-            case JMSConstants.OBJECT_MESSAGE_TYPE:
-                jmsMessage = session.createMapMessage();
                 break;
             default:
                 logger.error("Unsupported JMS Message type");
@@ -121,12 +118,7 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         return jmsMessage;
     }
 
-    /**
-     * Creates a new {@link MessageProducer} using a new or existing connection to the JMS provider.
-     *
-     * @param propertyMap Map of user defined properties
-     * @throws JMSConnectorException throws when an internal error occur trying to make the JMS provider connection
-     */
+
     private void setupConnectionFactory(Map<String, String> propertyMap) throws JMSConnectorException {
         try {
             Properties properties = new Properties();

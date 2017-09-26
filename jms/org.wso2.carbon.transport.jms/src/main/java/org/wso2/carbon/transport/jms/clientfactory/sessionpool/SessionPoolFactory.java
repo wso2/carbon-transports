@@ -32,6 +32,9 @@ import org.wso2.carbon.transport.jms.factory.JMSImprovedConnectionFactory;
 import java.util.List;
 import javax.jms.JMSException;
 
+/**
+ * Class responsible for creation/deletion of pooled objects
+ */
 public class SessionPoolFactory extends BasePooledObjectFactory<SessionWrapper> {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionPoolFactory.class);
@@ -43,25 +46,31 @@ public class SessionPoolFactory extends BasePooledObjectFactory<SessionWrapper> 
 
     @Override
     public synchronized SessionWrapper create() throws Exception {
-        List<ConnectionWrapper> connectionWrappers = ((ExtendedJMSClientConnectionFactory) jmsConnectionFactory)
-                .getConnections();
+        List<ConnectionWrapper> connectionWrappers;
         ConnectionWrapper connectionWrapper = null;
-        for (int i = 0; i < connectionWrappers.size(); i++) {
-            if (connectionWrappers.get(i).getSessionCount().get() < ExtendedJMSClientConnectionFactory
-                    .getMaxSessionsPerConnection()) {
-                connectionWrapper = connectionWrappers.get(i);
-                break;
+        SessionWrapper sessionWrapper = null;
+
+        if (jmsConnectionFactory instanceof ExtendedJMSClientConnectionFactory) {
+            connectionWrappers = ((ExtendedJMSClientConnectionFactory) jmsConnectionFactory).getConnections();
+
+            for (int i = 0; i < connectionWrappers.size(); i++) {
+                if (connectionWrappers.get(i).getSessionCount().get() < ExtendedJMSClientConnectionFactory
+                        .getMaxSessionsPerConnection()) {
+                    connectionWrapper = connectionWrappers.get(i);
+                    break;
+                }
             }
+            if (connectionWrapper == null) {
+                connectionWrapper = new ConnectionWrapper(jmsConnectionFactory.createConnection());
+                logger.info("creating connection " + connectionWrappers.size());
+                connectionWrappers.add(connectionWrapper);
+            }
+            sessionWrapper = new SessionWrapper(connectionWrapper.getConnection()
+                    .createSession(jmsConnectionFactory.isTransactedSession(),
+                            jmsConnectionFactory.getSessionAckMode()));
+            logger.info("creating session");
+            connectionWrapper.incrementSessionCount();
         }
-        if (connectionWrapper == null) {
-            connectionWrapper = new ConnectionWrapper(jmsConnectionFactory.createConnection());
-            logger.info("creating connection " + connectionWrappers.size());
-            connectionWrappers.add(connectionWrapper);
-        }
-        SessionWrapper sessionWrapper = new SessionWrapper(connectionWrapper.getConnection()
-                .createSession(jmsConnectionFactory.isTransactedSession(), jmsConnectionFactory.getSessionAckMode()));
-        logger.info("creating session");
-        connectionWrapper.incrementSessionCount();
         return sessionWrapper;
     }
 

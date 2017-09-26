@@ -22,48 +22,36 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.transport.jms.clientfactory.sessionpool.SessionPoolFactory;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.factory.JMSImprovedConnectionFactory;
-import org.wso2.carbon.transport.jms.clientfactory.sessionpool.SessionPoolFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
-import javax.jms.Session;
 
 /**
- * {@link JMSImprovedConnectionFactory} connector, session, consumer, producer caching implementation. This class can be used
- * if needed to cache connections.
+ * Extended class to handle Client side Connection Factory requirements
  */
 public class ExtendedJMSClientConnectionFactory extends JMSImprovedConnectionFactory {
-
-    private static final Logger logger = LoggerFactory.getLogger(ExtendedJMSClientConnectionFactory.class);
 
     /**
      * Parameter for passing in cache level.
      */
     public static final String PARAM_JMS_CACHING = "transport.jms.caching";
-
+    private static final Logger logger = LoggerFactory.getLogger(ExtendedJMSClientConnectionFactory.class);
+    private static final int maxNumberOfConnections = 2;
+    private static final int maxSessionsPerConnection = 5;
     /**
      * Indicates cache level given by the user.
      */
     private boolean isClientCaching = true;
 
-    /**
-     * {@link Connection} instance representing cached jms connection instance.
-     */
     private List<ConnectionWrapper> connections = null;
 
-    private static final int maxNumberOfConnections = 2;
-    /**
-     * {@link Session} instance representing cached jms session instance.
-     */
     private GenericObjectPool<SessionWrapper> sessionPool = null;
-
-    private static final int maxSessionsPerConnection = 5;
 
     public ExtendedJMSClientConnectionFactory(Properties properties) throws JMSConnectorException {
         super(properties);
@@ -72,13 +60,21 @@ public class ExtendedJMSClientConnectionFactory extends JMSImprovedConnectionFac
         initSessionPool();
     }
 
+    public static int getMaxNumberOfConnections() {
+        return maxNumberOfConnections;
+    }
+
+    public static int getMaxSessionsPerConnection() {
+        return maxSessionsPerConnection;
+    }
+
     private void initSessionPool() {
         //todo: make parameters configurable
         SessionPoolFactory sessionPoolFactory = new SessionPoolFactory(this);
         GenericObjectPoolConfig config = new GenericObjectPoolConfig();
-        config.setMaxTotal(maxNumberOfConnections*maxSessionsPerConnection);
+        config.setMaxTotal(maxNumberOfConnections * maxSessionsPerConnection);
         //todo: set the ideal limit and make the idle sessions timedout
-        config.setMaxIdle(maxNumberOfConnections*maxSessionsPerConnection);
+        config.setMaxIdle(maxNumberOfConnections * maxSessionsPerConnection);
         config.setBlockWhenExhausted(true);
         config.setMaxWaitMillis(30 * 1000);
         sessionPool = new GenericObjectPool<SessionWrapper>(sessionPoolFactory, config);
@@ -101,25 +97,17 @@ public class ExtendedJMSClientConnectionFactory extends JMSImprovedConnectionFac
         return super.getConnectionFactory();
     }
 
-    public static int getMaxNumberOfConnections (){
-        return maxNumberOfConnections;
-    }
-
     public List<ConnectionWrapper> getConnections() {
         return connections;
     }
 
-    public static int getMaxSessionsPerConnection() {
-        return maxSessionsPerConnection;
-    }
-
     public SessionWrapper getSessionWrapper() throws Exception {
-//        System.out.println("Session pool | get session wrapper object");
+        //        Systemm.out.println("Session pool | get session wrapper object");
         return sessionPool.borrowObject();
     }
 
     public void returnSessionWrapper(SessionWrapper sessionWrapper) {
-//        System.out.println("Session pool | return session wrapper object");
+        //Systemm.out.println("Session pool | return session wrapper object");
         sessionPool.returnObject(sessionWrapper);
     }
 

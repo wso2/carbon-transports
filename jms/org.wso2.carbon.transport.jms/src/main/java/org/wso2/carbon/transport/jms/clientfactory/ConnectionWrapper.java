@@ -21,6 +21,10 @@ package org.wso2.carbon.transport.jms.clientfactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.jms.Connection;
 
+/**
+ * Wrapper class for JMS Connection objects. This class will hold JMSConnection and a counter to maintain the
+ * number of JMSSessions currently active based on the Connection
+ */
 public class ConnectionWrapper {
     private Connection connection;
     private AtomicInteger sessionCount;

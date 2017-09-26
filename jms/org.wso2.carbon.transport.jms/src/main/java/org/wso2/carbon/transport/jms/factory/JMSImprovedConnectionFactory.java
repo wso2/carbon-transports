@@ -20,9 +20,8 @@ package org.wso2.carbon.transport.jms.factory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.kernel.utils.StringUtils;
-import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.clientfactory.JMSErrorListener;
+import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 import org.wso2.carbon.transport.jms.utils.JMSUtils;
 
@@ -250,13 +249,14 @@ public class JMSImprovedConnectionFactory {
             if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) {
                 if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                     connection = ((QueueConnectionFactory) (this.connectionFactory)).createQueueConnection();
+                    connection.setExceptionListener(new JMSErrorListener(this));
                 } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
                     connection = ((TopicConnectionFactory) (this.connectionFactory)).createTopicConnection();
                     if (isDurable) {
                         connection.setClientID(clientId);
                     }
+                    connection.setExceptionListener(new JMSErrorListener(this));
                 }
-                connection.setExceptionListener(new JMSErrorListener(this));
                 return connection;
             } else {
                 QueueConnectionFactory qConFac = null;
@@ -340,7 +340,6 @@ public class JMSImprovedConnectionFactory {
             throw e;
         }
     }
-
 
     /**
      * To create the destination.
