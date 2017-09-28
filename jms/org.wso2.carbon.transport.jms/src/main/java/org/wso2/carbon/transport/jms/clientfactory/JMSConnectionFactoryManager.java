@@ -17,6 +17,8 @@
 */
 package org.wso2.carbon.transport.jms.clientfactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
@@ -32,8 +34,12 @@ import javax.naming.Context;
  */
 public class JMSConnectionFactoryManager {
 
+    private static final Logger logger = LoggerFactory.getLogger(JMSConnectionFactoryManager.class);
+
     private static JMSConnectionFactoryManager jmsConnectionFactoryManager = null;
+
     private static Object mutex = new Object();
+
     private Map<String, JMSClientConnectionFactory> connectionFactoryMap = null;
 
     private JMSConnectionFactoryManager() {
@@ -53,17 +59,14 @@ public class JMSConnectionFactoryManager {
      * @return
      */
     public static JMSConnectionFactoryManager getInstance() {
-        //todo: added for better performance, but findbugs prevents compiling
-//        if (jmsConnectionFactoryManager != null) {
-//            return jmsConnectionFactoryManager;
-//        }
-        synchronized (mutex) {
-            if (jmsConnectionFactoryManager == null) {
-                jmsConnectionFactoryManager = new JMSConnectionFactoryManager();
+        if (jmsConnectionFactoryManager == null) {
+            synchronized (mutex) {
+                if (jmsConnectionFactoryManager == null) {
+                    jmsConnectionFactoryManager = new JMSConnectionFactoryManager();
+                }
             }
-            return jmsConnectionFactoryManager;
-
         }
+        return jmsConnectionFactoryManager;
     }
 
     /**
@@ -96,7 +99,8 @@ public class JMSConnectionFactoryManager {
         jmsConnectionFactory = new JMSClientConnectionFactory(properties);
 
         connectionFactoryMap.put(UUID.randomUUID().toString(), jmsConnectionFactory);
-//        Systemm.out.println("Connection factory created, size " + connectionFactoryMap.size());
+
+        logger.info("Connection factory created, size " + connectionFactoryMap.size());
 
         return jmsConnectionFactory;
     }

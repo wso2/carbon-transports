@@ -114,7 +114,8 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
      * {@inheritDoc}
      */
     @Override
-    public synchronized void notifyError() {
+    public synchronized void notifyError(JMSException ex) {
+        logger.error("Error occurred in JMS Client Connections. Re-initializing the resources. " + ex.getMessage());
         closeJMSResources();
         initSessionPool();
     }

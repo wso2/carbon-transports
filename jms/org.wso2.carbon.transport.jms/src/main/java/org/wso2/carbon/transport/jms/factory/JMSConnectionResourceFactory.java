@@ -108,11 +108,17 @@ public class JMSConnectionResourceFactory {
      * The {@link Boolean} instance representing whether it is a shared subscription or not.
      */
     private boolean isSharedSubscription;
-
+    /**
+     * The {@link Properties} instance representing jms configuration properties
+     */
     private Properties properties;
-
+    /**
+     * The {@link String} instance representing username for connecting the broker
+     */
     private String username;
-
+    /**
+     * The {@link String} instance representing password for connecting the broker
+     */
     private String password;
 
     /**
@@ -129,6 +135,7 @@ public class JMSConnectionResourceFactory {
             throw new JMSConnectorException("NamingException while obtaining initial context. ", e);
         }
 
+        //Setting Connection factory type
         String connectionFactoryType = properties.getProperty(JMSConstants.PARAM_CONNECTION_FACTORY_TYPE);
 
         if (JMSConstants.DESTINATION_TYPE_TOPIC.equalsIgnoreCase(connectionFactoryType)) {
@@ -137,6 +144,7 @@ public class JMSConnectionResourceFactory {
             this.destinationType = JMSConstants.JMSDestinationType.QUEUE;
         }
 
+        //Setting JMS version
         String jmsSpecVersion = properties.getProperty(JMSConstants.PARAM_JMS_SPEC_VER);
 
         if (null == jmsSpecVersion) {
@@ -156,12 +164,17 @@ public class JMSConnectionResourceFactory {
                 jmsSpec = JMSConstants.JMS_SPEC_VERSION_1_1;
             }
         }
+
+        //Setting Client ID
         clientId = properties.getProperty(JMSConstants.PARAM_CLIENT_ID);
 
+        //Setting Connection Factory Name
         this.connectionFactoryString = properties.getProperty(JMSConstants.PARAM_CONNECTION_FACTORY_JNDI_NAME);
         if (null == connectionFactoryString || "".equals(connectionFactoryString)) {
             connectionFactoryString = "QueueConnectionFactory";
         }
+
+        //Setting Acknowledgement mode and Transaction
         String strSessionAck = properties.getProperty(JMSConstants.PARAM_ACK_MODE);
         if (null == strSessionAck) {
             sessionAckMode = Session.AUTO_ACKNOWLEDGE;
@@ -174,6 +187,7 @@ public class JMSConnectionResourceFactory {
             transactedSession = true;
         }
 
+        //Setting broker credentials
         this.username = properties.getProperty(JMSConstants.CONNECTION_USERNAME);
         this.password = properties.getProperty(JMSConstants.CONNECTION_PASSWORD);
 
@@ -443,8 +457,11 @@ public class JMSConnectionResourceFactory {
     /**
      * This method will get invoked by the JMS Connection Error listener whenever as error occurs in the
      * JMS Connection level
+     *
+     * This can be used to close all the Connections, Sessions, Producer, Consumers created on top of this
+     * Connection factory and initialize again
      */
-    public void notifyError() {
+    public void notifyError(JMSException ex) {
     }
 
     /**
@@ -453,7 +470,23 @@ public class JMSConnectionResourceFactory {
     private class JMSErrorListener implements ExceptionListener {
         @Override
         public void onException(JMSException e) {
-            notifyError();
+            notifyError(e);
         }
+    }
+
+    /**
+     * Get JMS specification version
+     * @return
+     */
+    public String getJmsSpec() {
+        return jmsSpec;
+    }
+
+    /**
+     * Get destination type of this Connection factory
+     * @return
+     */
+    public JMSConstants.JMSDestinationType getDestinationType() {
+        return destinationType;
     }
 }

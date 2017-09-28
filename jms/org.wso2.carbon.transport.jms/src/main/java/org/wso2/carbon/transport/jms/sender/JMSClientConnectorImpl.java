@@ -31,7 +31,9 @@ import java.util.Properties;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
+import javax.jms.MessageProducer;
 import javax.jms.Session;
+import javax.jms.TopicPublisher;
 
 /**
  * JMS sender implementation.
@@ -53,7 +55,7 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         try {
             sessionWrapper = jmsConnectionFactory.getSessionWrapper();
             destination = jmsConnectionFactory.createDestination(sessionWrapper.getSession(), destinationName);
-            sessionWrapper.getMessageProducer().send(destination, jmsMessage);
+            sendJMSMessage(destination, jmsMessage, sessionWrapper.getMessageProducer());
         } catch (JMSException e) {
             throw new JMSConnectorException("JMS Send Failed with [" + e.getMessage() + " ]", e);
         } catch (Exception e) {
@@ -72,7 +74,7 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         Destination destination;
         try {
             destination = jmsConnectionFactory.createDestination(sessionWrapper.getSession(), destinationName);
-            sessionWrapper.getMessageProducer().send(destination, jmsMessage);
+            sendJMSMessage(destination, jmsMessage, sessionWrapper.getMessageProducer());
         } catch (JMSException e) {
             throw new JMSConnectorException("JMS Send Failed with [" + e.getMessage() + " ]", e);
         } catch (Exception e) {
@@ -105,6 +107,11 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
             default:
                 logger.error("Unsupported JMS Message type");
             }
+
+            //Set default values to the newly created message
+            jmsMessage.setJMSDeliveryMode(Message.DEFAULT_DELIVERY_MODE);
+            jmsMessage.setJMSPriority(Message.DEFAULT_PRIORITY);
+            jmsMessage.setJMSExpiration(Message.DEFAULT_TIME_TO_LIVE);
 
         } catch (JMSException e) {
             throw new JMSConnectorException("Error creating the JMS Message. " + e.getMessage(), e);
@@ -144,5 +151,19 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
     @Override
     public void releaseSession(SessionWrapper sessionWrapper) throws JMSConnectorException {
         jmsConnectionFactory.returnSessionWrapper(sessionWrapper);
+    }
+
+    private void sendJMSMessage(Destination destination, Message message, MessageProducer producer)
+            throws JMSException {
+
+        if (JMSConstants.JMSDestinationType.QUEUE.equals(jmsConnectionFactory.getDestinationType())
+                || !JMSConstants.JMS_SPEC_VERSION_1_0.equals(jmsConnectionFactory.getJmsSpec())) {
+            producer.send(destination, message, message.getJMSDeliveryMode(), message.getJMSPriority(),
+                    message.getJMSExpiration());
+        } else {
+            ((TopicPublisher) producer)
+                    .send(destination, message, message.getJMSDeliveryMode(), message.getJMSPriority(),
+                            message.getJMSExpiration());
+        }
     }
 }
