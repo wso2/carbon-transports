@@ -98,9 +98,11 @@ public class JMSConnectionFactoryManager {
 
         jmsConnectionFactory = new JMSClientConnectionFactory(properties);
 
-        connectionFactoryMap.put(UUID.randomUUID().toString(), jmsConnectionFactory);
-
-        logger.info("Connection factory created, size " + connectionFactoryMap.size());
+        if (jmsConnectionFactory.isClientCaching()) {
+            connectionFactoryMap.put(UUID.randomUUID().toString(), jmsConnectionFactory);
+        }
+        logger.info("Connection factory created " + properties.get(JMSConstants.PARAM_ACK_MODE) + ", size "
+                + connectionFactoryMap.size() + "  isCached: " + jmsConnectionFactory.isClientCaching());
 
         return jmsConnectionFactory;
     }

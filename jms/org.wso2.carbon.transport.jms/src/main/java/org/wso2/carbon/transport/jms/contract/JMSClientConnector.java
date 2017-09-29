@@ -45,7 +45,7 @@ public interface JMSClientConnector {
      * @return  Created JMS Message instance
      * @throws JMSConnectorException
      */
-    Message createJMSMessage(String messageType) throws JMSConnectorException;
+    Message createMessage(String messageType) throws JMSConnectorException;
 
     /**
      * Get a {@link SessionWrapper} instance on this particular connection factory

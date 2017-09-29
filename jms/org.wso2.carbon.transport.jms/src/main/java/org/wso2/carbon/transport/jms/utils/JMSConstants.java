@@ -88,6 +88,7 @@ public class JMSConstants {
     public static final String CLIENT_ACKNOWLEDGE_MODE = "CLIENT_ACKNOWLEDGE";
     public static final String DUPS_OK_ACKNOWLEDGE_MODE = "DUPS_OK_ACKNOWLEDGE";
     public static final String SESSION_TRANSACTED_MODE = "SESSION_TRANSACTED";
+    public static final String XA_TRANSACTED_MODE = "XA_TRANSACTED";
 
     /**
      * Number of concurrent consumers to be spawned when the server connector is starting.

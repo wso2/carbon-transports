@@ -33,11 +33,20 @@ import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
+import javax.jms.QueueSender;
 import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TopicConnection;
 import javax.jms.TopicConnectionFactory;
+import javax.jms.TopicPublisher;
 import javax.jms.TopicSession;
+import javax.jms.XAConnection;
+import javax.jms.XAConnectionFactory;
+import javax.jms.XAQueueConnection;
+import javax.jms.XAQueueConnectionFactory;
+import javax.jms.XASession;
+import javax.jms.XATopicConnection;
+import javax.jms.XATopicConnectionFactory;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NameNotFoundException;
@@ -56,6 +65,10 @@ public class JMSConnectionResourceFactory {
      * The {@link ConnectionFactory} instance representing jms connection factory.
      */
     private ConnectionFactory connectionFactory;
+    /**
+     * The {@link XAConnectionFactory} instance representing jms connection factory.
+     */
+    private XAConnectionFactory xAConnectionFactory;
     /**
      * The {@link String} instance representing the connection factory JNDI name.
      */
@@ -76,6 +89,10 @@ public class JMSConnectionResourceFactory {
      * The {@link Boolean} instance representing whether the session is transacted or not.
      */
     private boolean transactedSession = false;
+    /**
+     * The {@link Boolean} instance representing whether the connection factory is created for distributed transactions
+     */
+    private boolean xATransacted = false;
     /**
      * The {@link Integer} instance representing the session acknowledgement mode.
      */
@@ -185,6 +202,10 @@ public class JMSConnectionResourceFactory {
         } else if (strSessionAck.equals(JMSConstants.SESSION_TRANSACTED_MODE)) {
             sessionAckMode = Session.SESSION_TRANSACTED;
             transactedSession = true;
+        } else if (strSessionAck.equals(JMSConstants.XA_TRANSACTED_MODE)) {
+            sessionAckMode = -1;
+            xATransacted = true;
+            logger.info("XA transacted mode ");
         }
 
         //Setting broker credentials
@@ -214,14 +235,33 @@ public class JMSConnectionResourceFactory {
      * @throws JMSConnectorException Thrown when creating {@link ConnectionFactory} instance.
      */
     private ConnectionFactory createConnectionFactory() throws JMSConnectorException {
-        if (null != this.connectionFactory) {
-            return this.connectionFactory;
+        if (null != connectionFactory) {
+            return connectionFactory;
         }
         try {
-            if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
-                this.connectionFactory = (QueueConnectionFactory) ctx.lookup(this.connectionFactoryString);
-            } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
-                this.connectionFactory = (TopicConnectionFactory) ctx.lookup(this.connectionFactoryString);
+            if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec) || JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec)) {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
+                    if (isxATransacted()) {
+                        xAConnectionFactory = (XAConnectionFactory) ctx.lookup(connectionFactoryString);
+                    } else {
+                        connectionFactory = (ConnectionFactory) ctx.lookup(connectionFactoryString);
+                    }
+                }
+            } else {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
+                    if (isxATransacted()) {
+                        xAConnectionFactory = (XAQueueConnectionFactory) ctx.lookup(connectionFactoryString);
+                    } else {
+                        connectionFactory = (QueueConnectionFactory) ctx.lookup(connectionFactoryString);
+                    }
+                } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
+                    if (isxATransacted()) {
+                        xAConnectionFactory = (XATopicConnectionFactory) ctx.lookup(connectionFactoryString);
+                    } else {
+                        connectionFactory = (TopicConnectionFactory) ctx.lookup(connectionFactoryString);
+                    }
+                }
             }
         } catch (NamingException e) {
             throw new JMSConnectorException(
@@ -247,17 +287,12 @@ public class JMSConnectionResourceFactory {
         }
         Connection connection = null;
         try {
-
-            if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) {
-                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
-                    connection = ((QueueConnectionFactory) (this.connectionFactory)).createQueueConnection();
-                    connection.setExceptionListener(new JMSErrorListener());
-                } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
-                    connection = ((TopicConnectionFactory) (this.connectionFactory)).createTopicConnection();
-                    if (isDurable) {
-                        connection.setClientID(clientId);
-                    }
-                    connection.setExceptionListener(new JMSErrorListener());
+            if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec) || JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec)) {
+                connection = connectionFactory.createConnection();
+                connection.setExceptionListener(new JMSErrorListener());
+                if (isDurable && !isSharedSubscription) {
+                    connection.setClientID(clientId);
                 }
                 return connection;
             } else {
@@ -273,7 +308,7 @@ public class JMSConnectionResourceFactory {
                 } else {
                     connection = tConFac.createTopicConnection();
                 }
-                if (isDurable && !isSharedSubscription) {
+                if (isDurable) {
                     connection.setClientID(clientId);
                 }
                 connection.setExceptionListener(new JMSErrorListener());
@@ -296,17 +331,13 @@ public class JMSConnectionResourceFactory {
     private Connection createConnection(String userName, String password) throws JMSException {
         Connection connection = null;
         try {
-            if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) {
-                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
-                    connection = ((QueueConnectionFactory) (this.connectionFactory))
-                            .createQueueConnection(userName, password);
-                } else if (JMSConstants.JMSDestinationType.TOPIC.equals(this.destinationType)) {
-                    connection = ((TopicConnectionFactory) (this.connectionFactory))
-                            .createTopicConnection(userName, password);
-                    if (isDurable) {
-                        connection.setClientID(clientId);
-                    }
+            if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec) || JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec)) {
+                connection = connectionFactory.createConnection(userName, password);
+                if (isDurable && !isSharedSubscription) {
+                    connection.setClientID(clientId);
                 }
+                connection.setExceptionListener(new JMSErrorListener());
                 return connection;
             } else {
                 QueueConnectionFactory qConFac = null;
@@ -321,13 +352,10 @@ public class JMSConnectionResourceFactory {
                 } else if (null != tConFac) {
                     connection = tConFac.createTopicConnection(userName, password);
                 }
-                if (isDurable && !isSharedSubscription) {
-                    if (connection == null) {
-                        throw new JMSException(
-                                "Connection is null. Cannot set client ID " + clientId + "for durable subscription");
-                    }
+                if (isDurable) {
                     connection.setClientID(clientId);
                 }
+                connection.setExceptionListener(new JMSErrorListener());
                 return connection;
             }
         } catch (JMSException e) {
@@ -337,6 +365,107 @@ public class JMSConnectionResourceFactory {
                     connection.close();
                 } catch (Exception ex) {
                     logger.error("Error while closing the connection", ex);
+                }
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Create a {@link XAConnection} instance using the initialized configurations
+     *
+     * @return XAConnection instance
+     * @throws JMSException thrown when creating the XAconnection object from JMS XAconnection factory
+     */
+    public XAConnection createXAConnection() throws JMSException {
+        if (null == xAConnectionFactory) {
+            throw new JMSException("XAConnection cannot be establish to the broker. XAConnection Factory is null. "
+                    + "Please check the Please check the broker libs provided.");
+        }
+
+        if (username != null && password != null) {
+            return createXAConnection(username, password);
+        }
+        XAConnection xAConnection = null;
+        try {
+            if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec) || JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec)) {
+                xAConnection = xAConnectionFactory.createXAConnection();
+                xAConnection.setExceptionListener(new JMSErrorListener());
+                if (isDurable && !isSharedSubscription) {
+                    xAConnection.setClientID(clientId);
+                }
+                return xAConnection;
+            } else {
+                XAQueueConnectionFactory qConFac = null;
+                XATopicConnectionFactory tConFac = null;
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(destinationType)) {
+                    qConFac = (XAQueueConnectionFactory) xAConnectionFactory;
+                } else {
+                    tConFac = (XATopicConnectionFactory) xAConnectionFactory;
+                }
+                if (null != qConFac) {
+                    xAConnection = qConFac.createXAQueueConnection();
+                } else {
+                    xAConnection = tConFac.createXATopicConnection();
+                }
+                if (isDurable) {
+                    xAConnection.setClientID(clientId);
+                }
+                xAConnection.setExceptionListener(new JMSErrorListener());
+                return xAConnection;
+            }
+        } catch (JMSException e) {
+            // Need to close the XAConnection in the case if durable subscriptions
+            if (null != xAConnection) {
+                try {
+                    xAConnection.close();
+                } catch (Exception ex) {
+                    logger.error("Error while closing the XAconnection. ", ex);
+                }
+            }
+            throw e;
+        }
+
+    }
+
+    private XAConnection createXAConnection(String userName, String password) throws JMSException {
+        XAConnection xAConnection = null;
+        try {
+            if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec) || JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec)) {
+                xAConnection = xAConnectionFactory.createXAConnection(userName, password);
+                if (isDurable && !isSharedSubscription) {
+                    xAConnection.setClientID(clientId);
+                }
+                xAConnection.setExceptionListener(new JMSErrorListener());
+                return xAConnection;
+            } else {
+                XAQueueConnectionFactory qConFac = null;
+                XATopicConnectionFactory tConFac = null;
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(destinationType)) {
+                    qConFac = (XAQueueConnectionFactory) xAConnectionFactory;
+                } else {
+                    tConFac = (XATopicConnectionFactory) xAConnectionFactory;
+                }
+                if (null != qConFac) {
+                    xAConnection = qConFac.createXAQueueConnection(userName, password);
+                } else if (null != tConFac) {
+                    xAConnection = tConFac.createXATopicConnection(userName, password);
+                }
+                if (isDurable) {
+                    xAConnection.setClientID(clientId);
+                }
+                xAConnection.setExceptionListener(new JMSErrorListener());
+                return xAConnection;
+            }
+        } catch (JMSException e) {
+            // Need to close the XAconnection in the case if durable subscriptions
+            if (null != xAConnection) {
+                try {
+                    xAConnection.close();
+                } catch (Exception ex) {
+                    logger.error("Error while closing the XAconnection", ex);
                 }
             }
             throw e;
@@ -395,7 +524,7 @@ public class JMSConnectionResourceFactory {
      * Create JMS {@link Session} instance on top of the provided {@link Connection} instance
      *
      * @param connection JMS Connection
-     * @return  Session instance
+     * @return Session instance
      * @throws JMSConnectorException
      */
     public Session createSession(Connection connection) throws JMSConnectorException {
@@ -404,12 +533,33 @@ public class JMSConnectionResourceFactory {
                     .equals(jmsSpec)) {
                 return connection.createSession(transactedSession, sessionAckMode);
             } else if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
-                return ((QueueConnection) (connection))
-                        .createQueueSession(transactedSession, sessionAckMode);
+                return ((QueueConnection) (connection)).createQueueSession(transactedSession, sessionAckMode);
             } else {
-                return ((TopicConnection) (connection))
-                        .createTopicSession(transactedSession, sessionAckMode);
+                return ((TopicConnection) (connection)).createTopicSession(transactedSession, sessionAckMode);
 
+            }
+        } catch (JMSException e) {
+            throw new JMSConnectorException(
+                    "JMS Exception while obtaining session for factory " + connectionFactoryString, e);
+        }
+    }
+
+    /**
+     * Create JMS {@link XASession} instance on top of the provided {@link Connection} instance
+     *
+     * @param xAConnection JMS Connection
+     * @return Session instance
+     * @throws JMSConnectorException
+     */
+    public XASession createXASession(XAConnection xAConnection) throws JMSConnectorException {
+        try {
+            if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec) || JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec)) {
+                return xAConnection.createXASession();
+            } else if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
+                return ((XAQueueConnection) (xAConnection)).createXAQueueSession();
+            } else {
+                return ((XATopicConnection) (xAConnection)).createXATopicSession();
             }
         } catch (JMSException e) {
             throw new JMSConnectorException(
@@ -446,6 +596,10 @@ public class JMSConnectionResourceFactory {
         return this.transactedSession;
     }
 
+    public boolean isxATransacted() {
+        return xATransacted;
+    }
+
     public int getSessionAckMode() {
         return this.sessionAckMode;
     }
@@ -457,11 +611,29 @@ public class JMSConnectionResourceFactory {
     /**
      * This method will get invoked by the JMS Connection Error listener whenever as error occurs in the
      * JMS Connection level
-     *
+     * <p>
      * This can be used to close all the Connections, Sessions, Producer, Consumers created on top of this
      * Connection factory and initialize again
      */
     public void notifyError(JMSException ex) {
+    }
+
+    /**
+     * Get JMS specification version
+     *
+     * @return
+     */
+    public String getJmsSpec() {
+        return jmsSpec;
+    }
+
+    /**
+     * Get destination type of this Connection factory
+     *
+     * @return
+     */
+    public JMSConstants.JMSDestinationType getDestinationType() {
+        return destinationType;
     }
 
     /**
@@ -475,18 +647,62 @@ public class JMSConnectionResourceFactory {
     }
 
     /**
-     * Get JMS specification version
-     * @return
+     * Close a JMS {@link Connection}
+     * @param connection
+     * @throws JMSException
      */
-    public String getJmsSpec() {
-        return jmsSpec;
+    public void closeConnection(Connection connection) throws JMSException {
+        if (connection != null) {
+            if ((JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) || (JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec))) {
+                connection.close();
+            } else {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
+                    ((QueueConnection) connection).close();
+                } else {
+                    ((TopicSession) connection).close();
+                }
+            }
+        }
     }
 
     /**
-     * Get destination type of this Connection factory
-     * @return
+     * Close a JMS {@link Session}
+     * @param session
+     * @throws JMSException
      */
-    public JMSConstants.JMSDestinationType getDestinationType() {
-        return destinationType;
+    public void closeSession(Session session) throws JMSException {
+        if (session != null) {
+            if ((JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) || (JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec))) {
+                session.close();
+            } else {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
+                    ((QueueSession) session).close();
+                } else {
+                    ((TopicSession) session).close();
+                }
+            }
+        }
+    }
+
+    /**
+     * Close a JMS {@link MessageProducer}
+     * @param messageProducer
+     * @throws JMSException
+     */
+    public void closeProducer(MessageProducer messageProducer) throws JMSException {
+        if (messageProducer != null) {
+            if ((JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) || (JMSConstants.JMS_SPEC_VERSION_2_0
+                    .equals(jmsSpec))) {
+                messageProducer.close();
+            } else {
+                if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
+                    ((QueueSender) messageProducer).close();
+                } else {
+                    ((TopicPublisher) messageProducer).close();
+                }
+            }
+        }
     }
 }

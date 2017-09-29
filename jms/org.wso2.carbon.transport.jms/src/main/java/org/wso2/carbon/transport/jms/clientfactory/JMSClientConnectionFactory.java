@@ -59,7 +59,7 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     /**
      * Indicates cache level given by the user.
      */
-    private boolean isClientCaching = true;
+    private boolean clientCaching = true;
 
     /**
      * List of Connection wrapper objects
@@ -80,8 +80,10 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     public JMSClientConnectionFactory(Properties properties) throws JMSConnectorException {
         super(properties);
         setCache(properties);
-        connections = new ArrayList<>();
-        initSessionPool();
+        if (clientCaching) {
+            connections = new ArrayList<>();
+            initSessionPool();
+        }
     }
 
     /**
@@ -90,6 +92,7 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     private void initSessionPool() {
         //todo: make parameters configurable
         SessionPoolFactory sessionPoolFactory = new SessionPoolFactory(this);
+
         //create pool configurations
         GenericObjectPoolConfig config = new GenericObjectPoolConfig();
         config.setMaxTotal(maxNumberOfConnections * maxSessionsPerConnection);
@@ -97,6 +100,7 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
         config.setMaxIdle(maxNumberOfConnections * maxSessionsPerConnection);
         config.setBlockWhenExhausted(true);
         config.setMaxWaitMillis(poolWaitTimeout);
+
         //initialize the pool
         sessionPool = new GenericObjectPool<SessionWrapper>(sessionPoolFactory, config);
     }
@@ -104,9 +108,10 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     private void setCache(Properties properties) {
         String cacheLevel = properties.getProperty(JMSConstants.PARAM_JMS_CACHING);
         if (null != cacheLevel && !cacheLevel.isEmpty()) {
-            this.isClientCaching = Boolean.parseBoolean(cacheLevel);
+            this.clientCaching = Boolean.parseBoolean(cacheLevel);
         } else {
-            this.isClientCaching = Boolean.TRUE;
+            this.clientCaching = Boolean.TRUE;
+            logger.info("Client caching is set");
         }
     }
 
@@ -177,5 +182,13 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
             }
         });
         connections.clear();
+    }
+
+    /**
+     * Is this Client Connection factory is configured to use caching/pooling
+     * @return
+     */
+    public boolean isClientCaching() {
+        return clientCaching;
     }
 }

@@ -28,6 +28,7 @@ import org.wso2.carbon.transport.jms.wrappers.SessionWrapper;
 
 import java.util.Map;
 import java.util.Properties;
+import javax.jms.Connection;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -36,7 +37,7 @@ import javax.jms.Session;
 import javax.jms.TopicPublisher;
 
 /**
- * JMS sender implementation.
+ * JMS sender Connector API Implementation. JMS transport sender is invoked through this API
  */
 public class JMSClientConnectorImpl implements JMSClientConnector {
 
@@ -45,19 +46,33 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
     private JMSClientConnectionFactory jmsConnectionFactory;
 
     public JMSClientConnectorImpl(Map<String, String> propertyMap) throws JMSConnectorException {
-        setupConnectionFactory(propertyMap);
+        try {
+            Properties properties = new Properties();
+            properties.putAll(propertyMap);
+
+            jmsConnectionFactory = JMSConnectionFactoryManager.getInstance().getJMSConnectionFactory(properties);
+
+        } catch (JMSConnectorException e) {
+            throw new JMSConnectorException("Error connecting to JMS provider. " + e.getMessage(), e);
+        }
     }
 
     @Override
     public boolean send(Message jmsMessage, String destinationName) throws JMSConnectorException {
-        Destination destination;
         SessionWrapper sessionWrapper = null;
         try {
+            if (!jmsConnectionFactory.isClientCaching()) {
+                sendNonCached(jmsMessage, destinationName);
+                return false;
+            }
             sessionWrapper = jmsConnectionFactory.getSessionWrapper();
-            destination = jmsConnectionFactory.createDestination(sessionWrapper.getSession(), destinationName);
+            Destination destination = jmsConnectionFactory
+                    .createDestination(sessionWrapper.getSession(), destinationName);
             sendJMSMessage(destination, jmsMessage, sessionWrapper.getMessageProducer());
+        } catch (JMSConnectorException e) {
+            throw e;
         } catch (JMSException e) {
-            throw new JMSConnectorException("JMS Send Failed with [" + e.getMessage() + " ]", e);
+            throw new JMSConnectorException("JMS Send Failed with [ " + e.getMessage() + " ]", e);
         } catch (Exception e) {
             throw new JMSConnectorException("Error getting the session. " + e.getMessage(), e);
         } finally {
@@ -75,66 +90,55 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         try {
             destination = jmsConnectionFactory.createDestination(sessionWrapper.getSession(), destinationName);
             sendJMSMessage(destination, jmsMessage, sessionWrapper.getMessageProducer());
+        } catch (JMSConnectorException e) {
+            throw e;
         } catch (JMSException e) {
             throw new JMSConnectorException("JMS Send Failed with [" + e.getMessage() + " ]", e);
         } catch (Exception e) {
-            throw new JMSConnectorException("Error getting the session. " + e.getMessage(), e);
+            throw new JMSConnectorException("Error acquiring the session. " + e.getMessage(), e);
         }
         return false;
     }
 
     @Override
-    public Message createJMSMessage(String messageType) throws JMSConnectorException {
-        Message jmsMessage = null;
-        SessionWrapper sessionWrapper = null;
-        try {
-            sessionWrapper = jmsConnectionFactory.getSessionWrapper();
-            Session session = sessionWrapper.getSession();
-            switch (messageType) {
-            case JMSConstants.TEXT_MESSAGE_TYPE:
-                jmsMessage = session.createTextMessage();
-                break;
-            case JMSConstants.MAP_MESSAGE_TYPE:
-            case JMSConstants.OBJECT_MESSAGE_TYPE:
-                jmsMessage = session.createMapMessage();
-                break;
-            case JMSConstants.BYTES_MESSAGE_TYPE:
-                jmsMessage = session.createBytesMessage();
-                break;
-            case JMSConstants.STREAM_MESSAGE_TYPE:
-                jmsMessage = session.createStreamMessage();
-                break;
-            default:
-                logger.error("Unsupported JMS Message type");
+    public Message createMessage(String messageType) throws JMSConnectorException {
+
+        Message jmsMessage;
+
+        if (jmsConnectionFactory.isClientCaching()) {
+            SessionWrapper sessionWrapper = null;
+            try {
+                sessionWrapper = jmsConnectionFactory.getSessionWrapper();
+                jmsMessage = createJMSMessage(sessionWrapper.getSession(), messageType);
+            } catch (JMSException e) {
+                throw new JMSConnectorException("Error creating the JMS Message. " + e.getMessage(), e);
+            } catch (Exception e) {
+                throw new JMSConnectorException("Error acquiring the session JMS Message. " + e.getMessage(), e);
+            } finally {
+                if (sessionWrapper != null) {
+                    jmsConnectionFactory.returnSessionWrapper(sessionWrapper);
+                }
             }
+        } else {
+            Connection connection = null;
+            Session session = null;
 
-            //Set default values to the newly created message
-            jmsMessage.setJMSDeliveryMode(Message.DEFAULT_DELIVERY_MODE);
-            jmsMessage.setJMSPriority(Message.DEFAULT_PRIORITY);
-            jmsMessage.setJMSExpiration(Message.DEFAULT_TIME_TO_LIVE);
-
-        } catch (JMSException e) {
-            throw new JMSConnectorException("Error creating the JMS Message. " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new JMSConnectorException("Error getting the session. " + e.getMessage(), e);
-        } finally {
-            if (sessionWrapper != null) {
-                jmsConnectionFactory.returnSessionWrapper(sessionWrapper);
+            try {
+                connection = jmsConnectionFactory.createConnection();
+                session = jmsConnectionFactory.createSession(connection);
+                jmsMessage = createJMSMessage(session, messageType);
+            } catch (JMSException e) {
+                throw new JMSConnectorException("Error creating the JMS Message. " + e.getMessage(), e);
+            } finally {
+                try {
+                    jmsConnectionFactory.closeSession(session);
+                    jmsConnectionFactory.closeConnection(connection);
+                } catch (JMSException e) {
+                    throw new JMSConnectorException("Error releasing the JMS resources. " + e.getMessage(), e);
+                }
             }
         }
         return jmsMessage;
-    }
-
-    private void setupConnectionFactory(Map<String, String> propertyMap) throws JMSConnectorException {
-        try {
-            Properties properties = new Properties();
-            properties.putAll(propertyMap);
-
-            jmsConnectionFactory = JMSConnectionFactoryManager.getInstance().getJMSConnectionFactory(properties);
-
-        } catch (JMSConnectorException e) {
-            throw new JMSConnectorException("Error connecting to JMS provider. " + e.getMessage(), e);
-        }
     }
 
     @Override
@@ -153,6 +157,14 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         jmsConnectionFactory.returnSessionWrapper(sessionWrapper);
     }
 
+    /**
+     * Send the JMS Message using matching Message Sender implementation
+     *
+     * @param destination JMS Queue/Topic
+     * @param message   JMS Message
+     * @param producer JMS Message Producer
+     * @throws JMSException Thrown when sending the message
+     */
     private void sendJMSMessage(Destination destination, Message message, MessageProducer producer)
             throws JMSException {
 
@@ -165,5 +177,64 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
                     .send(destination, message, message.getJMSDeliveryMode(), message.getJMSPriority(),
                             message.getJMSExpiration());
         }
+    }
+
+    /**
+     * Send the JMS Message by bypassing the Caching pool. This is used when the connector is created using caching
+     * disabled
+     *
+     * @param message JMS Message
+     * @param destinationName Name of the JMS queue/topic
+     * @throws JMSException Thrown when creating connection, session, messageProducer and destination
+     * @throws JMSConnectorException If the destination is not found, NameNotfound exceptions are notified through
+     * JMSConnectorExceptions.
+     */
+    private void sendNonCached(Message message, String destinationName) throws JMSException, JMSConnectorException {
+        Connection connection = null;
+        Session session = null;
+        Destination destination;
+        MessageProducer messageProducer = null;
+        try {
+            connection = jmsConnectionFactory.createConnection();
+            session = jmsConnectionFactory.createSession(connection);
+            destination = jmsConnectionFactory.createDestination(session, destinationName);
+            messageProducer = session.createProducer(destination);
+            sendJMSMessage(destination, message, messageProducer);
+        } finally {
+            jmsConnectionFactory.closeProducer(messageProducer);
+            jmsConnectionFactory.closeSession(session);
+            jmsConnectionFactory.closeConnection(connection);
+        }
+    }
+
+
+    private Message createJMSMessage(Session session, String messageType) throws JMSException {
+
+        Message jmsMessage = null;
+
+        switch (messageType) {
+        case JMSConstants.TEXT_MESSAGE_TYPE:
+            jmsMessage = session.createTextMessage();
+            break;
+        case JMSConstants.MAP_MESSAGE_TYPE:
+        case JMSConstants.OBJECT_MESSAGE_TYPE:
+            jmsMessage = session.createMapMessage();
+            break;
+        case JMSConstants.BYTES_MESSAGE_TYPE:
+            jmsMessage = session.createBytesMessage();
+            break;
+        case JMSConstants.STREAM_MESSAGE_TYPE:
+            jmsMessage = session.createStreamMessage();
+            break;
+        default:
+            logger.error("Unsupported JMS Message type");
+        }
+
+        //Set default values to the newly created message
+        jmsMessage.setJMSDeliveryMode(Message.DEFAULT_DELIVERY_MODE);
+        jmsMessage.setJMSPriority(Message.DEFAULT_PRIORITY);
+        jmsMessage.setJMSExpiration(Message.DEFAULT_TIME_TO_LIVE);
+
+        return jmsMessage;
     }
 }
