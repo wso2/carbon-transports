@@ -59,13 +59,14 @@ public class JMSConnectionFactoryManager {
      * @return
      */
     public static JMSConnectionFactoryManager getInstance() {
-        if (jmsConnectionFactoryManager == null) {
+        //todo: exclude this from findbugs and uncomment the outer if condition check
+//        if (jmsConnectionFactoryManager == null) {
             synchronized (mutex) {
                 if (jmsConnectionFactoryManager == null) {
                     jmsConnectionFactoryManager = new JMSConnectionFactoryManager();
                 }
             }
-        }
+//        }
         return jmsConnectionFactoryManager;
     }
 

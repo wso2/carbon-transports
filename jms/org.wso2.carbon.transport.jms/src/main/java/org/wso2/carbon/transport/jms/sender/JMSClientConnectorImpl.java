@@ -230,10 +230,12 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
             logger.error("Unsupported JMS Message type");
         }
 
-        //Set default values to the newly created message
-        jmsMessage.setJMSDeliveryMode(Message.DEFAULT_DELIVERY_MODE);
-        jmsMessage.setJMSPriority(Message.DEFAULT_PRIORITY);
-        jmsMessage.setJMSExpiration(Message.DEFAULT_TIME_TO_LIVE);
+        if (jmsMessage != null) {
+            //Set default values to the newly created message
+            jmsMessage.setJMSDeliveryMode(Message.DEFAULT_DELIVERY_MODE);
+            jmsMessage.setJMSPriority(Message.DEFAULT_PRIORITY);
+            jmsMessage.setJMSExpiration(Message.DEFAULT_TIME_TO_LIVE);
+        }
 
         return jmsMessage;
     }

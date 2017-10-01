@@ -349,7 +349,7 @@ public class JMSConnectionResourceFactory {
                 }
                 if (null != qConFac) {
                     connection = qConFac.createQueueConnection(userName, password);
-                } else if (null != tConFac) {
+                } else {
                     connection = tConFac.createTopicConnection(userName, password);
                 }
                 if (isDurable) {
@@ -450,7 +450,7 @@ public class JMSConnectionResourceFactory {
                 }
                 if (null != qConFac) {
                     xAConnection = qConFac.createXAQueueConnection(userName, password);
-                } else if (null != tConFac) {
+                } else {
                     xAConnection = tConFac.createXATopicConnection(userName, password);
                 }
                 if (isDurable) {
@@ -660,7 +660,7 @@ public class JMSConnectionResourceFactory {
                 if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                     ((QueueConnection) connection).close();
                 } else {
-                    ((TopicSession) connection).close();
+                    ((TopicConnection) connection).close();
                 }
             }
         }
