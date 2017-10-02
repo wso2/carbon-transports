@@ -176,7 +176,6 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
         connections.forEach(connection -> {
             try {
                 connection.getConnection().close();
-                logger.info("Closing connections");
             } catch (JMSException e) {
                 logger.error("Error closing the connection" + e);
             }

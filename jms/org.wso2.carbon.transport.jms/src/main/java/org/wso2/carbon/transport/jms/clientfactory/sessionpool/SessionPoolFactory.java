@@ -76,10 +76,8 @@ public class SessionPoolFactory extends BasePooledObjectFactory<SessionWrapper> 
             if (connectionWrapper == null) {
                 if (jmsConnectionFactory.isxATransacted()) {
                     connectionWrapper = new ConnectionWrapper((jmsConnectionFactory.createXAConnection()));
-                    logger.info("creating XAConnection " + connectionWrappers.size());
                 } else {
                     connectionWrapper = new ConnectionWrapper(jmsConnectionFactory.createConnection());
-                    logger.info("creating Connection " + connectionWrappers.size());
                 }
                 connectionWrappers.add(connectionWrapper);
             }
@@ -90,11 +88,9 @@ public class SessionPoolFactory extends BasePooledObjectFactory<SessionWrapper> 
                         .createXASession((XAConnection) connectionWrapper.getConnection());
                 sessionWrapper = new XASessionWrapper(xASession, xASession.getSession(),
                         jmsConnectionFactory.createMessageProducer(xASession.getSession()));
-                logger.info("creating XASession");
             } else {
                 Session session = jmsConnectionFactory.createSession(connectionWrapper.getConnection());
                 sessionWrapper = new SessionWrapper(session, jmsConnectionFactory.createMessageProducer(session));
-                logger.info("creating Session");
             }
             connectionWrapper.incrementSessionCount();
         }
@@ -109,7 +105,6 @@ public class SessionPoolFactory extends BasePooledObjectFactory<SessionWrapper> 
     @Override
     public void destroyObject(PooledObject<SessionWrapper> sessionWrapper) throws Exception {
         try {
-            logger.info("Closing sessions/ producers");
             sessionWrapper.getObject().getMessageProducer().close();
             sessionWrapper.getObject().getSession().close();
         } catch (JMSException e) {

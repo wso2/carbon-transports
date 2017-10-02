@@ -205,7 +205,6 @@ public class JMSConnectionResourceFactory {
         } else if (strSessionAck.equals(JMSConstants.XA_TRANSACTED_MODE)) {
             sessionAckMode = -1;
             xATransacted = true;
-            logger.info("XA transacted mode ");
         }
 
         //Setting broker credentials
