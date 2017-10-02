@@ -57,14 +57,6 @@ public class SessionPoolFactory extends BasePooledObjectFactory<SessionWrapper> 
         if (jmsConnectionFactory instanceof JMSClientConnectionFactory) {
             connectionWrappers = ((JMSClientConnectionFactory) jmsConnectionFactory).getConnections();
 
-            //            for (int i = 0; i < connectionWrappers.size(); i++) {
-            //                if (connectionWrappers.get(i).getSessionCount().get() < JMSClientConnectionFactory
-            //                        .getMaxSessionsPerConnection()) {
-            //                    connectionWrapper = connectionWrappers.get(i);
-            //                    break;
-            //                }
-            //            }
-
             // see if we can create more sessions on the final Connection created
             if (!connectionWrappers.isEmpty()
                     && connectionWrappers.get(connectionWrappers.size() - 1).getSessionCount().get()

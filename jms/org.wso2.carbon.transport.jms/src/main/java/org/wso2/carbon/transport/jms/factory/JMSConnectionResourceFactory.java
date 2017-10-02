@@ -620,7 +620,7 @@ public class JMSConnectionResourceFactory {
     /**
      * Get JMS specification version
      *
-     * @return
+     * @return 1.0, 1.1 or 2.0
      */
     public String getJmsSpec() {
         return jmsSpec;
@@ -629,7 +629,7 @@ public class JMSConnectionResourceFactory {
     /**
      * Get destination type of this Connection factory
      *
-     * @return
+     * @return queue or topic
      */
     public JMSConstants.JMSDestinationType getDestinationType() {
         return destinationType;

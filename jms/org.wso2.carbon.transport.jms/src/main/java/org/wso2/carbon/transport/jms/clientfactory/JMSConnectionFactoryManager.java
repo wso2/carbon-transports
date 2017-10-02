@@ -56,7 +56,7 @@ public class JMSConnectionFactoryManager {
     /**
      * Get an instance of this Singleton class
      *
-     * @return
+     * @return instance of {@link JMSConnectionFactoryManager}
      */
     public static JMSConnectionFactoryManager getInstance() {
         //todo: exclude this from findbugs and uncomment the outer if condition check

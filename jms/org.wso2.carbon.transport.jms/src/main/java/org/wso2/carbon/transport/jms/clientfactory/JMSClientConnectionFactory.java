@@ -42,17 +42,17 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(JMSClientConnectionFactory.class);
     /**
-     * Size of the Connection list
+     * Default Size of the Connection list
      */
-    private static final int maxNumberOfConnections = 2;
+    private static final int maxNumberOfConnections = 5;
 
     /**
-     * Number of session per Connection
+     * Default Number of session per Connection
      */
-    private static final int maxSessionsPerConnection = 5;
+    private static final int maxSessionsPerConnection = 10;
 
     /**
-     * Wait timeout for the Session pool
+     * Default Wait timeout (in milliseconds) for the Session pool
      */
     private static final int poolWaitTimeout = 30 * 1000;
 
@@ -111,7 +111,6 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
             this.clientCaching = Boolean.parseBoolean(cacheLevel);
         } else {
             this.clientCaching = Boolean.TRUE;
-            logger.info("Client caching is set");
         }
     }
 
@@ -147,7 +146,6 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
      * @throws Exception
      */
     public SessionWrapper getSessionWrapper() throws Exception {
-        //        Systemm.out.println("Session pool | get session wrapper object");
         return sessionPool.borrowObject();
     }
 
@@ -156,7 +154,6 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
      * @param sessionWrapper
      */
     public void returnSessionWrapper(SessionWrapper sessionWrapper) {
-        //Systemm.out.println("Session pool | return session wrapper object");
         sessionPool.returnObject(sessionWrapper);
     }
 
@@ -169,18 +166,20 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     }
 
     /**
-     * Close the JMS resources allocated for this Connection Factory
+     * Close cached JMS resources allocated for this Connection Factory
      */
     private void closeJMSResources() {
-        sessionPool.clear();
-        connections.forEach(connection -> {
-            try {
-                connection.getConnection().close();
-            } catch (JMSException e) {
-                logger.error("Error closing the connection" + e);
-            }
-        });
-        connections.clear();
+        if (clientCaching) {
+            sessionPool.clear();
+            connections.forEach(connection -> {
+                try {
+                    connection.getConnection().close();
+                } catch (JMSException e) {
+                    logger.error("Error closing the connection" + e);
+                }
+            });
+            connections.clear();
+        }
     }
 
     /**
