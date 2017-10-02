@@ -26,7 +26,7 @@ public interface LocalFileSystemListener {
     /**
      * Transport will trigger this method when for each file system notification.
      *
-     * @param localFileSystemMessage contains the msg data.
+     * @param localFileSystemEvent contains the msg data.
      */
-    void onMessage(LocalFileSystemMessage localFileSystemMessage);
+    void onMessage(LocalFileSystemEvent localFileSystemEvent);
 }

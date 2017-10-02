@@ -16,9 +16,10 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.localfilesystem.server.connector.contract;
+package org.wso2.carbon.transport.remotefilesystem.message;
 
-import org.wso2.carbon.messaging.CarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -26,32 +27,27 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 /**
- * This class represent the file message.
+ * This class represent the events that happen in remote file system.
  */
-public class LocalFileSystemMessage extends CarbonMessage {
+public class RemoteFileSystemEvent extends RemoteFileSystemBaseMessage {
 
-    private final String fileName;
-    private final String event;
+    private static final Logger LOG = LoggerFactory.getLogger(RemoteFileSystemEvent.class);
+    private final String text;
 
-    public LocalFileSystemMessage(String fileName, String event) {
-        this.fileName = fileName;
-        this.event = event;
+    public RemoteFileSystemEvent(String text) {
+        this.text = text;
     }
 
-    public String getFileName() {
-        return this.fileName;
-    }
-
-    public String getEvent() {
-        return event;
+    public String getText() {
+        return this.text;
     }
 
     public InputStream getInputStream() {
-        return this.fileName == null ? null : new ByteArrayInputStream(this.fileName.getBytes(StandardCharsets.UTF_8));
+        return this.text == null ? null : new ByteArrayInputStream(this.text.getBytes(StandardCharsets.UTF_8));
     }
 
     public ByteBuffer getMessageBody() {
         this.setEndOfMsgAdded(true);
-        return ByteBuffer.wrap(this.fileName.getBytes(StandardCharsets.UTF_8));
+        return ByteBuffer.wrap(this.text.getBytes(StandardCharsets.UTF_8));
     }
 }

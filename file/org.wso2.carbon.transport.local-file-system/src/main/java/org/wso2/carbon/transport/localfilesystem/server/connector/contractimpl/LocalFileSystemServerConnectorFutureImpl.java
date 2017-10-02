@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.localfilesystem.server.connector.contractimpl;
 
+import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemEvent;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemListener;
-import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemMessage;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemServerConnectorFuture;
 
 /**
@@ -34,7 +34,7 @@ public class LocalFileSystemServerConnectorFutureImpl implements LocalFileSystem
     }
 
     @Override
-    public void notifyFileSystemListener(LocalFileSystemMessage localFileSystemMessage) {
-        localFileSystemListener.onMessage(localFileSystemMessage);
+    public void notifyFileSystemListener(LocalFileSystemEvent localFileSystemEvent) {
+        this.localFileSystemListener.onMessage(localFileSystemEvent);
     }
 }

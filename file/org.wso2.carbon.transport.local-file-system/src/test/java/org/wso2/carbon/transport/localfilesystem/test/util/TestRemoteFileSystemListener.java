@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.localfilesystem.test.util;
 
+import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemEvent;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemListener;
-import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemMessage;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -32,8 +32,8 @@ public class TestRemoteFileSystemListener implements LocalFileSystemListener {
     private String text;
 
     @Override
-    public void onMessage(LocalFileSystemMessage localFileSystemMessage) {
-        text = localFileSystemMessage.getFileName();
+    public void onMessage(LocalFileSystemEvent localFileSystemEvent) {
+        text = localFileSystemEvent.getFileName();
         done();
     }
 

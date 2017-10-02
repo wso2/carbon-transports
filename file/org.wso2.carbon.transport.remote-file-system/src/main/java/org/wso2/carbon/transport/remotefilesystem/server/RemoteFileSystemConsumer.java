@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem.server.connector;
+package org.wso2.carbon.transport.remotefilesystem.server;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -28,13 +28,12 @@ import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.messaging.ServerConnectorErrorHandler;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
+import org.wso2.carbon.transport.remotefilesystem.Constants;
+import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnectorFuture;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.exception.RemoteFileSystemServerConnectorException;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.util.Constants;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.util.FileTransportUtils;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.util.ThreadPoolFactory;
+import org.wso2.carbon.transport.remotefilesystem.server.util.FileTransportUtils;
+import org.wso2.carbon.transport.remotefilesystem.server.util.ThreadPoolFactory;
 
 import java.io.File;
 import java.io.Serializable;
@@ -61,7 +60,6 @@ public class RemoteFileSystemConsumer {
     private String listeningDirURI; // The URI of the currently listening directory
     private FileObject listeningDir; // The directory we are currently listening to
     private FileSystemOptions fso;
-    private ServerConnectorErrorHandler errorHandler;
     private boolean parallelProcess = false;
     private int threadPoolSize = 10;
     private int fileProcessCount;
@@ -81,17 +79,14 @@ public class RemoteFileSystemConsumer {
      * @param connectorFuture  RemoteFileSystemServerConnectorFuture instance to send callback
      */
     public RemoteFileSystemConsumer(String id, Map<String, String> fileProperties,
-                                    RemoteFileSystemServerConnectorFuture connectorFuture,
-                                    ServerConnectorErrorHandler errorHandler) throws ServerConnectorException {
+                                    RemoteFileSystemServerConnectorFuture connectorFuture)
+            throws ServerConnectorException {
         this.serviceName = id;
         this.fileProperties = fileProperties;
         this.connectorFuture = connectorFuture;
-        this.errorHandler = errorHandler;
-
         setupParams();
         try {
             fsManager = VFS.getManager();
-
             Map<String, String> options = parseSchemeFileOptions(listeningDirURI);
             fso = FileTransportUtils.attachFileSystemOptions(options, fsManager);
 
@@ -99,40 +94,37 @@ public class RemoteFileSystemConsumer {
             if (options != null && Constants.SCHEME_FTP.equals(options.get(Constants.SCHEME))) {
                 FtpFileSystemConfigBuilder.getInstance().setPassiveMode(fso, true);
             }
-
             try {
                 listeningDir = fsManager.resolveFile(listeningDirURI, fso);
             } catch (FileSystemException e) {
-                this.errorHandler.handleError(
-                        new RemoteFileSystemServerConnectorException(
-                                "Failed to resolve listeningDirURI: " +
-                                FileTransportUtils.maskURLPassword(listeningDirURI), e), null,
-                        null);
+                connectorFuture.notifyFileSystemListener(e);
+                log.error("Failed to resolve listeningDirURI: " + FileTransportUtils.maskURLPassword(listeningDirURI),
+                        e);
             }
-        } catch (FileSystemException e) {
-            this.errorHandler.handleError(
-                    new ServerConnectorException("Could not initialize File System Manager from " +
-                                                 "the configuration: providers.xml", e), null,
-                    null);
+        } catch (FileSystemException | RemoteFileSystemConnectorException e) {
+            log.error("Could not initialize File System Manager.", e);
+            connectorFuture.notifyFileSystemListener(e);
         }
-
         try {
             if (!listeningDir.isWriteable()) {
                 postProcessAction = Constants.ACTION_NONE;
             }
         } catch (FileSystemException e) {
-            this.errorHandler.handleError(new RemoteFileSystemServerConnectorException(
-                    "Exception while determining file: " + FileTransportUtils.maskURLPassword(listeningDirURI) +
-                            " is writable", e), null, null);
+            log.error("Exception while determining file: " + FileTransportUtils.maskURLPassword(listeningDirURI) +
+                    " is writable", e);
+            connectorFuture.notifyFileSystemListener(e);
         }
-
-        FileType fileType = getFileType(listeningDir);
-        if (fileType != FileType.FOLDER) {
-            this.errorHandler.handleError(
-                    new RemoteFileSystemServerConnectorException(
-                            "File system server connector is used to " +
-                            "listen to a folder. But the given path does not refer to a folder."), null,
-                    null);
+        try {
+            FileType fileType = getFileType(listeningDir);
+            if (fileType != FileType.FOLDER) {
+                log.error("File system server connector is used to " +
+                        "listen to a folder. But the given path does not refer to a folder.");
+                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException("File system " +
+                        "server connector is used to " +
+                        "listen to a folder. But the given path does not refer to a folder."));
+            }
+        } catch (RemoteFileSystemConnectorException e) {
+            connectorFuture.notifyFileSystemListener(e);
         }
         //Initialize the thread executor based on properties
         ThreadPoolFactory.createInstance(threadPoolSize, parallelProcess);
@@ -144,13 +136,13 @@ public class RemoteFileSystemConsumer {
     private void setupParams() throws ServerConnectorException {
         listeningDirURI = fileProperties.get(Constants.TRANSPORT_FILE_FILE_URI);
         if (listeningDirURI == null) {
-            errorHandler.handleError(new ServerConnectorException(
+            connectorFuture.notifyFileSystemListener(new ServerConnectorException(
                     Constants.TRANSPORT_FILE_FILE_URI + " is a " + "mandatory parameter for " +
-                    Constants.PROTOCOL_FILE_SYSTEM + " transport."), null, null);
+                            Constants.PROTOCOL_FILE_SYSTEM + " transport."));
         } else if (listeningDirURI.trim().equals("")) {
-            errorHandler.handleError(
-                    new ServerConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " parameter cannot be empty for " +
-                    Constants.PROTOCOL_FILE_SYSTEM + " transport."), null, null);
+            connectorFuture.notifyFileSystemListener(new
+                    RemoteFileSystemConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " " +
+                    "parameter cannot be empty for " + Constants.PROTOCOL_FILE_SYSTEM + " transport."));
         }
         String strParallel = fileProperties.get(Constants.PARALLEL);
         if (strParallel != null) {
@@ -226,7 +218,7 @@ public class RemoteFileSystemConsumer {
      * Do the file processing operation for the given set of properties. Do the
      * checks and pass the control to file system processor thread/threads.
      */
-    public void consume() throws RemoteFileSystemServerConnectorException {
+    public void consume() throws RemoteFileSystemConnectorException {
         if (log.isDebugEnabled()) {
             log.debug("Thread name: " + Thread.currentThread().getName());
             log.debug("File System Consumer hashcode: " + this.hashCode());
@@ -243,11 +235,10 @@ public class RemoteFileSystemConsumer {
                 isFileExists = listeningDir.exists();
                 isFileReadable = listeningDir.isReadable();
             } catch (FileSystemException e) {
-                errorHandler.handleError(
-                        new RemoteFileSystemServerConnectorException(
-                                "Error occurred when determining whether the file at URI : " +
+                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
+                        "Error occurred when determining whether the file at URI : " +
                                 FileTransportUtils.maskURLPassword(listeningDirURI) +
-                                " exists and readable. " + e), null, null);
+                                " exists and readable. " + e));
             }
 
             if (isFileExists && isFileReadable) {
@@ -269,11 +260,10 @@ public class RemoteFileSystemConsumer {
                     directoryHandler(children);
                 }
             } else {
-                errorHandler.handleError(new RemoteFileSystemServerConnectorException(
+                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
                         "Unable to access or read file or directory : " + FileTransportUtils.maskURLPassword(
-                        listeningDirURI) + ". Reason: " +
-                        (isFileExists ? "The file can not be read!" : "The file does not exist!")), null,
-                        null);
+                                listeningDirURI) + ". Reason: " +
+                                (isFileExists ? "The file can not be read!" : "The file does not exist!")));
             }
         } finally {
             try {
@@ -292,7 +282,7 @@ public class RemoteFileSystemConsumer {
      *
      * @param children The array containing child elements of a folder
      */
-    private void directoryHandler(FileObject[] children) throws RemoteFileSystemServerConnectorException {
+    private void directoryHandler(FileObject[] children) throws RemoteFileSystemConnectorException {
         // Sort the files according to given properties
         String strSortParam = fileProperties.get(Constants.FILE_SORT_PARAM);
 
@@ -407,7 +397,7 @@ public class RemoteFileSystemConsumer {
             // it is a failed record
             try {
                 postProcess(file, false);
-            } catch (RemoteFileSystemServerConnectorException e) {
+            } catch (RemoteFileSystemConnectorException e) {
                 log.error("File object '" + FileTransportUtils.maskURLPassword(uri) +
                           "'could not complete action " + postProcessAction +
                           ", will remain in \"fail\" state", e);
@@ -437,7 +427,7 @@ public class RemoteFileSystemConsumer {
      * @param processFailed Whether processing of file failed
      */
     synchronized void postProcess(FileObject file, boolean processFailed) throws
-            RemoteFileSystemServerConnectorException {
+            RemoteFileSystemConnectorException {
         String moveToDirectoryURI = null;
         FileType fileType = getFileType(file);
         if (!processFailed) {
@@ -464,10 +454,9 @@ public class RemoteFileSystemConsumer {
                     }
                 }
             } catch (FileSystemException e) {
-                errorHandler.handleError(new RemoteFileSystemServerConnectorException(
+                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
                         "Error occurred when resolving move destination file: " +
-                        FileTransportUtils.maskURLPassword(listeningDirURI), e), null,
-                        null);
+                                FileTransportUtils.maskURLPassword(listeningDirURI), e));
             }
         }
 
@@ -492,7 +481,6 @@ public class RemoteFileSystemConsumer {
                     !moveToDirectory.exists()) {
                     moveToDirectory.createFolder();
                 }
-
                 FileObject dest = moveToDirectory.resolveFile(prefix + file.getName().getBaseName());
                 if (log.isDebugEnabled()) {
                     log.debug("Moving to file :" + FileTransportUtils.maskURLPassword(dest.getName().getURI()));
@@ -509,13 +497,10 @@ public class RemoteFileSystemConsumer {
                     if (!isFailRecord(file)) {
                         markFailRecord(file);
                     }
-                    errorHandler.handleError(
-                            new RemoteFileSystemServerConnectorException("Error moving file : " +
-                                FileTransportUtils.maskURLPassword(file.toString()) + " to " +
-                                FileTransportUtils.maskURLPassword(moveToDirectoryURI), e), null,
-                            null);
+                    connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
+                            "Error moving file : " + FileTransportUtils.maskURLPassword(file.toString()) + " to " +
+                                    FileTransportUtils.maskURLPassword(moveToDirectoryURI), e));
                 }
-
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("Deleting file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
@@ -535,19 +520,17 @@ public class RemoteFileSystemConsumer {
                         }
                     }
                 } catch (FileSystemException e) {
-                    errorHandler.handleError(
-                            new RemoteFileSystemServerConnectorException(
-                                    "Could not delete file : " + FileTransportUtils.maskURLPassword(
-                                    file.getName().getBaseName()), e), null, null);
+                    connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
+                            "Could not delete file : " + FileTransportUtils.maskURLPassword(
+                                    file.getName().getBaseName()), e));
                 }
             }
         } catch (FileSystemException e) {
             if (!isFailRecord(file)) {
                 markFailRecord(file);
-                errorHandler.handleError(
-                        new RemoteFileSystemServerConnectorException("Error resolving directory to move file : " +
-                            FileTransportUtils.maskURLPassword(moveToDirectoryURI), e), null,
-                        null);
+                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
+                        "Error resolving directory to move file : " +
+                                FileTransportUtils.maskURLPassword(moveToDirectoryURI), e));
             }
         }
     }
@@ -558,14 +541,14 @@ public class RemoteFileSystemConsumer {
      * @param fileObject    File to get the type of
      * @return              FileType of given file
      */
-    private FileType getFileType(FileObject fileObject) throws RemoteFileSystemServerConnectorException {
+    private FileType getFileType(FileObject fileObject) throws RemoteFileSystemConnectorException {
         try {
             return fileObject.getType();
         } catch (FileSystemException e) {
-            errorHandler.handleError(new RemoteFileSystemServerConnectorException(
+            connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
                     "Error occurred when determining whether file: " +
-                    FileTransportUtils.maskURLPassword(fileObject.getName().getURI()) +
-                    " is a file or a folder", e), null, null);
+                            FileTransportUtils.maskURLPassword(fileObject.getName().getURI()) +
+                            " is a file or a folder", e));
         }
 
         return FileType.IMAGINARY;

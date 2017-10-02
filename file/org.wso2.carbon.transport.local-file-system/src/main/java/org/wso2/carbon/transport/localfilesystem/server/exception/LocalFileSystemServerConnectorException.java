@@ -16,26 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem.server.connector.contract;
+package org.wso2.carbon.transport.localfilesystem.server.exception;
 
-import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
+import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 
 /**
- * Allows to set listeners.
+ * Generic {@link Exception} for File Server connector.
  */
-public interface RemoteFileSystemServerConnectorFuture {
+public class LocalFileSystemServerConnectorException extends ServerConnectorException {
 
-    /**
-     * Notify {@link RemoteFileSystemEvent} to the listener.
-     *
-     * @param remoteFileSystemEvent File system message.
-     */
-    void notifyFileSystemListener(RemoteFileSystemEvent remoteFileSystemEvent);
+    private static final long serialVersionUID = -6464399829332668446L;
 
-    /**
-     * Notify error event triggered by connector to the listener.
-     *
-     * @param throwable contains the error details of the event.
-     */
-    void notifyFileSystemListener(Throwable throwable);
+    public LocalFileSystemServerConnectorException(String message) {
+        super(message);
+    }
+
+    public LocalFileSystemServerConnectorException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

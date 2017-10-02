@@ -83,7 +83,7 @@
             org.apache.commons.vfs2.*;version="${commons-vfs2.wso2.version.range}"
         </import.package>
         <bundle.activator>
-            org.wso2.carbon.transport.remotefilesystem.server.connector.internal.RemoteFileSystemConnectorBundleActivator
+            org.wso2.carbon.transport.remotefilesystem.internal.RemoteFileSystemConnectorBundleActivator
         </bundle.activator>
         <carbon.component>
             osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"

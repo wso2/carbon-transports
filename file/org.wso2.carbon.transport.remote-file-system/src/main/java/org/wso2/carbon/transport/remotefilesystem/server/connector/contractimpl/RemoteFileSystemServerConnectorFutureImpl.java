@@ -18,8 +18,8 @@
 
 package org.wso2.carbon.transport.remotefilesystem.server.connector.contractimpl;
 
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemListener;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemMessage;
+import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListener;
+import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnectorFuture;
 
 /**
@@ -34,7 +34,12 @@ public class RemoteFileSystemServerConnectorFutureImpl implements RemoteFileSyst
     }
 
     @Override
-    public void notifyFileSystemListener(RemoteFileSystemMessage remoteFileSystemMessage) {
-        remoteFileSystemListener.onMessage(remoteFileSystemMessage);
+    public void notifyFileSystemListener(RemoteFileSystemEvent remoteFileSystemEvent) {
+        this.remoteFileSystemListener.onMessage(remoteFileSystemEvent);
+    }
+
+    @Override
+    public void notifyFileSystemListener(Throwable throwable) {
+        this.remoteFileSystemListener.onError(throwable);
     }
 }

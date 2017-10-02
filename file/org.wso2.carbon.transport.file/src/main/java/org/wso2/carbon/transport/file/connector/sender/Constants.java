@@ -21,6 +21,7 @@ package org.wso2.carbon.transport.file.connector.sender;
 /**
  * This class contains the constants related to File transport.
  */
+@Deprecated
 public final class Constants {
 
     public static final String PROTOCOL_FILE = "file";

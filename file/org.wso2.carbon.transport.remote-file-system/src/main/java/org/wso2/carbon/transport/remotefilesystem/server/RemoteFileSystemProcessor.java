@@ -16,18 +16,18 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem.server.connector;
+package org.wso2.carbon.transport.remotefilesystem.server;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemMessage;
+import org.wso2.carbon.transport.remotefilesystem.Constants;
+import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
+import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnectorFuture;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.exception.RemoteFileSystemServerConnectorException;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.util.Constants;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.util.FileTransportUtils;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.util.ThreadPoolFactory;
+import org.wso2.carbon.transport.remotefilesystem.server.util.FileTransportUtils;
+import org.wso2.carbon.transport.remotefilesystem.server.util.ThreadPoolFactory;
 
 
 /**
@@ -55,8 +55,8 @@ class RemoteFileSystemProcessor implements Runnable {
      * @param postProcessAction  Action to be applied to file once it is processed
      */
     RemoteFileSystemProcessor(RemoteFileSystemServerConnectorFuture connectorFuture, String serviceName,
-                              FileObject file, String fileURI,
-                              RemoteFileSystemConsumer remoteFileSystemConsumer, String postProcessAction) {
+                              FileObject file, String fileURI, RemoteFileSystemConsumer remoteFileSystemConsumer,
+                              String postProcessAction) {
         this.connectorFuture = connectorFuture;
         this.file = file;
         this.serviceName = serviceName;
@@ -72,11 +72,9 @@ class RemoteFileSystemProcessor implements Runnable {
     public void run() {
         String uri = file.getName().getURI();
         uri = uri.startsWith("file://") ? uri.replace("file://", "") : uri;
-
-        RemoteFileSystemMessage message = new RemoteFileSystemMessage(uri);
-        try {
+        RemoteFileSystemEvent message = new RemoteFileSystemEvent(uri);
+        /*try {
             String protocol = file.getURL().getProtocol();
-
             // Since there is a separate module for File Server Connector, if the protocol is file, mark it as fs
             if (Constants.PROTOCOL_FILE.equals(protocol)) {
                 protocol = Constants.PROTOCOL_FILE_SYSTEM;
@@ -85,43 +83,42 @@ class RemoteFileSystemProcessor implements Runnable {
         } catch (FileSystemException e) {
             logger.error("Exception occurred while retrieving the file protocol", e);
             message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE_SYSTEM);
-        }
-
+            connectorFuture.notifyFileSystemListener(e);
+        }*/
         message.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
         try {
             message.setProperty(Constants.META_FILE_SIZE, file.getContent().getSize());
             message.setProperty(Constants.META_FILE_LAST_MODIFIED_TIME, file.getContent().getLastModifiedTime());
         } catch (FileSystemException e) {
             logger.error("Failed to set meta data for file: " + file.getName().getURI(), e);
+            connectorFuture.notifyFileSystemListener(e);
         }
-
         boolean processFailed = false;
         try {
             connectorFuture.notifyFileSystemListener(message);
         } catch (Exception e) {
+            connectorFuture.notifyFileSystemListener(e);
             logger.warn(
                     "Failed to send stream from file: " + FileTransportUtils.maskURLPassword(fileURI)
                     + " to message processor. ", e);
             processFailed = true;
         }
-
         if (postProcessAction.equals(Constants.ACTION_NONE)) {
             remoteFileSystemConsumer.markProcessed(fileURI);
         } else {
             try {
                 remoteFileSystemConsumer.postProcess(file, processFailed);
-            } catch (RemoteFileSystemServerConnectorException e) {
+            } catch (RemoteFileSystemConnectorException e) {
+                connectorFuture.notifyFileSystemListener(e);
                 logger.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().toString()) + "' " +
                              "could not be moved", e);
             }
         }
-
         FileTransportUtils.releaseLock(file);
         if (logger.isDebugEnabled()) {
             logger.debug("Released the lock file '" + FileTransportUtils.maskURLPassword(file.toString()) +
                          ".lock' of the file '" + FileTransportUtils.maskURLPassword(file.toString()));
         }
-
         //close the file system after processing
         try {
             file.close();

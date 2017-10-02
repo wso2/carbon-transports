@@ -16,17 +16,21 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem.server.connector.contract;
+package org.wso2.carbon.transport.remotefilesystem.client.connector.contract;
+
+import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemMessage;
 
 /**
- * Allows to get notifications of connectors.
+ * A Client Connector for remote file systems using the Apache VFS library.
  */
-public interface RemoteFileSystemListener {
+public interface VFSClientConnector {
 
     /**
-     * Transport will trigger this method when for each file system notification.
+     * Send {@link RemoteFileSystemMessage} to target file system using VFS.
      *
-     * @param remoteFileSystemMessage contains the msg data.
+     * @param message {@link RemoteFileSystemMessage} which contains relevant information which need to send to target
+     *                file system.
+     * @return {@link VFSClientConnectorFuture} instance which contains response from the target file system.
      */
-    void onMessage(RemoteFileSystemMessage remoteFileSystemMessage);
+    VFSClientConnectorFuture send(RemoteFileSystemMessage message);
 }

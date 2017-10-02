@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.wso2.carbon.transport</groupId>
         <artifactId>org.wso2.carbon.transport.file.parent</artifactId>
-        <version>6.0.16-SNAPSHOT</version>
+        <version>6.0.18-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -73,7 +73,7 @@
             org.wso2.carbon.messaging.*;version="${carbon.messaging.package.import.version.range}"
         </import.package>
         <bundle.activator>
-            org.wso2.carbon.transport.localfilesystem.server.connector.internal.LocalFileSystemConnectorBundleActivator
+            org.wso2.carbon.transport.localfilesystem.internal.LocalFileSystemConnectorBundleActivator
         </bundle.activator>
         <carbon.component>
             osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"

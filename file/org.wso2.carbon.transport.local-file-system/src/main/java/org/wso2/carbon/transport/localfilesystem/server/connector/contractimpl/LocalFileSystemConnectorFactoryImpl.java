@@ -22,7 +22,7 @@ import org.wso2.carbon.transport.localfilesystem.server.connector.contract.Local
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemListener;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemServerConnector;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemServerConnectorFuture;
-import org.wso2.carbon.transport.localfilesystem.server.connector.exception.LocalFileSystemServerConnectorException;
+import org.wso2.carbon.transport.localfilesystem.server.exception.LocalFileSystemServerConnectorException;
 
 import java.util.Map;
 

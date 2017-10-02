@@ -16,26 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem.server.connector.contract;
+package org.wso2.carbon.transport.remotefilesystem.message;
 
-import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
+import org.wso2.carbon.messaging.CarbonMessage;
 
 /**
- * Allows to set listeners.
+ * This will work as base message for all the remote file system messages.
  */
-public interface RemoteFileSystemServerConnectorFuture {
-
-    /**
-     * Notify {@link RemoteFileSystemEvent} to the listener.
-     *
-     * @param remoteFileSystemEvent File system message.
-     */
-    void notifyFileSystemListener(RemoteFileSystemEvent remoteFileSystemEvent);
-
-    /**
-     * Notify error event triggered by connector to the listener.
-     *
-     * @param throwable contains the error details of the event.
-     */
-    void notifyFileSystemListener(Throwable throwable);
+public abstract class RemoteFileSystemBaseMessage extends CarbonMessage {
 }

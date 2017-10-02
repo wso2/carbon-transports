@@ -16,19 +16,31 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem.server.connector.exception;
+package org.wso2.carbon.transport.remotefilesystem.message;
 
-import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
+import java.nio.ByteBuffer;
 
 /**
- * Generic {@link Exception} for File Server connector.
+ * This represent the message that hold payload and other attributes.
  */
-public class RemoteFileSystemServerConnectorException extends ServerConnectorException {
-    public RemoteFileSystemServerConnectorException(String message) {
-        super(message);
+public class RemoteFileSystemMessage extends RemoteFileSystemBaseMessage {
+
+    private ByteBuffer bytes;
+    private String text;
+
+    public RemoteFileSystemMessage(ByteBuffer bytes) {
+        this.bytes = bytes;
     }
 
-    public RemoteFileSystemServerConnectorException(String message, Throwable cause) {
-        super(message, cause);
+    public RemoteFileSystemMessage(String text) {
+        this.text = text;
+    }
+
+    public ByteBuffer getBytes() {
+        return bytes;
+    }
+
+    public String getText() {
+        return text;
     }
 }

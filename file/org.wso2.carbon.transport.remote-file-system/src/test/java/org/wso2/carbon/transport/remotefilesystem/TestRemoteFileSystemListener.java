@@ -18,8 +18,9 @@
 
 package org.wso2.carbon.transport.remotefilesystem;
 
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemListener;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemMessage;
+import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListener;
+import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemBaseMessage;
+import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -32,8 +33,8 @@ public class TestRemoteFileSystemListener implements RemoteFileSystemListener {
     private String text;
 
     @Override
-    public void onMessage(RemoteFileSystemMessage remoteFileSystemMessage) {
-        text = remoteFileSystemMessage.getText();
+    public void onMessage(RemoteFileSystemBaseMessage remoteFileSystemEvent) {
+        text = ((RemoteFileSystemEvent) remoteFileSystemEvent).getText();
         done();
     }
 
@@ -56,5 +57,10 @@ public class TestRemoteFileSystemListener implements RemoteFileSystemListener {
      */
     private void done() {
         latch.countDown();
+    }
+
+    @Override
+    public void onError(Throwable throwable) {
+
     }
 }

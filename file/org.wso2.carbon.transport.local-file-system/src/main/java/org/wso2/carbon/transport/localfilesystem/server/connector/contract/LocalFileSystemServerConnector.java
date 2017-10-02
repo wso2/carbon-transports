@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.transport.localfilesystem.server.connector.contract;
 
-import org.wso2.carbon.transport.localfilesystem.server.connector.exception.LocalFileSystemServerConnectorException;
+import org.wso2.carbon.transport.localfilesystem.server.exception.LocalFileSystemServerConnectorException;
 
 /**
  * LocalFileSystemServer Connector interface to start and stop the watching operation for given the directory location.

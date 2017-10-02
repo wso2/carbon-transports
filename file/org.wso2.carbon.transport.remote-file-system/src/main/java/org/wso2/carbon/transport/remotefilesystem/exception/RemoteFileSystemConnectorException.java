@@ -16,22 +16,19 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.localfilesystem.server.connector.internal;
+package org.wso2.carbon.transport.remotefilesystem.exception;
 
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
+import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 
 /**
- * OSGi BundleActivator of the File System Server Connector Bundle.
+ * Generic {@link Exception} for File Server connector.
  */
-public class LocalFileSystemConnectorBundleActivator implements BundleActivator {
-
-    @Override
-    public void start(BundleContext bundleContext) throws Exception {
+public class RemoteFileSystemConnectorException extends ServerConnectorException {
+    public RemoteFileSystemConnectorException(String message) {
+        super(message);
     }
 
-    @Override
-    public void stop(BundleContext bundleContext) throws Exception {
-
+    public RemoteFileSystemConnectorException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem.server.connector.util;
+package org.wso2.carbon.transport.remotefilesystem.server.util;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -25,7 +25,8 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.util.DelegatingFileSystemOptionsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.exception.RemoteFileSystemServerConnectorException;
+import org.wso2.carbon.transport.remotefilesystem.Constants;
+import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -52,11 +53,11 @@ public class FileTransportUtils {
      * @param options   Options to be used with the file system manager
      * @param fsManager File system manager instance
      * @return A FileSystemOptions instance
-     * @throws RemoteFileSystemServerConnectorException   Throws an exception if there are any issues in configuring the
+     * @throws RemoteFileSystemConnectorException   Throws an exception if there are any issues in configuring the
      *                                              connector
      */
-    public static FileSystemOptions attachFileSystemOptions(
-            Map<String, String> options, FileSystemManager fsManager) throws RemoteFileSystemServerConnectorException {
+    public static FileSystemOptions attachFileSystemOptions(Map<String, String> options, FileSystemManager fsManager)
+            throws RemoteFileSystemConnectorException {
         if (options == null) {
             return null;    //returning null as this is not an errorneous case.
         }
@@ -75,9 +76,9 @@ public class FileTransportUtils {
                     if (entry.getKey().equals(option.toString()) && null != entry.getValue()) {
                         try {
                             delegate.setConfigString(opts, Constants.SCHEME_SFTP,
-                                    entry.getKey().toLowerCase(Locale.US), entry.getValue());
+                                    entry.getKey().toLowerCase(Locale.getDefault()), entry.getValue());
                         } catch (FileSystemException e) {
-                            throw new RemoteFileSystemServerConnectorException(
+                            throw new RemoteFileSystemConnectorException(
                                     "Failed to set file transport configuration for scheme: "
                                             + Constants.SCHEME_SFTP + " and option: " + option.toString(), e);
                         }
@@ -90,7 +91,7 @@ public class FileTransportUtils {
                 delegate.setConfigString(opts, options.get(Constants.SCHEME),
                         Constants.FILE_TYPE, String.valueOf(getFileType(options.get(Constants.FILE_TYPE))));
             } catch (FileSystemException e) {
-                throw new RemoteFileSystemServerConnectorException(
+                throw new RemoteFileSystemConnectorException(
                         "Failed to set file transport configuration for scheme: "
                                                              + options.get(Constants.SCHEME) + " and option: "
                                                              + Constants.FILE_TYPE, e);

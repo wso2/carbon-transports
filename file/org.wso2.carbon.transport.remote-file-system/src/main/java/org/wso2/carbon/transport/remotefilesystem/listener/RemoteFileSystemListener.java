@@ -16,21 +16,26 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem.server.connector.internal;
+package org.wso2.carbon.transport.remotefilesystem.listener;
 
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
+import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemBaseMessage;
 
 /**
- * OSGi BundleActivator of the File System Server Connector Bundle.
+ * Allows to get notifications of connectors.
  */
-public class RemoteFileSystemConnectorBundleActivator implements BundleActivator {
+public interface RemoteFileSystemListener {
 
-    @Override
-    public void start(BundleContext bundleContext) throws Exception {
-    }
+    /**
+     * Transport will trigger this method when for each file system notification.
+     *
+     * @param remoteFileSystemMessage contains the msg data.
+     */
+    void onMessage(RemoteFileSystemBaseMessage remoteFileSystemMessage);
 
-    @Override
-    public void stop(BundleContext bundleContext) throws Exception {
-    }
+    /**
+     * Notify error event triggered by transport to the listener.
+     *
+     * @param throwable contains the error details of the event.
+     */
+    void onError(Throwable throwable);
 }

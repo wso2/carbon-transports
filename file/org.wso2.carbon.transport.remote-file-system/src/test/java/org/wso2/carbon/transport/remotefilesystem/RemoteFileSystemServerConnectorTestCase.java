@@ -21,9 +21,8 @@ package org.wso2.carbon.transport.remotefilesystem;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
+import org.wso2.carbon.transport.remotefilesystem.impl.RemoteFileSystemConnectorFactoryImpl;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnector;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contractimpl.RemoteFileSystemConnectorFactoryImpl;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.util.Constants;
 
 import java.io.File;
 import java.net.URL;

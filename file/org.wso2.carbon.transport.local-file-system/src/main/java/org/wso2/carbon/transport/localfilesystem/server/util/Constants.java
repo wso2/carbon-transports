@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.localfilesystem.server.connector.util;
+package org.wso2.carbon.transport.localfilesystem.server.util;
 
 /**
  * This class contains the constants related to File transport.

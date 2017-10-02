@@ -16,14 +16,14 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.localfilesystem.server.connector;
+package org.wso2.carbon.transport.localfilesystem.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemMessage;
+import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemEvent;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemServerConnectorFuture;
-import org.wso2.carbon.transport.localfilesystem.server.connector.exception.LocalFileSystemServerConnectorException;
-import org.wso2.carbon.transport.localfilesystem.server.connector.util.Constants;
+import org.wso2.carbon.transport.localfilesystem.server.exception.LocalFileSystemServerConnectorException;
+import org.wso2.carbon.transport.localfilesystem.server.util.Constants;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -229,7 +229,7 @@ public class DirectoryListener implements Runnable {
     }
 
     private void notifyToListener(WatchEvent<?> event, Path child) {
-        LocalFileSystemMessage message = new LocalFileSystemMessage(child.toString(), event.kind().name());
+        LocalFileSystemEvent message = new LocalFileSystemEvent(child.toString(), event.kind().name());
         message.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, this.serviceName);
         this.connectorFuture.notifyFileSystemListener(message);
     }

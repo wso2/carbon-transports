@@ -16,13 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem.server.connector.contractimpl;
+package org.wso2.carbon.transport.remotefilesystem.impl;
 
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemConnectorFactory;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemListener;
+import org.wso2.carbon.transport.remotefilesystem.RemoteFileSystemConnectorFactory;
+import org.wso2.carbon.transport.remotefilesystem.client.connector.contract.VFSClientConnector;
+import org.wso2.carbon.transport.remotefilesystem.client.connector.contractimpl.VFSClientConnectorImpl;
+import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
+import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListener;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnector;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnectorFuture;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.exception.RemoteFileSystemServerConnectorException;
+import org.wso2.carbon.transport.remotefilesystem.server.connector.contractimpl.RemoteFileSystemServerConnectorFutureImpl;
+import org.wso2.carbon.transport.remotefilesystem.server.connector.contractimpl.RemoteFileSystemServerConnectorImpl;
 
 import java.util.Map;
 
@@ -34,10 +38,16 @@ public class RemoteFileSystemConnectorFactoryImpl implements RemoteFileSystemCon
     @Override
     public RemoteFileSystemServerConnector createServerConnector(String serviceId, Map<String, String> connectorConfig,
                                                                  RemoteFileSystemListener remoteFileSystemListener)
-            throws RemoteFileSystemServerConnectorException {
+            throws RemoteFileSystemConnectorException {
         RemoteFileSystemServerConnectorFuture remoteFileSystemServerConnectorFuture
                 = new RemoteFileSystemServerConnectorFutureImpl(remoteFileSystemListener);
         return new RemoteFileSystemServerConnectorImpl(serviceId, connectorConfig,
                 remoteFileSystemServerConnectorFuture);
+    }
+
+    @Override
+    public VFSClientConnector createVFSClientConnector(String serviceId, Map<String, String> connectorConfig,
+                                                       RemoteFileSystemListener remoteFileSystemListener) {
+        return new VFSClientConnectorImpl(serviceId, connectorConfig, remoteFileSystemListener);
     }
 }

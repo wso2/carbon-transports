@@ -24,9 +24,9 @@ package org.wso2.carbon.transport.localfilesystem.server.connector.contract;
 public interface LocalFileSystemServerConnectorFuture {
 
     /**
-     * Notify {@link LocalFileSystemMessage} to the listener.
+     * Notify {@link LocalFileSystemEvent} to the listener.
      *
-     * @param localFileSystemMessage File system message.
+     * @param localFileSystemEvent File system message.
      */
-    void notifyFileSystemListener(LocalFileSystemMessage localFileSystemMessage);
+    void notifyFileSystemListener(LocalFileSystemEvent localFileSystemEvent);
 }

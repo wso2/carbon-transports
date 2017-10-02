@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem.server.connector.util;
+package org.wso2.carbon.transport.remotefilesystem.server.util;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

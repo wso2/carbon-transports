@@ -16,26 +16,29 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem.server.connector.contract;
+package org.wso2.carbon.transport.remotefilesystem.client.connector.contract;
 
-import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
+import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListener;
+import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemMessage;
 
 /**
- * Allows to set listeners.
+ * Represents the future events and results of {@link VFSClientConnector}.
  */
-public interface RemoteFileSystemServerConnectorFuture {
+public interface VFSClientConnectorFuture {
+
+    void setFileSystemListener(RemoteFileSystemListener fileSystemListener);
 
     /**
-     * Notify {@link RemoteFileSystemEvent} to the listener.
+     * Notify the listeners when there is a message.
      *
-     * @param remoteFileSystemEvent File system message.
+     * @param message contains the data related to the event.
      */
-    void notifyFileSystemListener(RemoteFileSystemEvent remoteFileSystemEvent);
+    void notifyFileSystemListener(RemoteFileSystemMessage message);
 
     /**
-     * Notify error event triggered by connector to the listener.
+     * Notify the listeners when there is an error.
      *
-     * @param throwable contains the error details of the event.
+     * @param throwable contains the data related to the error.
      */
     void notifyFileSystemListener(Throwable throwable);
 }

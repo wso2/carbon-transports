@@ -22,7 +22,7 @@ import org.testng.Assert;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemServerConnector;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contractimpl.LocalFileSystemConnectorFactoryImpl;
-import org.wso2.carbon.transport.localfilesystem.server.connector.util.Constants;
+import org.wso2.carbon.transport.localfilesystem.server.util.Constants;
 import org.wso2.carbon.transport.localfilesystem.test.util.TestRemoteFileSystemListener;
 
 import java.io.File;

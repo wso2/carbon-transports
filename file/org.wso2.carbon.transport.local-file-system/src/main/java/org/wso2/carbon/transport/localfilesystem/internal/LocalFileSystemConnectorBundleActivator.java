@@ -16,22 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.localfilesystem.server.connector.exception;
+package org.wso2.carbon.transport.localfilesystem.internal;
 
-import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 
 /**
- * Generic {@link Exception} for File Server connector.
+ * OSGi BundleActivator of the File System Server Connector Bundle.
  */
-public class LocalFileSystemServerConnectorException extends ServerConnectorException {
+public class LocalFileSystemConnectorBundleActivator implements BundleActivator {
 
-    private static final long serialVersionUID = -6464399829332668446L;
-
-    public LocalFileSystemServerConnectorException(String message) {
-        super(message);
+    @Override
+    public void start(BundleContext bundleContext) throws Exception {
     }
 
-    public LocalFileSystemServerConnectorException(String message, Throwable cause) {
-        super(message, cause);
+    @Override
+    public void stop(BundleContext bundleContext) throws Exception {
+
     }
 }
