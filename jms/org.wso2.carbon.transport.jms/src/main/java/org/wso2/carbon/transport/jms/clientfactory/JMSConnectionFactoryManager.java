@@ -36,9 +36,7 @@ public class JMSConnectionFactoryManager {
 
     private static final Logger logger = LoggerFactory.getLogger(JMSConnectionFactoryManager.class);
 
-    private static JMSConnectionFactoryManager jmsConnectionFactoryManager = null;
-
-    private static Object mutex = new Object();
+    private static JMSConnectionFactoryManager jmsConnectionFactoryManager = new JMSConnectionFactoryManager();
 
     private Map<String, JMSClientConnectionFactory> connectionFactoryMap = null;
 
@@ -56,22 +54,17 @@ public class JMSConnectionFactoryManager {
     /**
      * Get an instance of this Singleton class
      *
+     * jmsConnectionFactoryManager object has initialized in the class level to avoid unnecessary synchronization
+     * overhead in runtime
+     *
      * @return instance of {@link JMSConnectionFactoryManager}
      */
     public static JMSConnectionFactoryManager getInstance() {
-        //todo: exclude this from findbugs and uncomment the outer if condition check
-//        if (jmsConnectionFactoryManager == null) {
-            synchronized (mutex) {
-                if (jmsConnectionFactoryManager == null) {
-                    jmsConnectionFactoryManager = new JMSConnectionFactoryManager();
-                }
-            }
-//        }
         return jmsConnectionFactoryManager;
     }
 
     /**
-     * Get the JMSConnectionFactory againest the passed parameters. Return if it already exists, create new if not
+     * Get the JMSConnectionFactory against the passed parameters. Return if it already exists, create new if not
      *
      * @param properties JMS properties
      * @return JMSConnectionFactory
