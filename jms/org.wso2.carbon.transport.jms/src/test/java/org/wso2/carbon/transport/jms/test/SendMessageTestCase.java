@@ -22,30 +22,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.messaging.CarbonMessage;
-import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.sender.JMSClientConnectorImpl;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.TextMessage;
 
 /**
  * A test class for testing queue listening
  */
 public class SendMessageTestCase {
     private JMSServer jmsServer;
-    private CarbonMessage carbonMessage;
+    private Message jmsMessage;
     private Map<String, String> properties;
     private static final Logger logger = LoggerFactory.getLogger(SendMessageTestCase.class);
 
     @BeforeClass(groups = "queueSending", description = "Setting up the server and carbon message to be sent")
     public void setUp() {
-        carbonMessage = new TextCarbonMessage("Hello World");
         properties = new HashMap();
         properties.put(JMSConstants.PARAM_DESTINATION_NAME, JMSTestConstants.QUEUE_NAME_1);
         properties.put(JMSConstants.PARAM_CONNECTION_FACTORY_JNDI_NAME, JMSTestConstants.QUEUE_CONNECTION_FACTORY);
@@ -63,9 +62,10 @@ public class SendMessageTestCase {
     public void queueListeningTestCase() throws InterruptedException, JMSException, JMSConnectorException {
         logger.info("JMS Transport Sender is sending a message to the queue " +
                     JMSTestConstants.QUEUE_NAME_1);
-//        JMSClientConnector sender = new JMSClientConnectorImpl();
+        JMSClientConnectorImpl sender = new JMSClientConnectorImpl(properties);
         jmsServer.receiveMessagesFromQueue();
-//        sender.send(carbonMessage, properties);
-//        sender.send(carbonMessage, properties);
+        jmsMessage = sender.createMessage(JMSConstants.TEXT_MESSAGE_TYPE);
+        ((TextMessage) jmsMessage).setText("Hello World");
+        sender.send(jmsMessage, JMSTestConstants.QUEUE_NAME_1);
     }
 }
