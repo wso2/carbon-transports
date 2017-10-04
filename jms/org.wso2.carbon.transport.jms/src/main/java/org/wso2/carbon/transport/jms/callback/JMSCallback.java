@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.transport.jms.callback;
 
-import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 
 import javax.jms.JMSException;
@@ -27,7 +26,7 @@ import javax.jms.Session;
 /**
  * Holds common fields and operations for a JMS callback implementation.
  */
-public abstract class JMSCallback implements CarbonCallback {
+public abstract class JMSCallback {
 
     /**
      * The {@link Session} instance representing JMS Session related with this call back
@@ -113,4 +112,17 @@ public abstract class JMSCallback implements CarbonCallback {
             caller.notifyAll();
         }
     }
+
+    /**
+     * Invoke this method to update the status of the message consumption
+     *
+      * @param isSuccess
+     */
+    public abstract void done(boolean isSuccess);
+
+    /**
+     * Get acknowledgement mode of this JMSCallback
+     * @return Ack mode
+     */
+    public abstract int getAcknowledgementMode();
 }

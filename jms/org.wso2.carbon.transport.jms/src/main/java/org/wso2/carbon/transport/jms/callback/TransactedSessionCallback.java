@@ -18,9 +18,7 @@
 
 package org.wso2.carbon.transport.jms.callback;
 
-import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import javax.jms.Session;
 
@@ -42,15 +40,12 @@ public class TransactedSessionCallback extends JMSCallback {
     /**
      * Commits the jms session or rollback if there was an error then notify the caller about operation completion.
      *
-     * @param carbonMessage The received carbon message
+     * @param isSuccess if the message is successfully received
      */
     @Override
-    public void done(CarbonMessage carbonMessage) {
-
+    public void done(boolean isSuccess) {
         try {
-            if (carbonMessage.getProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS)
-                    .equals(JMSConstants.JMS_MESSAGE_DELIVERY_SUCCESS)) {
-
+            if (isSuccess) {
                 commitSession();
             } else {
                 rollbackSession();
@@ -60,5 +55,10 @@ public class TransactedSessionCallback extends JMSCallback {
         } finally {
             markAsComplete();
         }
+    }
+
+    @Override
+    public int getAcknowledgementMode() {
+        return Session.SESSION_TRANSACTED;
     }
 }

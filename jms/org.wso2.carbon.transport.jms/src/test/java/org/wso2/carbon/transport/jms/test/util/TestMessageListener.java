@@ -47,12 +47,13 @@ public class TestMessageListener implements JMSListener {
                 if (count <= 2) {
                     jmsMessage.setProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS,
                             JMSConstants.JMS_MESSAGE_DELIVERY_SUCCESS);
+                    jmsCallback.done(Boolean.TRUE);
 
                 } else {
                     jmsMessage.setProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS,
                             JMSConstants.JMS_MESSAGE_DELIVERY_ERROR);
+                    jmsCallback.done(Boolean.FALSE);
                 }
-                jmsCallback.done(jmsMessage);
             }
         }
     }

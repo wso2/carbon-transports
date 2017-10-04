@@ -18,9 +18,7 @@
 
 package org.wso2.carbon.transport.jms.callback;
 
-import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -50,14 +48,12 @@ public class AcknowledgementCallback extends JMSCallback {
     /**
      * Acknowledges the received message or recovers the session if there was an error then notify the caller.
      *
-     * @param carbonMessage The received message
+     * @param isSuccess if the message is successfully received
      */
     @Override
-    public void done(CarbonMessage carbonMessage) {
-
+    public void done(boolean isSuccess) {
         try {
-            if (carbonMessage.getProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS).toString()
-                    .equalsIgnoreCase(JMSConstants.JMS_MESSAGE_DELIVERY_SUCCESS)) {
+            if (isSuccess) {
                 message.acknowledge();
             } else {
                 recoverSession();
@@ -67,5 +63,10 @@ public class AcknowledgementCallback extends JMSCallback {
         } finally {
             markAsComplete();
         }
+    }
+
+    @Override
+    public int getAcknowledgementMode() {
+        return Session.CLIENT_ACKNOWLEDGE;
     }
 }
