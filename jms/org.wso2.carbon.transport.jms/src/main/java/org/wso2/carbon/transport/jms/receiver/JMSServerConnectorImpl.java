@@ -219,14 +219,14 @@ public class JMSServerConnectorImpl implements JMSServerConnector {
             }
 
             messageConsumers = new ArrayList<>();
+            JMSMessageConsumerBuilder consumerBuilder = new JMSMessageConsumerBuilder(jmsConnectionFactory,
+                    jmsServerConnectorFuture, serviceId);
+            consumerBuilder.setUseReceiver(useReceiver)
+                    .setUsername(userName)
+                    .setPassword(password)
+                    .setRetryInterval(retryInterval)
+                    .setMaxRetryCount(maxRetryCount);
             for (int i = 0; i < numOfConcurrentConsumers; i++) {
-                JMSMessageConsumerBuilder consumerBuilder = new JMSMessageConsumerBuilder(jmsConnectionFactory,
-                        jmsServerConnectorFuture, serviceId);
-                consumerBuilder.setUseReceiver(useReceiver)
-                        .setUsername(userName)
-                        .setPassword(password)
-                        .setRetryInterval(retryInterval)
-                        .setMaxRetryCount(maxRetryCount);
                 messageConsumers.add(consumerBuilder.build());
             }
         } catch (JMSConnectorException e) {

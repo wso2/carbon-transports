@@ -44,6 +44,11 @@ public abstract class JMSCallback {
     private boolean operationComplete = false;
 
     /**
+     * Is the operation a success
+     */
+    private boolean success;
+
+    /**
      * Creates a call back initializing the JMS session object and saving caller object to be notified.
      *
      * @param session JMS Session connected with this callback
@@ -116,13 +121,25 @@ public abstract class JMSCallback {
     /**
      * Invoke this method to update the status of the message consumption
      *
-      * @param isSuccess
+      * @param success
      */
-    public abstract void done(boolean isSuccess);
+    public void done(boolean success) {
+        this.success = success;
+        markAsComplete();
+    }
 
     /**
      * Get acknowledgement mode of this JMSCallback
      * @return Ack mode
      */
     public abstract int getAcknowledgementMode();
+
+    /**
+     * Is this transaction/ack a success
+     *
+     * @return true if success false otherwise
+     */
+    protected boolean isSuccess() {
+        return success;
+    }
 }

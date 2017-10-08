@@ -89,6 +89,7 @@ class JMSMessageHandler {
                         while (!acknowledgementCallback.isOperationComplete()) {
                             wait();
                         }
+                        acknowledgementCallback.updateAcknowledgementStatus();
                     }
                     break;
                 case Session.SESSION_TRANSACTED:
@@ -98,6 +99,7 @@ class JMSMessageHandler {
                         while (!transactedSessionCallback.isOperationComplete()) {
                             wait();
                         }
+                        transactedSessionCallback.updateTransactionStatus();
                     }
                     break;
                 default:

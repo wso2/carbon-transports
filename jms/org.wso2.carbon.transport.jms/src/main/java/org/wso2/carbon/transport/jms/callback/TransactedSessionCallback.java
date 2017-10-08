@@ -37,28 +37,24 @@ public class TransactedSessionCallback extends JMSCallback {
         super(session, caller);
     }
 
-    /**
-     * Commits the jms session or rollback if there was an error then notify the caller about operation completion.
-     *
-     * @param isSuccess if the message is successfully received
-     */
     @Override
-    public void done(boolean isSuccess) {
+    public int getAcknowledgementMode() {
+        return Session.SESSION_TRANSACTED;
+    }
+
+    /**
+     * Update the status of the transaction to the side of the JMS transport by reading the status provided by the
+     * Ballerina
+     */
+    public void updateTransactionStatus() {
         try {
-            if (isSuccess) {
+            if (isSuccess()) {
                 commitSession();
             } else {
                 rollbackSession();
             }
         } catch (JMSConnectorException e) {
             throw new RuntimeException("Error completing the transaction callback operation", e);
-        } finally {
-            markAsComplete();
         }
-    }
-
-    @Override
-    public int getAcknowledgementMode() {
-        return Session.SESSION_TRANSACTED;
     }
 }

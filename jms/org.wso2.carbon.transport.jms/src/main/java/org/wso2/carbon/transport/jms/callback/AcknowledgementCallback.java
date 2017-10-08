@@ -45,28 +45,24 @@ public class AcknowledgementCallback extends JMSCallback {
         this.message = message;
     }
 
-    /**
-     * Acknowledges the received message or recovers the session if there was an error then notify the caller.
-     *
-     * @param isSuccess if the message is successfully received
-     */
     @Override
-    public void done(boolean isSuccess) {
+    public int getAcknowledgementMode() {
+        return Session.CLIENT_ACKNOWLEDGE;
+    }
+
+    /**
+     * Update the status of the transaction to the side of the JMS transport by reading the status provided by the
+     * Ballerina
+     */
+    public void updateAcknowledgementStatus() {
         try {
-            if (isSuccess) {
+            if (isSuccess()) {
                 message.acknowledge();
             } else {
                 recoverSession();
             }
         } catch (JMSException | JMSConnectorException e) {
-            throw new RuntimeException("Error completing the acknowledgement callback", e);
-        } finally {
-            markAsComplete();
+            throw new RuntimeException("Error completing the transaction callback operation", e);
         }
-    }
-
-    @Override
-    public int getAcknowledgementMode() {
-        return Session.CLIENT_ACKNOWLEDGE;
     }
 }
