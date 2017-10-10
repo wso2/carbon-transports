@@ -121,7 +121,7 @@ public abstract class JMSCallback {
     /**
      * Invoke this method to update the status of the message consumption
      *
-      * @param success
+      * @param success status of the message processing
      */
     public void done(boolean success) {
         this.success = success;

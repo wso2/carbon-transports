@@ -19,7 +19,7 @@
 package org.wso2.carbon.transport.jms.contract;
 
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.wrappers.SessionWrapper;
+import org.wso2.carbon.transport.jms.sender.wrappers.SessionWrapper;
 
 import javax.jms.Message;
 
@@ -33,6 +33,7 @@ public interface JMSClientConnector {
      * parameters that is used as data to create the connection and construct the message to be send.
      *
      * @param message the carbon message used with sending the a message to backend.
+     * @param destinationName name of the queue/topic message should be sent
      * @return return true if the sending was successful, false otherwise.
      * @throws JMSConnectorException on error while trying to send message to backend.
      */
@@ -43,15 +44,15 @@ public interface JMSClientConnector {
      *
      * @param messageType Type of the JMS Message
      * @return  Created JMS Message instance
-     * @throws JMSConnectorException
+     * @throws JMSConnectorException Error when creating a {@link Message}
      */
     Message createMessage(String messageType) throws JMSConnectorException;
 
     /**
      * Get a {@link SessionWrapper} instance on this particular connection factory
      *
-     * @return
-     * @throws JMSConnectorException
+     * @return a SessionWrapper
+     * @throws JMSConnectorException Error when acquiring a session wrapper instance
      */
     SessionWrapper acquireSession() throws JMSConnectorException;
 
@@ -61,8 +62,8 @@ public interface JMSClientConnector {
      * @param jmsMessage JMS Message instance
      * @param destinationName Name of the outbound queue/topic
      * @param sessionWrapper   SessionWrapper instance
-     * @return
-     * @throws JMSConnectorException
+     * @return return true if the sending was successful, false otherwise.
+     * @throws JMSConnectorException error when sending the transacted message
      */
     boolean sendTransactedMessage(Message jmsMessage, String destinationName, SessionWrapper sessionWrapper)
             throws JMSConnectorException;
@@ -70,8 +71,8 @@ public interface JMSClientConnector {
     /**
      * Release a SessionWrapper instance to the pool after completing the task
      *
-     * @param sessionWrapper
-     * @throws JMSConnectorException
+     * @param sessionWrapper SessionWrapper to be released
+     * @throws JMSConnectorException error when releasing the session wrapper instance
      */
     void releaseSession(SessionWrapper sessionWrapper) throws JMSConnectorException;
 

@@ -16,24 +16,25 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.clientfactory;
+package org.wso2.carbon.transport.jms.factory;
 
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.jms.clientfactory.sessionpool.SessionPoolFactory;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.factory.JMSConnectionResourceFactory;
+import org.wso2.carbon.transport.jms.sender.sessionpool.SessionPoolFactory;
+import org.wso2.carbon.transport.jms.sender.wrappers.ConnectionWrapper;
+import org.wso2.carbon.transport.jms.sender.wrappers.SessionWrapper;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
-import org.wso2.carbon.transport.jms.wrappers.ConnectionWrapper;
-import org.wso2.carbon.transport.jms.wrappers.SessionWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import javax.jms.ConnectionFactory;
+import javax.jms.Connection;
+import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
+import javax.jms.XAConnection;
 
 /**
  * Extended class to handle Client side Connection Factory requirements
@@ -42,20 +43,17 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(JMSClientConnectionFactory.class);
     /**
-     * Default Size of the Connection list
-     */
-    private static final int maxNumberOfConnections = 5;
-
-    /**
-     * Default Number of session per Connection
-     */
-    private static final int maxSessionsPerConnection = 10;
-
-    /**
      * Default Wait timeout (in milliseconds) for the Session pool
      */
     private static final int poolWaitTimeout = 30 * 1000;
-
+    /**
+     * Default Size of the Connection list
+     */
+    private int maxNumberOfConnections = 5;
+    /**
+     * Default Number of session per Connection
+     */
+    private int maxSessionsPerConnection = 10;
     /**
      * Indicates cache level given by the user.
      */
@@ -80,17 +78,43 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     public JMSClientConnectionFactory(Properties properties) throws JMSConnectorException {
         super(properties);
         setCache(properties);
+
+        // session pool configurations
+        if (properties.getProperty(JMSConstants.PARAM_MAX_CONNECTIONS) != null) {
+            try {
+                this.maxNumberOfConnections = Integer
+                        .parseInt(properties.getProperty(JMSConstants.PARAM_MAX_CONNECTIONS));
+            } catch (NumberFormatException ex) {
+                logger.error("Non-integer value configured for JMS Client Connection count");
+            }
+        }
+        if (properties.getProperty(JMSConstants.PARAM_MAX_SESSIONS_ON_CONNECTION) != null) {
+            try {
+                this.maxSessionsPerConnection = Integer
+                        .parseInt(properties.getProperty(JMSConstants.PARAM_MAX_SESSIONS_ON_CONNECTION));
+            } catch (NumberFormatException ex) {
+                logger.error("Non-integer value configured for JMS Client Sessions count");
+            }
+        }
+
         if (clientCaching) {
             connections = new ArrayList<>();
             initSessionPool();
         }
     }
 
+    public int getMaxNumberOfConnections() {
+        return maxNumberOfConnections;
+    }
+
+    public int getMaxSessionsPerConnection() {
+        return maxSessionsPerConnection;
+    }
+
     /**
      * Initialize the session pool with provided configuration
      */
     private void initSessionPool() {
-        //todo: make parameters configurable
         SessionPoolFactory sessionPoolFactory = new SessionPoolFactory(this);
 
         //create pool configurations
@@ -125,15 +149,6 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ConnectionFactory getConnectionFactory() throws JMSConnectorException {
-        return super.getConnectionFactory();
-    }
-
-    /**
-     *
      * @return Connections list
      */
     public List<ConnectionWrapper> getConnections() {
@@ -142,8 +157,9 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
 
     /**
      * Borrow an object from the session pool
+     *
      * @return SessionWrapper instance
-     * @throws Exception
+     * @throws Exception Exception when borrowing an object from the pool
      */
     public SessionWrapper getSessionWrapper() throws Exception {
         return sessionPool.borrowObject();
@@ -151,18 +167,11 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
 
     /**
      * Return an object to the Session pool
-     * @param sessionWrapper
+     *
+     * @param sessionWrapper SessionWrapper instance
      */
     public void returnSessionWrapper(SessionWrapper sessionWrapper) {
         sessionPool.returnObject(sessionWrapper);
-    }
-
-    public static int getMaxNumberOfConnections() {
-        return maxNumberOfConnections;
-    }
-
-    public static int getMaxSessionsPerConnection() {
-        return maxSessionsPerConnection;
     }
 
     /**
@@ -184,9 +193,34 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
 
     /**
      * Is this Client Connection factory is configured to use caching/pooling
-     * @return
+     *
+     * @return isClientCaching set
      */
     public boolean isClientCaching() {
         return clientCaching;
+    }
+
+    @Override
+    public Connection createConnection() throws JMSException {
+        Connection connection = super.createConnection();
+        connection.setExceptionListener(new JMSErrorListener());
+        return connection;
+    }
+
+    @Override
+    public XAConnection createXAConnection() throws JMSException {
+        XAConnection xaConnection = super.createXAConnection();
+        xaConnection.setExceptionListener(new JMSErrorListener());
+        return xaConnection;
+    }
+
+    /**
+     * JMS Client Connection Error Listener class that implements {@link ExceptionListener} from JMS API
+     */
+    private class JMSErrorListener implements ExceptionListener {
+        @Override
+        public void onException(JMSException e) {
+            notifyError(e);
+        }
     }
 }

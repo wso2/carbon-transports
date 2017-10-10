@@ -16,19 +16,19 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.clientfactory.sessionpool;
+package org.wso2.carbon.transport.jms.sender.sessionpool;
 
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.jms.clientfactory.JMSClientConnectionFactory;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.factory.JMSClientConnectionFactory;
 import org.wso2.carbon.transport.jms.factory.JMSConnectionResourceFactory;
-import org.wso2.carbon.transport.jms.wrappers.ConnectionWrapper;
-import org.wso2.carbon.transport.jms.wrappers.SessionWrapper;
-import org.wso2.carbon.transport.jms.wrappers.XASessionWrapper;
+import org.wso2.carbon.transport.jms.sender.wrappers.ConnectionWrapper;
+import org.wso2.carbon.transport.jms.sender.wrappers.SessionWrapper;
+import org.wso2.carbon.transport.jms.sender.wrappers.XASessionWrapper;
 
 import java.util.List;
 import javax.jms.JMSException;
@@ -60,7 +60,7 @@ public class SessionPoolFactory extends BasePooledObjectFactory<SessionWrapper> 
             // see if we can create more sessions on the final Connection created
             if (!connectionWrappers.isEmpty()
                     && connectionWrappers.get(connectionWrappers.size() - 1).getSessionCount().get()
-                    < JMSClientConnectionFactory.getMaxSessionsPerConnection()) {
+                    < ((JMSClientConnectionFactory) jmsConnectionFactory).getMaxSessionsPerConnection()) {
                 connectionWrapper = connectionWrappers.get(connectionWrappers.size() - 1);
             }
 

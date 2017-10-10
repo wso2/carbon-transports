@@ -16,30 +16,25 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.wrappers;
+package org.wso2.carbon.transport.jms.sender.wrappers;
 
 import javax.jms.MessageProducer;
 import javax.jms.Session;
+import javax.jms.XASession;
 
 /**
  * Wrapper Class for JMS Sessions. This wll also hold the MessageProducer instance created on the Session.
- * Instances of this class will be used as objects in the Session pool in the JMSConnectionFactory
+ * Instances of this class will be used as objects in the Session pool in the JMSClientConnectionFactory
  */
-public class SessionWrapper {
-    private Session session;
-    private MessageProducer messageProducer;
+public class XASessionWrapper extends SessionWrapper {
+    private XASession xASession;
 
-    public SessionWrapper(Session session, MessageProducer messageProducer) {
-        this.session = session;
-        this.messageProducer = messageProducer;
+    public XASessionWrapper(XASession xASession, Session session, MessageProducer messageProducer) {
+        super(session, messageProducer);
+        this.xASession = xASession;
     }
 
-    public Session getSession() {
-        return session;
+    public XASession getXASession() {
+        return xASession;
     }
-
-    public MessageProducer getMessageProducer() {
-        return messageProducer;
-    }
-
 }

@@ -19,12 +19,11 @@ package org.wso2.carbon.transport.jms.sender;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.jms.clientfactory.JMSClientConnectionFactory;
-import org.wso2.carbon.transport.jms.clientfactory.JMSConnectionFactoryManager;
 import org.wso2.carbon.transport.jms.contract.JMSClientConnector;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.factory.JMSClientConnectionFactory;
+import org.wso2.carbon.transport.jms.sender.wrappers.SessionWrapper;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
-import org.wso2.carbon.transport.jms.wrappers.SessionWrapper;
 
 import java.util.Map;
 import java.util.Properties;

@@ -15,11 +15,12 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.wso2.carbon.transport.jms.clientfactory;
+package org.wso2.carbon.transport.jms.sender;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.factory.JMSClientConnectionFactory;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.HashMap;
@@ -64,10 +65,10 @@ public class JMSConnectionFactoryManager {
     }
 
     /**
-     * Get the JMSConnectionFactory against the passed parameters. Return if it already exists, create new if not
+     * Get the JMSServerConnectionFactory against the passed parameters. Return if it already exists, create new if not
      *
      * @param properties JMS properties
-     * @return JMSConnectionFactory
+     * @return JMSServerConnectionFactory
      * @throws JMSConnectorException
      */
     public synchronized JMSClientConnectionFactory getJMSConnectionFactory(Properties properties)

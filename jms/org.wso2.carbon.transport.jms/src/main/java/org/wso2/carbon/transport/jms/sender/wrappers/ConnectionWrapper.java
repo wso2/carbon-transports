@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.wrappers;
+package org.wso2.carbon.transport.jms.sender.wrappers;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.jms.Connection;

@@ -105,12 +105,6 @@ public class JMSConstants {
     public static final String TRANSPORT_HEADERS = "TransportHeaders";
     public static final String TEXT_DATA = "TextData";
 
-    /**
-     * Max number of connection to create when {@link org.wso2.carbon.transport.jms.factory.PooledJMSConnectionFactory}
-     * is used.
-     */
-    public static final String MAX_CONNECTIONS = "maxConnections";
-
 
     public static final String USE_RECEIVER = "useReceiver";
 
@@ -214,6 +208,14 @@ public class JMSConstants {
      * Parameter for passing in cache in client mode
      */
     public static final String PARAM_JMS_CACHING = "transport.jms.caching";
+
+    /**
+     * Client side pooling configurations
+     */
+    public static final String PARAM_MAX_CONNECTIONS = "connectionCount";
+
+    public static final String PARAM_MAX_SESSIONS_ON_CONNECTION = "sessionCount";
+
 
 
 }
