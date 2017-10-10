@@ -106,7 +106,7 @@ public class JMSConstants {
     public static final String TEXT_DATA = "TextData";
 
 
-    public static final String USE_RECEIVER = "useReceiver";
+    public static final String USE_RECEIVER = "synchronousConsume";
 
     /**
      * Namespace for JMS map payload representation.
