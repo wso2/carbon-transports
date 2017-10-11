@@ -46,7 +46,6 @@ import java.util.Map;
 /**
  * A Client Connector implementation for file systems using the Apache VFS library for file operations
  */
-@Deprecated
 public class VFSClientConnector implements ClientConnector {
     private static final Logger logger = LoggerFactory.getLogger(VFSClientConnector.class);
     private FileSystemOptions opts = new FileSystemOptions();
@@ -78,7 +77,7 @@ public class VFSClientConnector implements ClientConnector {
     public boolean send(CarbonMessage carbonMessage, CarbonCallback carbonCallback, Map<String, String> map)
             throws ClientConnectorException {
         FtpFileSystemConfigBuilder.getInstance().setPassiveMode(opts, true);
-        String fileURI = map.get("");
+        String fileURI = map.get(Constants.FILE_URI);
         String action = map.get(Constants.ACTION);
         FileType fileType;
         ByteBuffer byteBuffer;

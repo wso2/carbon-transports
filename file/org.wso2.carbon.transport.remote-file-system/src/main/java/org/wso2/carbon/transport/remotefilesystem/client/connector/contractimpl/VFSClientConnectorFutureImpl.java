@@ -47,4 +47,11 @@ public class VFSClientConnectorFutureImpl implements VFSClientConnectorFuture {
             fileSystemListener.onError(throwable);
         }
     }
+
+    @Override
+    public void done() {
+        if (fileSystemListener != null) {
+            fileSystemListener.done();
+        }
+    }
 }

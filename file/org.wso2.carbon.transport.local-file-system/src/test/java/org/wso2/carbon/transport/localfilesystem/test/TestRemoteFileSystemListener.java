@@ -16,11 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.localfilesystem.test.util;
+package org.wso2.carbon.transport.localfilesystem.test;
 
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemEvent;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemListener;
 
+import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -28,33 +29,25 @@ import java.util.concurrent.CountDownLatch;
  */
 public class TestRemoteFileSystemListener implements LocalFileSystemListener {
 
-    private CountDownLatch latch = new CountDownLatch(1);
-    private String text;
+    private CountDownLatch latch;
+    private int eventCounter = 0;
+    private int expectedEventCount;
+    private LinkedList<LocalFileSystemEvent> eventQueue = new LinkedList<>();
+
+    TestRemoteFileSystemListener(CountDownLatch latch, int expectedEventCount) {
+        this.latch = latch;
+        this.expectedEventCount = expectedEventCount;
+    }
 
     @Override
     public void onMessage(LocalFileSystemEvent localFileSystemEvent) {
-        text = localFileSystemEvent.getFileName();
-        done();
+        eventQueue.add(localFileSystemEvent);
+        if (++eventCounter >= this.expectedEventCount) {
+            latch.countDown();
+        }
     }
 
-    public String getText() {
-        return text;
-    }
-
-
-    /**
-     * To wait till file reading operation is finished.
-     *
-     * @throws InterruptedException Interrupted Exception.
-     */
-    public void waitTillDone() throws InterruptedException {
-        latch.await();
-    }
-
-    /**
-     * To make sure the reading the file content is done.
-     */
-    private void done() {
-        latch.countDown();
+    LinkedList<LocalFileSystemEvent> getEventQueue() {
+        return eventQueue;
     }
 }

@@ -16,51 +16,50 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.remotefilesystem;
+package org.wso2.carbon.transport.remotefilesystem.client;
 
 import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListener;
 import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemBaseMessage;
-import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
+import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemMessage;
 
 import java.util.concurrent.CountDownLatch;
 
 /**
  * Test {@link RemoteFileSystemListener} implementation for testing purpose.
  */
-public class TestRemoteFileSystemListener implements RemoteFileSystemListener {
+public class TestReadActionListener implements RemoteFileSystemListener {
 
-    private CountDownLatch latch = new CountDownLatch(1);
-    private String text;
+    private CountDownLatch latch;
+    private String content;
+    private Throwable throwable;
+
+    TestReadActionListener(CountDownLatch latch) {
+        this.latch = latch;
+    }
 
     @Override
-    public void onMessage(RemoteFileSystemBaseMessage remoteFileSystemEvent) {
-        text = ((RemoteFileSystemEvent) remoteFileSystemEvent).getText();
-        done();
-    }
-
-    public String getText() {
-        return text;
-    }
-
-
-    /**
-     * To wait till file reading operation is finished.
-     *
-     * @throws InterruptedException Interrupted Exception.
-     */
-    public void waitTillDone() throws InterruptedException {
-        latch.await();
-    }
-
-    /**
-     * To make sure the reading the file content is done.
-     */
-    private void done() {
+    public void onMessage(RemoteFileSystemBaseMessage remoteFileSystemBaseMessage) {
+        RemoteFileSystemMessage message = (RemoteFileSystemMessage) remoteFileSystemBaseMessage;
+        content = new String(message.getBytes().array());
         latch.countDown();
     }
 
     @Override
     public void onError(Throwable throwable) {
+        this.throwable = throwable;
+        latch.countDown();
+    }
 
+    @Override
+    public void done() {
+        latch.countDown();
+    }
+
+    String getContent() {
+        return content;
+    }
+
+    Throwable getThrowable() {
+        return throwable;
     }
 }

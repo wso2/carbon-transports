@@ -19,8 +19,6 @@
 package org.wso2.carbon.transport.localfilesystem.server.connector.contractimpl;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.localfilesystem.server.DirectoryListener;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemServerConnector;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemServerConnectorFuture;
@@ -32,8 +30,6 @@ import java.util.Map;
  * Implementation of the {@link LocalFileSystemServerConnector} interface.
  */
 public class LocalFileSystemServerConnectorImpl implements LocalFileSystemServerConnector {
-
-    private static final Logger log = LoggerFactory.getLogger(LocalFileSystemServerConnectorImpl.class);
 
     private DirectoryListener directoryListener;
 

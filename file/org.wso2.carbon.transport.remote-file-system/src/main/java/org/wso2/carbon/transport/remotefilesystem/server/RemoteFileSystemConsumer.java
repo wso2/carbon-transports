@@ -77,6 +77,7 @@ public class RemoteFileSystemConsumer {
      * @param id                Name of the service that creates the consumer
      * @param fileProperties    Map of property values
      * @param connectorFuture  RemoteFileSystemServerConnectorFuture instance to send callback
+     * @throws ServerConnectorException if unable to start the connect to the remote server
      */
     public RemoteFileSystemConsumer(String id, Map<String, String> fileProperties,
                                     RemoteFileSystemServerConnectorFuture connectorFuture)
@@ -137,12 +138,11 @@ public class RemoteFileSystemConsumer {
         listeningDirURI = fileProperties.get(Constants.TRANSPORT_FILE_FILE_URI);
         if (listeningDirURI == null) {
             connectorFuture.notifyFileSystemListener(new ServerConnectorException(
-                    Constants.TRANSPORT_FILE_FILE_URI + " is a " + "mandatory parameter for " +
-                            Constants.PROTOCOL_FILE_SYSTEM + " transport."));
+                    Constants.TRANSPORT_FILE_FILE_URI + " is a mandatory parameter for FTP transport."));
         } else if (listeningDirURI.trim().equals("")) {
             connectorFuture.notifyFileSystemListener(new
                     RemoteFileSystemConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " " +
-                    "parameter cannot be empty for " + Constants.PROTOCOL_FILE_SYSTEM + " transport."));
+                    "parameter cannot be empty for FTP transport."));
         }
         String strParallel = fileProperties.get(Constants.PARALLEL);
         if (strParallel != null) {
@@ -164,12 +164,13 @@ public class RemoteFileSystemConsumer {
                 case Constants.ACTION_NONE:
                     postFailureAction = Constants.ACTION_NONE;
                     break;
-                default:
-                    //TODO: Reconsider the default case
+                case Constants.ACTION_DELETE:
                     postFailureAction = Constants.ACTION_DELETE;
+                    break;
+                default:
+                    postFailureAction = Constants.ACTION_NONE;
             }
         }
-
         if (fileProperties.get(Constants.ACTION_AFTER_PROCESS) != null) {
             switch (fileProperties.get(Constants.ACTION_AFTER_PROCESS)) {
                 case Constants.ACTION_MOVE:
@@ -178,9 +179,11 @@ public class RemoteFileSystemConsumer {
                 case Constants.ACTION_NONE:
                     postProcessAction = Constants.ACTION_NONE;
                     break;
-                default:
-                    //TODO: Reconsider the default case
+                case Constants.ACTION_DELETE:
                     postProcessAction = Constants.ACTION_DELETE;
+                    break;
+                default:
+                    postProcessAction = Constants.ACTION_NONE;
             }
         }
 
@@ -217,6 +220,8 @@ public class RemoteFileSystemConsumer {
     /**
      * Do the file processing operation for the given set of properties. Do the
      * checks and pass the control to file system processor thread/threads.
+     *
+     * @throws RemoteFileSystemConnectorException for all the error situation.
      */
     public void consume() throws RemoteFileSystemConnectorException {
         if (log.isDebugEnabled()) {
@@ -404,8 +409,8 @@ public class RemoteFileSystemConsumer {
             }
         } else {
             if (FileTransportUtils.acquireLock(fsManager, file, fso)) {
-                if (log.isInfoEnabled()) {
-                    log.info("Processing file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                if (log.isDebugEnabled()) {
+                    log.debug("Processing file: " + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 }
                 RemoteFileSystemProcessor fsp =
                         new RemoteFileSystemProcessor(connectorFuture, serviceName, file, uri,
@@ -459,7 +464,9 @@ public class RemoteFileSystemConsumer {
                                 FileTransportUtils.maskURLPassword(listeningDirURI), e));
             }
         }
-
+        if (postProcessAction.equals(Constants.ACTION_NONE) && fileType == FileType.FOLDER) {
+            return;
+        }
         try {
             if (!(moveToDirectoryURI == null || fileType == FileType.FOLDER)) {
                 FileObject moveToDirectory;
@@ -483,10 +490,10 @@ public class RemoteFileSystemConsumer {
                 }
                 FileObject dest = moveToDirectory.resolveFile(prefix + file.getName().getBaseName());
                 if (log.isDebugEnabled()) {
-                    log.debug("Moving to file :" + FileTransportUtils.maskURLPassword(dest.getName().getURI()));
+                    log.debug("Moving to file: " + FileTransportUtils.maskURLPassword(dest.getName().getURI()));
                 }
                 if (log.isInfoEnabled()) {
-                    log.info("Moving file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                    log.info("Moving file: " + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 }
                 try {
                     file.moveTo(dest);
@@ -498,20 +505,20 @@ public class RemoteFileSystemConsumer {
                         markFailRecord(file);
                     }
                     connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
-                            "Error moving file : " + FileTransportUtils.maskURLPassword(file.toString()) + " to " +
+                            "Error moving file: " + FileTransportUtils.maskURLPassword(file.toString()) + " to " +
                                     FileTransportUtils.maskURLPassword(moveToDirectoryURI), e));
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("Deleting file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                    log.debug("Deleting file: " + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 }
                 if (log.isInfoEnabled()) {
-                    log.info("Deleting file :" + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
+                    log.info("Deleting file: " + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 }
                 try {
                     if (!file.delete()) {
                         if (log.isDebugEnabled()) {
-                            log.debug("Could not delete file : " +
+                            log.debug("Could not delete file: " +
                                       FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                         }
                     } else {
@@ -521,7 +528,7 @@ public class RemoteFileSystemConsumer {
                     }
                 } catch (FileSystemException e) {
                     connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
-                            "Could not delete file : " + FileTransportUtils.maskURLPassword(
+                            "Could not delete file: " + FileTransportUtils.maskURLPassword(
                                     file.getName().getBaseName()), e));
                 }
             }

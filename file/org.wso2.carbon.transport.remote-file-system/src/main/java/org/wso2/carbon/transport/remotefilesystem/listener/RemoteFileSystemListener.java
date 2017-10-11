@@ -38,4 +38,10 @@ public interface RemoteFileSystemListener {
      * @param throwable contains the error details of the event.
      */
     void onError(Throwable throwable);
+
+    /**
+     * Notify to the caller once the underlying task is successfully finished. Error situation need to handle through
+     * {@link #onError(Throwable)} method.
+     */
+    void done();
 }

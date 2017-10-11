@@ -18,20 +18,11 @@
 
 package org.wso2.carbon.transport.remotefilesystem.message;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-
 /**
  * This class represent the events that happen in remote file system.
  */
 public class RemoteFileSystemEvent extends RemoteFileSystemBaseMessage {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RemoteFileSystemEvent.class);
     private final String text;
 
     public RemoteFileSystemEvent(String text) {
@@ -40,14 +31,5 @@ public class RemoteFileSystemEvent extends RemoteFileSystemBaseMessage {
 
     public String getText() {
         return this.text;
-    }
-
-    public InputStream getInputStream() {
-        return this.text == null ? null : new ByteArrayInputStream(this.text.getBytes(StandardCharsets.UTF_8));
-    }
-
-    public ByteBuffer getMessageBody() {
-        this.setEndOfMsgAdded(true);
-        return ByteBuffer.wrap(this.text.getBytes(StandardCharsets.UTF_8));
     }
 }

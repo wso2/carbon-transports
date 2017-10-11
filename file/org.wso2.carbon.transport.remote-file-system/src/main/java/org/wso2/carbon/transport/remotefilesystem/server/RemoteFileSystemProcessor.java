@@ -73,18 +73,6 @@ class RemoteFileSystemProcessor implements Runnable {
         String uri = file.getName().getURI();
         uri = uri.startsWith("file://") ? uri.replace("file://", "") : uri;
         RemoteFileSystemEvent message = new RemoteFileSystemEvent(uri);
-        /*try {
-            String protocol = file.getURL().getProtocol();
-            // Since there is a separate module for File Server Connector, if the protocol is file, mark it as fs
-            if (Constants.PROTOCOL_FILE.equals(protocol)) {
-                protocol = Constants.PROTOCOL_FILE_SYSTEM;
-            }
-            message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, protocol);
-        } catch (FileSystemException e) {
-            logger.error("Exception occurred while retrieving the file protocol", e);
-            message.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, Constants.PROTOCOL_FILE_SYSTEM);
-            connectorFuture.notifyFileSystemListener(e);
-        }*/
         message.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
         try {
             message.setProperty(Constants.META_FILE_SIZE, file.getContent().getSize());

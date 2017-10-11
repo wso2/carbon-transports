@@ -23,12 +23,16 @@ package org.wso2.carbon.transport.localfilesystem.server.util;
  */
 public final class Constants {
 
-    public static final String PROTOCOL_FILE_SYSTEM = "fs";
-    public static final String PROTOCOL_FILE = "file";
+    private Constants() {
+    }
 
     //file connector parameters
     public static final String TRANSPORT_FILE_FILE_URI = "dirURI";
     public static final String FILE_TRANSPORT_PROPERTY_SERVICE_NAME = "TRANSPORT_FILE_SERVICE_NAME";
     public static final String DIRECTORY_WATCH_EVENTS = "events";
     public static final String DIRECTORY_WATCH_RECURSIVE = "recursive";
+
+    public static final String EVENT_CREATE = "create";
+    public static final String EVENT_DELETE = "delete";
+    public static final String EVENT_MODIFY = "modify";
 }

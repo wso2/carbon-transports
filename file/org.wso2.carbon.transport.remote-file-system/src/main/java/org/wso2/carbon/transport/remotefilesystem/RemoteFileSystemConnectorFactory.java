@@ -42,13 +42,12 @@ public interface RemoteFileSystemConnectorFactory {
             throws RemoteFileSystemConnectorException;
 
     /**
-     * @param serviceId                id used to identify the client connector instance.
      * @param connectorConfig          properties required for the {@link VFSClientConnector}.
      * @param remoteFileSystemListener listener which gets triggered when message comes.
      * @return VFSClientConnector instance
      * @throws RemoteFileSystemConnectorException if any error occurred when initializing the server connector.
      */
-    VFSClientConnector createVFSClientConnector(String serviceId, Map<String, String> connectorConfig,
+    VFSClientConnector createVFSClientConnector(Map<String, String> connectorConfig,
                                                 RemoteFileSystemListener remoteFileSystemListener)
             throws RemoteFileSystemConnectorException;
 }

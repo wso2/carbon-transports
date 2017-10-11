@@ -41,4 +41,9 @@ public interface VFSClientConnectorFuture {
      * @param throwable contains the data related to the error.
      */
     void notifyFileSystemListener(Throwable throwable);
+
+    /**
+     * Notify successful task completion to the caller.
+     */
+    void done();
 }

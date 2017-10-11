@@ -50,18 +50,16 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
 
     private static final Logger logger = LoggerFactory.getLogger(VFSClientConnectorImpl.class);
 
-    private String serviceId;
     private Map<String, String> connectorConfig;
     private RemoteFileSystemListener remoteFileSystemListener;
     private FileSystemOptions opts = new FileSystemOptions();
 
-    public VFSClientConnectorImpl(String serviceId, Map<String, String> connectorConfig,
+    public VFSClientConnectorImpl(Map<String, String> connectorConfig,
                                   RemoteFileSystemListener remoteFileSystemListener) {
-        this.serviceId = serviceId;
         this.connectorConfig = connectorConfig;
         this.remoteFileSystemListener = remoteFileSystemListener;
 
-        if (Constants.PROTOCOL_FTP.equals(connectorConfig.get("PROTOCOL"))) {
+        if (Constants.PROTOCOL_FTP.equals(connectorConfig.get(Constants.PROTOCOL))) {
             connectorConfig.forEach((property, value) -> {
                 // TODO: Add support for other FTP related configurations
                 if (Constants.FTP_PASSIVE_MODE.equals(property)) {
@@ -71,15 +69,14 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
         }
     }
 
-
     @Override
     public VFSClientConnectorFuture send(RemoteFileSystemMessage message) {
         VFSClientConnectorFuture connectorFuture = new VFSClientConnectorFutureImpl();
-        connectorFuture.setFileSystemListener(this.remoteFileSystemListener);
+        connectorFuture.setFileSystemListener(remoteFileSystemListener);
 
         FtpFileSystemConfigBuilder.getInstance().setPassiveMode(opts, true);
-        String fileURI = this.connectorConfig.get(Constants.URI);
-        String action = this.connectorConfig.get(Constants.ACTION);
+        String fileURI = connectorConfig.get(Constants.URI);
+        String action = connectorConfig.get(Constants.ACTION);
         FileType fileType;
         ByteBuffer byteBuffer;
         InputStream inputStream = null;
@@ -91,7 +88,7 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
             fileType = path.getType();
             switch (action) {
                 case Constants.CREATE:
-                    boolean isFolder = Boolean.parseBoolean(this.connectorConfig.getOrDefault("create-folder",
+                    boolean isFolder = Boolean.parseBoolean(connectorConfig.getOrDefault(Constants.CREATE_FOLDER,
                             "false"));
                     if (path.exists()) {
                         throw new ClientConnectorException("File already exists: " + path.getName().getURI());
@@ -111,9 +108,9 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                     if (fileType == FileType.FILE) {
                         byteBuffer = message.getBytes();
                         byte[] bytes = byteBuffer.array();
-                        if (this.connectorConfig.get(Constants.APPEND) != null) {
+                        if (connectorConfig.get(Constants.APPEND) != null) {
                             outputStream = path.getContent().getOutputStream(
-                                    Boolean.parseBoolean(this.connectorConfig.get(Constants.APPEND)));
+                                    Boolean.parseBoolean(connectorConfig.get(Constants.APPEND)));
                         } else {
                             outputStream = path.getContent().getOutputStream();
                         }
@@ -134,7 +131,7 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                     break;
                 case Constants.COPY:
                     if (path.exists()) {
-                        String destination = this.connectorConfig.get("destination");
+                        String destination = connectorConfig.get(Constants.DESTINATION);
                         FileObject dest = fsManager.resolveFile(destination, opts);
                         dest.copyFrom(path, Selectors.SELECT_ALL);
                     } else {
@@ -145,7 +142,7 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                 case Constants.MOVE:
                     if (path.exists()) {
                         //TODO: Improve this to fix issue #331
-                        String destination = this.connectorConfig.get("destination");
+                        String destination = connectorConfig.get(Constants.DESTINATION);
                         FileObject newPath = fsManager.resolveFile(destination, opts);
                         FileObject parent = newPath.getParent();
                         if (parent != null && !parent.exists()) {
@@ -168,8 +165,6 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                         inputStream = path.getContent().getInputStream();
                         byte[] bytes = toByteArray(inputStream);
                         RemoteFileSystemMessage fileContent = new RemoteFileSystemMessage(ByteBuffer.wrap(bytes));
-                        message.setProperty(org.wso2.carbon.messaging.Constants.DIRECTION,
-                                org.wso2.carbon.messaging.Constants.DIRECTION_RESPONSE);
                         connectorFuture.notifyFileSystemListener(fileContent);
                     } else {
                         throw new ClientConnectorException(
@@ -178,13 +173,12 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                     break;
                 case Constants.EXISTS:
                     RemoteFileSystemMessage fileContent = new RemoteFileSystemMessage(Boolean.toString(path.exists()));
-                    message.setProperty(org.wso2.carbon.messaging.Constants.DIRECTION,
-                            org.wso2.carbon.messaging.Constants.DIRECTION_RESPONSE);
                     connectorFuture.notifyFileSystemListener(fileContent);
                     break;
                 default:
                     break;
             }
+            connectorFuture.done();
         } catch (ClientConnectorException | IOException e) {
             connectorFuture.notifyFileSystemListener(e);
         } finally {
@@ -206,7 +200,7 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
      *
      * @param input The input stream that the data should be obtained from
      * @return byte[] The byte array of data obtained from the input stream
-     * @throws IOException
+     * @throws IOException if something happen during the content read
      */
     private static byte[] toByteArray(InputStream input) throws IOException {
         long count = 0L;

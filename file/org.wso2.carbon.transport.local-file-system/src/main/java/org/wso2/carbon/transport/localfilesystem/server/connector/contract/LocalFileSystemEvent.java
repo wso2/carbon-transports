@@ -20,11 +20,6 @@ package org.wso2.carbon.transport.localfilesystem.server.connector.contract;
 
 import org.wso2.carbon.messaging.CarbonMessage;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-
 /**
  * This class represent the events like create, delete, modify that happen in local file system.
  */
@@ -44,14 +39,5 @@ public class LocalFileSystemEvent extends CarbonMessage {
 
     public String getEvent() {
         return event;
-    }
-
-    public InputStream getInputStream() {
-        return this.fileName == null ? null : new ByteArrayInputStream(this.fileName.getBytes(StandardCharsets.UTF_8));
-    }
-
-    public ByteBuffer getMessageBody() {
-        this.setEndOfMsgAdded(true);
-        return ByteBuffer.wrap(this.fileName.getBytes(StandardCharsets.UTF_8));
     }
 }
