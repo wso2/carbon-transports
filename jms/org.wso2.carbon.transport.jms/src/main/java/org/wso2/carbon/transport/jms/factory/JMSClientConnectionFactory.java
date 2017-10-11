@@ -85,7 +85,7 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
                 this.maxNumberOfConnections = Integer
                         .parseInt(properties.getProperty(JMSConstants.PARAM_MAX_CONNECTIONS));
             } catch (NumberFormatException ex) {
-                logger.error("Non-integer value configured for JMS Client Connection count");
+                logger.error("Non-integer value configured for JMS Client Connection count", ex);
             }
         }
         if (properties.getProperty(JMSConstants.PARAM_MAX_SESSIONS_ON_CONNECTION) != null) {
@@ -93,7 +93,7 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
                 this.maxSessionsPerConnection = Integer
                         .parseInt(properties.getProperty(JMSConstants.PARAM_MAX_SESSIONS_ON_CONNECTION));
             } catch (NumberFormatException ex) {
-                logger.error("Non-integer value configured for JMS Client Sessions count");
+                logger.error("Non-integer value configured for JMS Client Sessions count", ex);
             }
         }
 
@@ -144,7 +144,17 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     @Override
     public synchronized void notifyError(JMSException ex) {
         logger.error("Error occurred in JMS Client Connections. Re-initializing the resources. " + ex.getMessage());
-        closeJMSResources();
+
+        try {
+            closeJMSResources();
+        } catch (JMSConnectorException e) {
+            // If an exception was triggered due to a connection issue, closing connection will also fail with a
+            // connection exception
+            logger.error("Error closing connection after exception", e);
+        } finally {
+            connections.clear();
+        }
+
         initSessionPool();
     }
 
@@ -177,17 +187,17 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     /**
      * Close cached JMS resources allocated for this Connection Factory
      */
-    private void closeJMSResources() {
+    private void closeJMSResources() throws JMSConnectorException {
         if (clientCaching) {
             sessionPool.clear();
-            connections.forEach(connection -> {
+            sessionPool.close();
+            for (int i = 0; i < connections.size(); i++) {
                 try {
-                    connection.getConnection().close();
+                    closeConnection(connections.get(i).getConnection());
                 } catch (JMSException e) {
-                    logger.error("Error closing the connection" + e);
+                    throw new JMSConnectorException("Error closing the connection.", e);
                 }
-            });
-            connections.clear();
+            }
         }
     }
 
