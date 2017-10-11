@@ -164,12 +164,11 @@ public class JMSMessageConsumer implements MessageConsumer {
      */
     public void closeAll() throws JMSConnectorException {
         try {
-            if (connection != null) {
-                connectionFactory.closeConnection(connection);
-                connection = null;
-            }
+            connectionFactory.closeConsumer(messageConsumer);
+            connectionFactory.closeSession(session);
+            connectionFactory.closeConnection(connection);
         } catch (JMSException e) {
-            throw new JMSConnectorException("Error closing connection of JMS Service " + serviceId, e);
+            throw new JMSConnectorException("Error closing connection/session/consumer of JMS Service " + serviceId, e);
         } finally {
             messageConsumer = null;
             session = null;
