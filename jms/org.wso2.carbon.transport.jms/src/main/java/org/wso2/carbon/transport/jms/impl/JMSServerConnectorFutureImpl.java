@@ -18,10 +18,11 @@
 
 package org.wso2.carbon.transport.jms.impl;
 
-import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.callback.JMSCallback;
 import org.wso2.carbon.transport.jms.contract.JMSListener;
 import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
+
+import javax.jms.Message;
 
 /**
  * Server connector future implementation
@@ -35,7 +36,7 @@ public class JMSServerConnectorFutureImpl implements JMSServerConnectorFuture {
     }
 
     @Override
-    public void notifyJMSListener(CarbonMessage jmsMessage, JMSCallback jmsCallback) {
+    public void notifyJMSListener(Message jmsMessage, JMSCallback jmsCallback) {
         jmsListener.onMessage(jmsMessage, jmsCallback);
     }
 }

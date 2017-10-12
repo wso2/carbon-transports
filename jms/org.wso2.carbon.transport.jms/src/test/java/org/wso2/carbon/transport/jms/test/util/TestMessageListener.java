@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.transport.jms.test.util;
 
-import org.wso2.carbon.messaging.CarbonMessage;
-import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.transport.jms.callback.JMSCallback;
 import org.wso2.carbon.transport.jms.contract.JMSListener;
-import org.wso2.carbon.transport.jms.utils.JMSConstants;
+
+import javax.jms.Message;
+import javax.jms.TextMessage;
 
 /**
  * Message processor for testing purposes.
@@ -40,18 +40,14 @@ public class TestMessageListener implements JMSListener {
     }
 
     @Override
-    public void onMessage(CarbonMessage jmsMessage, JMSCallback jmsCallback) {
-        if (jmsMessage instanceof TextCarbonMessage) {
+    public void onMessage(Message jmsMessage, JMSCallback jmsCallback) {
+        if (jmsMessage instanceof TextMessage) {
             count++;
             if (null != jmsCallback) {
                 if (count <= 2) {
-                    jmsMessage.setProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS,
-                            JMSConstants.JMS_MESSAGE_DELIVERY_SUCCESS);
                     jmsCallback.done(Boolean.TRUE);
 
                 } else {
-                    jmsMessage.setProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS,
-                            JMSConstants.JMS_MESSAGE_DELIVERY_ERROR);
                     jmsCallback.done(Boolean.FALSE);
                 }
             }
