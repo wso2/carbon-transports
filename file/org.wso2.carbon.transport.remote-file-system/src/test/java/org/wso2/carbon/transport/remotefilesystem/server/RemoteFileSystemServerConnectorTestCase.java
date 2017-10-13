@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.Constants;
 import org.wso2.carbon.transport.remotefilesystem.RemoteFileSystemConnectorFactory;
+import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.impl.RemoteFileSystemConnectorFactoryImpl;
 import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnector;
@@ -146,6 +147,34 @@ public class RemoteFileSystemServerConnectorTestCase {
         Assert.assertEquals(eventQueue.pop().getText(), buildConnectionURL() + "/del1.txt");
         Assert.assertEquals(eventQueue.pop().getText(), buildConnectionURL() + "/del2.txt");
         testConnector.stop();
+    }
+
+    @Test(expectedExceptions = RemoteFileSystemConnectorException.class, expectedExceptionsMessageRegExp =
+            "Failed to initialize File server connector for Service: TestService")
+    public void invalidRootFolderTestCase() throws InterruptedException, RemoteFileSystemConnectorException {
+        int expectedEventCount = 1;
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put(Constants.TRANSPORT_FILE_FILE_URI,
+                "ftp://" + username + ":" + password + "@localhost:" + serverPort + "/home/wso2/file1.txt");
+        parameters.put(Constants.ACTION_AFTER_PROCESS, "NONE");
+        parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "2000");
+        parameters.put(Constants.PARALLEL, String.valueOf(false));
+
+        CountDownLatch latch = new CountDownLatch(1);
+        RemoteFileSystemConnectorFactory connectorFactory = new RemoteFileSystemConnectorFactoryImpl();
+        TestServerRemoteFileSystemListener fileSystemListener =
+                new TestServerRemoteFileSystemListener(latch, expectedEventCount);
+        try {
+            RemoteFileSystemServerConnector testConnector =
+                    connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
+        } catch (RemoteFileSystemConnectorException e) {
+            Assert.assertEquals(e.getCause().getMessage(),
+                    "File system server connector is used to listen to a folder. " +
+                            "But the given path does not refer to a folder.");
+            throw e;
+        }
+        latch.await(3, TimeUnit.SECONDS);
+        Assert.assertNotNull(fileSystemListener.getThrowable(), "Expected exception didn't throw.");
     }
 
     @AfterClass

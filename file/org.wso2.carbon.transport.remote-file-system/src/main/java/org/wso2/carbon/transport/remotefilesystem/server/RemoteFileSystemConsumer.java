@@ -62,6 +62,7 @@ public class RemoteFileSystemConsumer {
     private FileSystemOptions fso;
     private boolean parallelProcess = false;
     private int threadPoolSize = 10;
+    private ThreadPoolFactory threadPool;
     private int fileProcessCount;
     private int processCount;
     private String fileNamePattern = null;
@@ -90,45 +91,27 @@ public class RemoteFileSystemConsumer {
             fsManager = VFS.getManager();
             Map<String, String> options = parseSchemeFileOptions(listeningDirURI);
             fso = FileTransportUtils.attachFileSystemOptions(options, fsManager);
-
             // TODO: Make this and other file related configurations configurable
             if (options != null && Constants.SCHEME_FTP.equals(options.get(Constants.SCHEME))) {
                 FtpFileSystemConfigBuilder.getInstance().setPassiveMode(fso, true);
             }
-            try {
-                listeningDir = fsManager.resolveFile(listeningDirURI, fso);
-            } catch (FileSystemException e) {
-                connectorFuture.notifyFileSystemListener(e);
-                log.error("Failed to resolve listeningDirURI: " + FileTransportUtils.maskURLPassword(listeningDirURI),
-                        e);
-            }
-        } catch (FileSystemException | RemoteFileSystemConnectorException e) {
-            log.error("Could not initialize File System Manager.", e);
-            connectorFuture.notifyFileSystemListener(e);
-        }
-        try {
+            listeningDir = fsManager.resolveFile(listeningDirURI, fso);
             if (!listeningDir.isWriteable()) {
                 postProcessAction = Constants.ACTION_NONE;
             }
-        } catch (FileSystemException e) {
-            log.error("Exception while determining file: " + FileTransportUtils.maskURLPassword(listeningDirURI) +
-                    " is writable", e);
-            connectorFuture.notifyFileSystemListener(e);
-        }
-        try {
             FileType fileType = getFileType(listeningDir);
             if (fileType != FileType.FOLDER) {
-                log.error("File system server connector is used to " +
-                        "listen to a folder. But the given path does not refer to a folder.");
-                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException("File system " +
-                        "server connector is used to " +
-                        "listen to a folder. But the given path does not refer to a folder."));
+                String errorMsg = "File system server connector is used to " +
+                        "listen to a folder. But the given path does not refer to a folder.";
+                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(errorMsg));
+                throw new ServerConnectorException(errorMsg);
             }
-        } catch (RemoteFileSystemConnectorException e) {
+            //Initialize the thread executor based on properties
+            threadPool = new ThreadPoolFactory(threadPoolSize, parallelProcess);
+        } catch (FileSystemException | RemoteFileSystemConnectorException e) {
             connectorFuture.notifyFileSystemListener(e);
+            throw new ServerConnectorException("Unable to initialize the connection with server.", e);
         }
-        //Initialize the thread executor based on properties
-        ThreadPoolFactory.createInstance(threadPoolSize, parallelProcess);
     }
 
     /**
@@ -233,19 +216,11 @@ public class RemoteFileSystemConsumer {
         processCount = 0;
         // If file/folder found proceed to the processing stage
         try {
-            boolean isFileExists = false; // Initially assume that the file doesn't exist
-            boolean isFileReadable = false; // Initially assume that the file is not readable
-            try {
-                listeningDir.refresh();
-                isFileExists = listeningDir.exists();
-                isFileReadable = listeningDir.isReadable();
-            } catch (FileSystemException e) {
-                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
-                        "Error occurred when determining whether the file at URI : " +
-                                FileTransportUtils.maskURLPassword(listeningDirURI) +
-                                " exists and readable. " + e));
-            }
-
+            boolean isFileExists; // Initially assume that the file doesn't exist
+            boolean isFileReadable; // Initially assume that the file is not readable
+            listeningDir.refresh();
+            isFileExists = listeningDir.exists();
+            isFileReadable = listeningDir.isReadable();
             if (isFileExists && isFileReadable) {
                 FileObject[] children = null;
                 try {
@@ -253,8 +228,8 @@ public class RemoteFileSystemConsumer {
                 } catch (FileSystemException ignored) {
                     if (log.isDebugEnabled()) {
                         log.debug("The file does not exist, or is not a folder, or an error " +
-                                    "has occurred when trying to list the children. File URI : " +
-                                    FileTransportUtils.maskURLPassword(listeningDirURI), ignored);
+                                "has occurred when trying to list the children. File URI : " +
+                                FileTransportUtils.maskURLPassword(listeningDirURI), ignored);
                     }
                 }
                 if (children == null || children.length == 0) {
@@ -270,9 +245,14 @@ public class RemoteFileSystemConsumer {
                                 listeningDirURI) + ". Reason: " +
                                 (isFileExists ? "The file can not be read!" : "The file does not exist!")));
             }
+        } catch (FileSystemException e) {
+            connectorFuture.notifyFileSystemListener(e);
+            throw new RemoteFileSystemConnectorException("Unable to get details from remote server.", e);
         } finally {
             try {
-                listeningDir.close();
+                if (listeningDir != null) {
+                    listeningDir.close();
+                }
             } catch (FileSystemException e) {
                 log.warn("Could not close file at URI: " + FileTransportUtils.maskURLPassword(listeningDirURI), e);
             }
@@ -324,9 +304,9 @@ public class RemoteFileSystemConsumer {
                     break;
                 case Constants.FILE_SORT_VALUE_LASTMODIFIEDTIMESTAMP:
                     if (bSortOrderAscending) {
-                        Arrays.sort(children, new FileLastmodifiedtimestampAscComparator());
+                        Arrays.sort(children, new FileLastModifiedTimestampAscComparator());
                     } else {
-                        Arrays.sort(children, new FileLastmodifiedtimestampDesComparator());
+                        Arrays.sort(children, new FileLastModifiedTimestampDesComparator());
                     }
                     break;
                 default:
@@ -414,9 +394,8 @@ public class RemoteFileSystemConsumer {
                 }
                 RemoteFileSystemProcessor fsp =
                         new RemoteFileSystemProcessor(connectorFuture, serviceName, file, uri,
-                                this,
-                                postProcessAction);
-                fsp.startProcessThread();
+                                this, postProcessAction);
+                threadPool.execute(fsp);
                 processCount++;
             } else {
                 log.warn("Couldn't get the lock for processing the file: " +
@@ -543,6 +522,14 @@ public class RemoteFileSystemConsumer {
     }
 
     /**
+     * This method will stop all the threads that initiate to handle files through {@link RemoteFileSystemProcessor}.
+     * No of threads will be define using 'threadPoolSize' config.
+     */
+    public void stopThreadPool() {
+        threadPool.stop();
+    }
+
+    /**
      * Determine whether file object is a file or a folder.
      *
      * @param fileObject    File to get the type of
@@ -611,19 +598,15 @@ public class RemoteFileSystemConsumer {
      * Comparator classes used to sort the files according to user input.
      */
     private static class FileNameAscComparator implements Comparator<FileObject>, Serializable {
-
         private static final long serialVersionUID = 1;
-
         @Override
         public int compare(FileObject o1, FileObject o2) {
             return o1.getName().compareTo(o2.getName());
         }
     }
 
-    private static class FileLastmodifiedtimestampAscComparator implements Comparator<FileObject>, Serializable {
-
+    private static class FileLastModifiedTimestampAscComparator implements Comparator<FileObject>, Serializable {
         private static final long serialVersionUID = 1;
-
         @Override
         public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;
@@ -637,9 +620,7 @@ public class RemoteFileSystemConsumer {
     }
 
     private static class FileSizeAscComparator implements Comparator<FileObject>, Serializable {
-
         private static final long serialVersionUID = 1;
-
         @Override
         public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;
@@ -653,19 +634,15 @@ public class RemoteFileSystemConsumer {
     }
 
     private static class FileNameDesComparator implements Comparator<FileObject>, Serializable {
-
         private static final long serialVersionUID = 1;
-
         @Override
         public int compare(FileObject o1, FileObject o2) {
             return o2.getName().compareTo(o1.getName());
         }
     }
 
-    private static class FileLastmodifiedtimestampDesComparator implements Comparator<FileObject>, Serializable {
-
+    private static class FileLastModifiedTimestampDesComparator implements Comparator<FileObject>, Serializable {
         private static final long serialVersionUID = 1;
-
         @Override
         public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;
@@ -679,9 +656,7 @@ public class RemoteFileSystemConsumer {
     }
 
     private static class FileSizeDesComparator implements Comparator<FileObject>, Serializable {
-
         private static final long serialVersionUID = 1;
-
         @Override
         public int compare(FileObject o1, FileObject o2) {
             Long lDiff = 0L;

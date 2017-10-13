@@ -18,17 +18,18 @@
 
 package org.wso2.carbon.transport.remotefilesystem.server.util;
 
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A Thread Pool factory for creating Thread Pools required for the File System transport
  */
 public class ThreadPoolFactory {
-    private static ThreadPoolFactory instance;
     private ExecutorService executorService;
 
-    private ThreadPoolFactory(int threadPoolSize, boolean parallel) {
+    public ThreadPoolFactory(int threadPoolSize, boolean parallel) {
         if (parallel) {
             executorService = Executors.newFixedThreadPool(threadPoolSize);
         } else {
@@ -36,17 +37,26 @@ public class ThreadPoolFactory {
         }
     }
 
-    public static synchronized void createInstance(int threadPoolSize, boolean parallel) {
-        if (instance == null) {
-            instance = new ThreadPoolFactory(threadPoolSize, parallel);
+    /**
+     * Execute given runnable target.
+     *
+     * @param runnable RemoteFileSystemProcessor instance.
+     */
+    public void execute(Runnable runnable) {
+        executorService.execute(runnable);
+    }
+
+    /**
+     * Stop all the executing thread and shutdown the pool.
+     */
+    public void stop() {
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
         }
-    }
-
-    public static ThreadPoolFactory getInstance() {
-        return instance;
-    }
-
-    public ExecutorService getExecutor() {
-        return executorService;
     }
 }

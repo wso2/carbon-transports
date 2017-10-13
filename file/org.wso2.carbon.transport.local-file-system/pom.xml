@@ -30,7 +30,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.transport.local-file-system</artifactId>
-    <packaging>bundle</packaging>
+    <packaging>jar</packaging>
     <name>WSO2 Carbon Transport Local File System Component</name>
     <description>Carbon Local File System Transport</description>
 
@@ -103,9 +103,9 @@
             org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
             org.wso2.carbon.messaging.*;version="${carbon.messaging.package.import.version.range}"
         </import.package>
-        <bundle.activator>
+        &lt;!&ndash;<bundle.activator>
             org.wso2.carbon.transport.localfilesystem.internal.LocalFileSystemConnectorBundleActivator
-        </bundle.activator>
+        </bundle.activator>&ndash;&gt;
         <carbon.component>
             osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"
         </carbon.component>

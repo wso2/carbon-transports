@@ -62,22 +62,20 @@ public class DirectoryListener implements Runnable {
     private final Map<WatchKey, Path> keys;
     private final boolean recursive;
     private final String serviceName;
-    private LocalFileSystemServerConnectorFuture connectorFuture;
+    private final LocalFileSystemServerConnectorFuture connectorFuture;
     private ExecutorService executorService;
     private final WatchEvent.Kind[] registeredEvents;
 
-    public DirectoryListener(String id, Map<String, String> properties,
-                             LocalFileSystemServerConnectorFuture connectorFuture)
+    public DirectoryListener(String id, Map<String, String> config, LocalFileSystemServerConnectorFuture future)
             throws LocalFileSystemServerConnectorException {
-
         serviceName = id;
-        this.connectorFuture = connectorFuture;
-        String path = properties.get(Constants.TRANSPORT_FILE_FILE_URI);
+        connectorFuture = future;
+        String path = config.get(Constants.TRANSPORT_FILE_FILE_URI);
         if (path == null || path.isEmpty()) {
             throw new LocalFileSystemServerConnectorException("Directory path[dirURI] property empty or " +
                     "not available for service: " + serviceName);
         }
-        String eventProperty = properties.get(Constants.DIRECTORY_WATCH_EVENTS);
+        String eventProperty = config.get(Constants.DIRECTORY_WATCH_EVENTS);
         if (eventProperty == null || eventProperty.isEmpty()) {
             throw new LocalFileSystemServerConnectorException("Listener events are not specified in 'events' property");
         }
@@ -85,7 +83,7 @@ public class DirectoryListener implements Runnable {
         try {
             watcher = FileSystems.getDefault().newWatchService();
             keys = new HashMap<>();
-            recursive = Boolean.parseBoolean(properties.get(Constants.DIRECTORY_WATCH_RECURSIVE));
+            recursive = Boolean.parseBoolean(config.get(Constants.DIRECTORY_WATCH_RECURSIVE));
             Path dir = Paths.get(path);
             if (recursive) {
                 registerAll(dir);
@@ -193,39 +191,57 @@ public class DirectoryListener implements Runnable {
                 }
                 continue;
             }
-            for (WatchEvent<?> event : key.pollEvents()) {
-                WatchEvent.Kind kind = event.kind();
-                if (kind == OVERFLOW) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("OVERFLOW event received for service: " + serviceName);
-                    }
-                    continue;
-                }
-                // Context for directory entry event is the file name of entry
-                WatchEvent<Path> ev = cast(event);
-                Path child = dir.resolve(ev.context());
-                notifyToListener(event, child);
-                // if directory is created, and watching recursively, then register it and its sub-directories
-                if (recursive && (kind == ENTRY_CREATE)) {
-                    try {
-                        if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
-                            registerAll(child);
-                        }
-                    } catch (IOException e) {
-                        log.warn("Unable listen to the newly created directory: " + child +
-                                " in service " + serviceName, e);
-                    }
-                }
-            }
-            boolean valid = key.reset();
-            if (!valid) {
+            processEvent(key, dir);
+            if (!key.reset()) {
                 keys.remove(key);
             }
         }
     }
 
+    private void processEvent(WatchKey key, Path dir) {
+        for (WatchEvent<?> event : key.pollEvents()) {
+            WatchEvent.Kind kind = event.kind();
+            if (kind == OVERFLOW) {
+                if (log.isDebugEnabled()) {
+                    log.debug("OVERFLOW event received for service: " + serviceName);
+                }
+                continue;
+            }
+            // Context for directory entry event is the file name of entry
+            WatchEvent<Path> ev = cast(event);
+            Path child = dir.resolve(ev.context());
+            notifyToListener(event, child);
+            // if directory is created, and watching recursively, then register it and its sub-directories
+            if (recursive && (kind == ENTRY_CREATE)) {
+                try {
+                    if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
+                        registerAll(child);
+                    }
+                } catch (IOException e) {
+                    log.warn("Unable listen to the newly created directory: " + child +
+                            " in service " + serviceName, e);
+                }
+            }
+        }
+    }
+
     private void notifyToListener(WatchEvent<?> event, Path child) {
-        LocalFileSystemEvent message = new LocalFileSystemEvent(child.toString(), event.kind().name());
+        String eventType = null;
+        switch (event.kind().name()) {
+            case "ENTRY_CREATE":
+                eventType = Constants.EVENT_CREATE;
+                break;
+            case "ENTRY_DELETE":
+                eventType = Constants.EVENT_DELETE;
+                break;
+            case "ENTRY_MODIFY":
+                eventType = Constants.EVENT_MODIFY;
+                break;
+            default:
+                // No default value.
+                break;
+        }
+        LocalFileSystemEvent message = new LocalFileSystemEvent(child.toString(), eventType);
         message.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
         connectorFuture.notifyFileSystemListener(message);
     }

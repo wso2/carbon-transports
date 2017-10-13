@@ -29,11 +29,6 @@ public final class Constants {
 
     //transport properties
     public static final String FILE_TRANSPORT_PROPERTY_SERVICE_NAME = "TRANSPORT_FILE_SERVICE_NAME";
-    public static final String FILE_PATH = "FILE_PATH";
-    public static final String FILE_URI = "FILE_URI";
-    public static final String FILE_NAME = "FILE_NAME";
-    public static final String FILE_LENGTH = "FILE_LENGTH";
-    public static final String LAST_MODIFIED = "LAST_MODIFIED";
 
     public static final String TRANSPORT_FILE_FILE_URI = "dirURI";
     public static final String FILE_SORT_PARAM = "fileSortAttribute";

@@ -27,13 +27,12 @@ import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConn
 import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnectorFuture;
 import org.wso2.carbon.transport.remotefilesystem.server.util.FileTransportUtils;
-import org.wso2.carbon.transport.remotefilesystem.server.util.ThreadPoolFactory;
 
 
 /**
  * File processor to process a single file.
  */
-class RemoteFileSystemProcessor implements Runnable {
+public class RemoteFileSystemProcessor implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(RemoteFileSystemProcessor.class);
 
@@ -55,8 +54,8 @@ class RemoteFileSystemProcessor implements Runnable {
      * @param postProcessAction  Action to be applied to file once it is processed
      */
     RemoteFileSystemProcessor(RemoteFileSystemServerConnectorFuture connectorFuture, String serviceName,
-                              FileObject file, String fileURI, RemoteFileSystemConsumer remoteFileSystemConsumer,
-                              String postProcessAction) {
+                                     FileObject file, String fileURI, RemoteFileSystemConsumer remoteFileSystemConsumer,
+                                     String postProcessAction) {
         this.connectorFuture = connectorFuture;
         this.file = file;
         this.serviceName = serviceName;
@@ -113,12 +112,5 @@ class RemoteFileSystemProcessor implements Runnable {
         } catch (FileSystemException e) {
             logger.warn("Could not close the file: " + file.getName().getPath(), e);
         }
-    }
-
-    /**
-     * Start file processing thread.
-     */
-    void startProcessThread() {
-        ThreadPoolFactory.getInstance().getExecutor().execute(this);
     }
 }

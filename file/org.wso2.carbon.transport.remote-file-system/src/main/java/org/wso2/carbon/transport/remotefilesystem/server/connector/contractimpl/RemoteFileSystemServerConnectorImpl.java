@@ -82,15 +82,7 @@ public class RemoteFileSystemServerConnectorImpl extends PollingServerConnector
     @Override
     public void stop() throws RemoteFileSystemConnectorException {
         try {
-            /*ExecutorService executor = ThreadPoolFactory.getInstance().getExecutor();
-            executor.shutdown();
-            try {
-                if (!executor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                    executor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                executor.shutdownNow();
-            }*/
+            consumer.stopThreadPool();
             destroy();
         } catch (ServerConnectorException e) {
             throw new RemoteFileSystemConnectorException("Failed to stop RemoteFileSystemServer" +

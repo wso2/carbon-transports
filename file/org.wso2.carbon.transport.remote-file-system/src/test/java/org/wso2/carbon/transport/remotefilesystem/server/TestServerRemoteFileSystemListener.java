@@ -31,8 +31,9 @@ import java.util.concurrent.CountDownLatch;
 public class TestServerRemoteFileSystemListener implements RemoteFileSystemListener {
 
     private CountDownLatch latch;
-    private int eventCounter = 0;
     private int expectedEventCount;
+    private Throwable throwable;
+    private int eventCounter = 0;
     private LinkedList<RemoteFileSystemEvent> eventQueue = new LinkedList<>();
 
     TestServerRemoteFileSystemListener(CountDownLatch latch, int expectedEventCount) {
@@ -50,13 +51,20 @@ public class TestServerRemoteFileSystemListener implements RemoteFileSystemListe
 
     @Override
     public void onError(Throwable throwable) {
+        this.throwable = throwable;
+        latch.countDown();
     }
 
     @Override
     public void done() {
+        latch.countDown();
     }
 
     LinkedList<RemoteFileSystemEvent> getEventQueue() {
         return eventQueue;
+    }
+
+    public Throwable getThrowable() {
+        return throwable;
     }
 }

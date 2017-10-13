@@ -103,15 +103,15 @@ public class LocalFileSystemServerConnectorTestCase {
             LocalFileSystemEvent firstEvent = eventQueue.pop();
             Assert.assertEquals(firstEvent.getFileName(),
                     rootDirectory.getAbsolutePath() + File.separator + "temp1.txt");
-            Assert.assertEquals(firstEvent.getEvent(), "ENTRY_CREATE");
+            Assert.assertEquals(firstEvent.getEvent(), Constants.EVENT_CREATE);
             LocalFileSystemEvent secondEvent = eventQueue.pop();
             Assert.assertEquals(secondEvent.getFileName(),
                     rootDirectory.getAbsolutePath() + File.separator + "temp1.txt");
-            Assert.assertEquals(secondEvent.getEvent(), "ENTRY_MODIFY");
+            Assert.assertEquals(secondEvent.getEvent(), Constants.EVENT_MODIFY);
             LocalFileSystemEvent thirdEvent = eventQueue.pop();
             Assert.assertEquals(thirdEvent.getFileName(),
                     rootDirectory.getAbsolutePath() + File.separator + "temp1.txt");
-            Assert.assertEquals(thirdEvent.getEvent(), "ENTRY_DELETE");
+            Assert.assertEquals(thirdEvent.getEvent(), Constants.EVENT_DELETE);
         } catch (IOException e) {
             Assert.fail("Unable to create new files in given location.", e);
         } catch (InterruptedException ignore) {
@@ -145,15 +145,15 @@ public class LocalFileSystemServerConnectorTestCase {
             LocalFileSystemEvent firstEvent = eventQueue.pop();
             Assert.assertEquals(firstEvent.getFileName(),
                     rootDirectory.getAbsolutePath() + File.separator + "temp1.txt");
-            Assert.assertEquals(firstEvent.getEvent(), "ENTRY_CREATE");
+            Assert.assertEquals(firstEvent.getEvent(), Constants.EVENT_CREATE);
             LocalFileSystemEvent secondEvent = eventQueue.pop();
             Assert.assertEquals(secondEvent.getFileName(),
                     rootDirectory.getAbsolutePath() + File.separator + "temp2.txt");
-            Assert.assertEquals(secondEvent.getEvent(), "ENTRY_CREATE");
+            Assert.assertEquals(secondEvent.getEvent(), Constants.EVENT_CREATE);
             LocalFileSystemEvent thirdEvent = eventQueue.pop();
             Assert.assertEquals(thirdEvent.getFileName(),
                     rootDirectory.getAbsolutePath() + File.separator + "temp3.txt");
-            Assert.assertEquals(thirdEvent.getEvent(), "ENTRY_CREATE");
+            Assert.assertEquals(thirdEvent.getEvent(), Constants.EVENT_CREATE);
         } catch (IOException e) {
             Assert.fail("Unable to create new files in given location.", e);
         } catch (InterruptedException ignore) {
@@ -188,11 +188,11 @@ public class LocalFileSystemServerConnectorTestCase {
             LocalFileSystemEvent firstEvent = eventQueue.pop();
             Assert.assertEquals(firstEvent.getFileName(),
                     rootDirectory.getAbsolutePath() + File.separator + "temp1.txt");
-            Assert.assertEquals(firstEvent.getEvent(), "ENTRY_MODIFY");
+            Assert.assertEquals(firstEvent.getEvent(), Constants.EVENT_MODIFY);
             LocalFileSystemEvent secondEvent = eventQueue.pop();
             Assert.assertEquals(secondEvent.getFileName(),
                     rootDirectory.getAbsolutePath() + File.separator + "temp2.txt");
-            Assert.assertEquals(secondEvent.getEvent(), "ENTRY_MODIFY");
+            Assert.assertEquals(secondEvent.getEvent(), Constants.EVENT_MODIFY);
         } catch (InterruptedException ignore) {
             // Ignore
         } finally {
@@ -224,15 +224,15 @@ public class LocalFileSystemServerConnectorTestCase {
             LocalFileSystemEvent firstEvent = eventQueue.pop();
             Assert.assertEquals(firstEvent.getFileName(),
                     rootDirectory.getAbsolutePath() + File.separator + "temp1.txt");
-            Assert.assertEquals(firstEvent.getEvent(), "ENTRY_DELETE");
+            Assert.assertEquals(firstEvent.getEvent(), Constants.EVENT_DELETE);
             LocalFileSystemEvent secondEvent = eventQueue.pop();
             Assert.assertEquals(secondEvent.getFileName(),
                     rootDirectory.getAbsolutePath() + File.separator + "temp2.txt");
-            Assert.assertEquals(secondEvent.getEvent(), "ENTRY_DELETE");
+            Assert.assertEquals(secondEvent.getEvent(), Constants.EVENT_DELETE);
             LocalFileSystemEvent thirdEvent = eventQueue.pop();
             Assert.assertEquals(thirdEvent.getFileName(),
                     rootDirectory.getAbsolutePath() + File.separator + "temp3.txt");
-            Assert.assertEquals(thirdEvent.getEvent(), "ENTRY_DELETE");
+            Assert.assertEquals(thirdEvent.getEvent(), Constants.EVENT_DELETE);
         } catch (InterruptedException ignore) {
             // Ignore
         } catch (IOException e) {
@@ -267,19 +267,19 @@ public class LocalFileSystemServerConnectorTestCase {
                     "with the expected.");
             LocalFileSystemEvent firstEvent = eventQueue.pop();
             Assert.assertEquals(firstEvent.getFileName(), newDirectory.toAbsolutePath().toString());
-            Assert.assertEquals(firstEvent.getEvent(), "ENTRY_CREATE");
+            Assert.assertEquals(firstEvent.getEvent(), Constants.EVENT_CREATE);
             LocalFileSystemEvent secondEvent = eventQueue.pop();
             Assert.assertEquals(secondEvent.getFileName(),
                     newDirectory.toAbsolutePath() + File.separator + "newFile1.txt");
-            Assert.assertEquals(secondEvent.getEvent(), "ENTRY_CREATE");
+            Assert.assertEquals(secondEvent.getEvent(), Constants.EVENT_CREATE);
             LocalFileSystemEvent thirdEvent = eventQueue.pop();
             Assert.assertEquals(thirdEvent.getFileName(),
                     newDirectory.toAbsolutePath() + File.separator + "newFile1.txt");
-            Assert.assertEquals(thirdEvent.getEvent(), "ENTRY_MODIFY");
+            Assert.assertEquals(thirdEvent.getEvent(), Constants.EVENT_MODIFY);
             LocalFileSystemEvent fourthEvent = eventQueue.pop();
             Assert.assertEquals(fourthEvent.getFileName(),
                     newDirectory.toAbsolutePath() + File.separator + "newFile1.txt");
-            Assert.assertEquals(fourthEvent.getEvent(), "ENTRY_DELETE");
+            Assert.assertEquals(fourthEvent.getEvent(), Constants.EVENT_DELETE);
         } catch (InterruptedException ignore) {
             // Ignore
         } catch (IOException e) {
