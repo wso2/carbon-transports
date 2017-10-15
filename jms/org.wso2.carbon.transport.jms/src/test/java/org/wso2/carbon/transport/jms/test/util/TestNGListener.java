@@ -17,7 +17,7 @@
  *
  */
 
-package org.wso2.carbon.transport.http.netty.util;
+package org.wso2.carbon.transport.jms.test.util;
 
 import org.slf4j.LoggerFactory;
 import org.testng.ITestResult;
@@ -36,12 +36,7 @@ public class TestNGListener extends TestListenerAdapter {
         if (tr.getMethod().isBeforeClassConfiguration()) {
             printStream.print("\n");
             String testClassName = tr.getTestClass().getRealClass().getSimpleName();
-            String[] testClassWords = testClassName.split("(?<!^)(?=[A-Z])");
-            String testClassNameFull = "";
-            for (String wordOfName: testClassWords) {
-                testClassNameFull = testClassNameFull + wordOfName + " ";
-            }
-            printStream.println("Start Running " + testClassNameFull.trim() + "..................");
+            printStream.println("Start Running " + testClassName.trim() + "..................");
         }
     }
 

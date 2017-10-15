@@ -22,6 +22,7 @@ import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * This class handles the utils methods that are needed for jms transport testing.
@@ -37,19 +38,29 @@ public class JMSTestUtils {
      * @param jmsMode           jms acknowledgement mode.
      * @return a map of the jms properties that is needed to listen to a particular queue or topic.
      */
-    public static Map<String, String> createJMSListeningParameterMap(String destinationName, String
-            connectionFactory, String destinationType, String jmsMode) {
+    public static Map<String, String> createJMSListeningParameterMap(String destinationName, String connectionFactory,
+            String destinationType, String jmsMode) {
         HashMap<String, String> jmsDestinationListeningParameters = new HashMap<>();
         jmsDestinationListeningParameters.put(JMSConstants.PARAM_DESTINATION_NAME, destinationName);
-        jmsDestinationListeningParameters
-                .put(JMSConstants.PARAM_CONNECTION_FACTORY_JNDI_NAME, connectionFactory);
+        jmsDestinationListeningParameters.put(JMSConstants.PARAM_CONNECTION_FACTORY_JNDI_NAME, connectionFactory);
         jmsDestinationListeningParameters
                 .put(JMSConstants.PARAM_NAMING_FACTORY_INITIAL, JMSTestConstants.ACTIVEMQ_FACTORY_INITIAL);
-        jmsDestinationListeningParameters.put(JMSConstants.PARAM_PROVIDER_URL,
-                JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
-        jmsDestinationListeningParameters
-                .put(JMSConstants.PARAM_CONNECTION_FACTORY_TYPE, destinationType);
+        jmsDestinationListeningParameters.put(JMSConstants.PARAM_PROVIDER_URL, JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
+        jmsDestinationListeningParameters.put(JMSConstants.PARAM_CONNECTION_FACTORY_TYPE, destinationType);
         jmsDestinationListeningParameters.put(JMSConstants.PARAM_ACK_MODE, jmsMode);
         return jmsDestinationListeningParameters;
+    }
+
+    /**
+     * Method to convert Strings map to Properties object
+     * @param stringsMap Map of string key, value pair
+     * @return Properties object created with provided String key value pairs
+     */
+    public static Properties convertStringsToProperties(Map<String, String> stringsMap) {
+        Properties properties = new Properties();
+        if (stringsMap != null && !stringsMap.isEmpty()) {
+            stringsMap.keySet().forEach(key -> properties.setProperty(key, stringsMap.get(key)));
+        }
+        return properties;
     }
 }
