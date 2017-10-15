@@ -73,7 +73,7 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
      * Constructor
      *
      * @param properties JMS properties
-     * @throws JMSConnectorException
+     * @throws JMSConnectorException if an error thrown from parents constructor
      */
     public JMSClientConnectionFactory(Properties properties) throws JMSConnectorException {
         super(properties);

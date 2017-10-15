@@ -514,8 +514,8 @@ public class JMSConnectionResourceFactory {
 
     /**
      * Close a JMS {@link Connection}
-     * @param connection
-     * @throws JMSException
+     * @param connection Connection that need to be closed
+     * @throws JMSException if an error occurs while closing the connection
      */
     public void closeConnection(Connection connection) throws JMSException {
         if (connection != null) {
@@ -534,8 +534,8 @@ public class JMSConnectionResourceFactory {
 
     /**
      * Close a JMS {@link Session}
-     * @param session
-     * @throws JMSException
+     * @param session Session that needs to be closed
+     * @throws JMSException if an error occurs while closing the session
      */
     public void closeSession(Session session) throws JMSException {
         if (session != null) {
@@ -554,8 +554,8 @@ public class JMSConnectionResourceFactory {
 
     /**
      * Close a JMS {@link MessageProducer}
-     * @param messageProducer
-     * @throws JMSException
+     * @param messageProducer JMS Message Producer that needs to be closed
+     * @throws JMSException if an error occurs while closing the producer
      */
     public void closeProducer(MessageProducer messageProducer) throws JMSException {
         if (messageProducer != null) {
@@ -574,8 +574,8 @@ public class JMSConnectionResourceFactory {
 
     /**
      * Close a JMS {@link MessageConsumer}
-     * @param messageConsumer
-     * @throws JMSException
+     * @param messageConsumer JMS Message Consumer that needs to be closed
+     * @throws JMSException if an error occurs while closing the consumer
      */
     public void closeConsumer(MessageConsumer messageConsumer) throws JMSException {
         if (messageConsumer != null) {

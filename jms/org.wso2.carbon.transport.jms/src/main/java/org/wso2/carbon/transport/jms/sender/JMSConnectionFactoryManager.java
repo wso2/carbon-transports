@@ -69,7 +69,7 @@ public class JMSConnectionFactoryManager {
      *
      * @param properties JMS properties
      * @return JMSServerConnectionFactory
-     * @throws JMSConnectorException
+     * @throws JMSConnectorException if an error occurs when creating the connection factory
      */
     public synchronized JMSClientConnectionFactory getJMSConnectionFactory(Properties properties)
             throws JMSConnectorException {
