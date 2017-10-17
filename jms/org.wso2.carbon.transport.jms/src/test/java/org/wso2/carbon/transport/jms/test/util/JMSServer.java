@@ -133,7 +133,7 @@ public class JMSServer {
         return connectionFactory.createConnection();
     }
 
-    public Session createSession(Connection connection) throws JMSException {
-        return connection.createSession();
+    public Session createSession(Connection connection, boolean isTransacted, int ackMode) throws JMSException {
+        return connection.createSession(isTransacted, ackMode);
     }
 }

@@ -26,6 +26,7 @@ import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.sender.JMSClientConnectorImpl;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
+import org.wso2.carbon.transport.jms.test.util.JMSTestUtils;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.HashMap;
@@ -38,12 +39,13 @@ import javax.jms.TextMessage;
  * A test class for testing queue listening
  */
 public class SendMessageTestCase {
+    private static final Logger logger = LoggerFactory.getLogger(SendMessageTestCase.class);
     private JMSServer jmsServer;
     private Message jmsMessage;
     private Map<String, String> properties;
-    private static final Logger logger = LoggerFactory.getLogger(SendMessageTestCase.class);
 
-    @BeforeClass(groups = "queueSending", description = "Setting up the server and carbon message to be sent")
+    @BeforeClass(groups = "queueSending",
+                 description = "Setting up the server and carbon message to be sent")
     public void setUp() {
         properties = new HashMap();
         properties.put(JMSConstants.PARAM_DESTINATION_NAME, JMSTestConstants.QUEUE_NAME_1);
@@ -57,15 +59,18 @@ public class SendMessageTestCase {
         jmsServer.startServer();
     }
 
-    @Test(groups = "queueSending", description = "Testing whether queue sending is working correctly without any " +
-            "exceptions")
-    public void queueListeningTestCase() throws InterruptedException, JMSException, JMSConnectorException {
-        logger.info("JMS Transport Sender is sending a message to the queue " +
-                    JMSTestConstants.QUEUE_NAME_1);
+    @Test(groups = "queueSending",
+          description = "Testing whether queue sending is working correctly without any " + "exceptions")
+    public void queueListeningTestCase()
+            throws InterruptedException, JMSException, JMSConnectorException, NoSuchFieldException,
+            IllegalAccessException {
+        logger.info("JMS Transport Sender is sending a message to the queue " + JMSTestConstants.QUEUE_NAME_1);
         JMSClientConnectorImpl sender = new JMSClientConnectorImpl(properties);
         jmsServer.receiveMessagesFromQueue();
         jmsMessage = sender.createMessage(JMSConstants.TEXT_MESSAGE_TYPE);
         ((TextMessage) jmsMessage).setText("Hello World");
         sender.send(jmsMessage, JMSTestConstants.QUEUE_NAME_1);
+
+        JMSTestUtils.closeResources(sender);
     }
 }

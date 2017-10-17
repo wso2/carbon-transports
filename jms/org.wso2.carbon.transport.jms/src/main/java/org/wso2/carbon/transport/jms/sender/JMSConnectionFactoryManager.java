@@ -86,7 +86,9 @@ public class JMSConnectionFactoryManager {
                     && equals(facProperties.getProperty(Context.SECURITY_CREDENTIALS),
                     properties.get(Context.SECURITY_CREDENTIALS)) && equals(
                     facProperties.getProperty(JMSConstants.PARAM_ACK_MODE),
-                    properties.get(JMSConstants.PARAM_ACK_MODE))) {
+                    properties.get(JMSConstants.PARAM_ACK_MODE)) && equals(
+                    facProperties.getProperty(JMSConstants.PARAM_CONNECTION_FACTORY_TYPE),
+                    properties.get(JMSConstants.PARAM_CONNECTION_FACTORY_TYPE))) {
                 return jmsConnectionFactory;
             }
         }

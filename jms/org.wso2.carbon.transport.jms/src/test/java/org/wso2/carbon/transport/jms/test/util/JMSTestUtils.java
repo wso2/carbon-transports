@@ -18,8 +18,12 @@
 
 package org.wso2.carbon.transport.jms.test.util;
 
+import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
+import org.wso2.carbon.transport.jms.factory.JMSClientConnectionFactory;
+import org.wso2.carbon.transport.jms.sender.JMSClientConnectorImpl;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -38,7 +42,7 @@ public class JMSTestUtils {
      * @param jmsMode           jms acknowledgement mode.
      * @return a map of the jms properties that is needed to listen to a particular queue or topic.
      */
-    public static Map<String, String> createJMSListeningParameterMap(String destinationName, String connectionFactory,
+    public static Map<String, String> createJMSParameterMap(String destinationName, String connectionFactory,
             String destinationType, String jmsMode) {
         HashMap<String, String> jmsDestinationListeningParameters = new HashMap<>();
         jmsDestinationListeningParameters.put(JMSConstants.PARAM_DESTINATION_NAME, destinationName);
@@ -62,5 +66,24 @@ public class JMSTestUtils {
             stringsMap.keySet().forEach(key -> properties.setProperty(key, stringsMap.get(key)));
         }
         return properties;
+    }
+
+    /**
+     * Close JMS Senders resources, as a good practise this needs to be invoked before shutting down the Broker.
+     * Otherwise errors will be thrown from Error Listeners
+     *
+     * @param jmsClientConnector JMSClientConnectorImpl that contains resources which needs to be closed
+     * @throws IllegalAccessException Error when accessing private fields
+     * @throws NoSuchFieldException Error when accessing private fields
+     * @throws JMSConnectorException Error when closing the resources
+     */
+    public static void closeResources (JMSClientConnectorImpl jmsClientConnector)
+            throws IllegalAccessException, NoSuchFieldException, JMSConnectorException {
+        // Closing the resources
+        Field field = JMSClientConnectorImpl.class.getDeclaredField("jmsConnectionFactory");
+        field.setAccessible(true);
+        JMSClientConnectionFactory connectionFactory = (JMSClientConnectionFactory) field.get(jmsClientConnector);
+
+        connectionFactory.closeJMSResources();
     }
 }

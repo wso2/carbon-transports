@@ -36,13 +36,18 @@
         </classes>
     </test>
 
-
-    <test name="JMS Message flow" >
+    <test name="JMS Server Connector message flow" >
         <classes>
-            <class name="org.wso2.carbon.transport.jms.test.QueueTopicClientAckListeningTestCase" />
-            <class name="org.wso2.carbon.transport.jms.test.QueueTopicAutoAckListeningTestCase" />
-            <class name="org.wso2.carbon.transport.jms.test.QueueTopicSessionTransactedTestCase" />
-            <class name="org.wso2.carbon.transport.jms.test.SendMessageTestCase" />
+            <class name="org.wso2.carbon.transport.jms.test.server.QueueTopicAutoAckListeningTestCase" />
+            <class name="org.wso2.carbon.transport.jms.test.server.QueueTopicClientAckListeningTestCase" />
+            <class name="org.wso2.carbon.transport.jms.test.server.QueueTopicSessionTransactedTestCase" />
+        </classes>
+    </test>
+
+    <test name="JMS Client Connector message flow" >
+        <classes>
+            <class name="org.wso2.carbon.transport.jms.test.client.QueueTopicXATransactedSenderTestCase" />
+            <class name="org.wso2.carbon.transport.jms.test.client.QueueTopicTransactedSenderTestCase" />
         </classes>
     </test>
 </suite>

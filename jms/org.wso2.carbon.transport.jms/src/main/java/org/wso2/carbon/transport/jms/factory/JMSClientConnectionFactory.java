@@ -187,7 +187,7 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     /**
      * Close cached JMS resources allocated for this Connection Factory
      */
-    private void closeJMSResources() throws JMSConnectorException {
+    public void closeJMSResources() throws JMSConnectorException {
         if (clientCaching) {
             sessionPool.clear();
             sessionPool.close();
