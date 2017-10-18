@@ -28,6 +28,7 @@ import javax.jms.Connection;
 import javax.jms.Destination;
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
+import javax.jms.JMSSecurityException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
@@ -150,6 +151,9 @@ public class JMSMessageConsumer implements MessageConsumer {
             } else {
                 createMessageListener();
             }
+        } catch (JMSSecurityException e) {
+            // Retrying will not be happen for security exceptions (eg: invalid credentials)
+            throw  new JMSConnectorException("Security error occurred when starting the consumer", e);
         } catch (JMSException | JMSConnectorException e) {
             if (!retryHandler.retry()) {
                 throw new JMSConnectorException("Connection to JMS server failed and retry was not successful", e);
@@ -211,7 +215,7 @@ public class JMSMessageConsumer implements MessageConsumer {
         connectionFactory.stop(connection);
     }
 
-    void start() throws JMSConnectorException {
+    void start() throws JMSConnectorException, JMSSecurityException {
         connectionFactory.start(connection);
     }
 

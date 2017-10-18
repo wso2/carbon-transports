@@ -93,16 +93,16 @@ public class QueueTopicXATransactedSenderTestCase {
      * messages. All this time a consumer will be running on the particular Queue, and total of the consumed messages
      * should be equal to the total number of committed messages
      *
-     * @throws JMSConnectorException Error when sending messages through JMS transport connector
-     * @throws InterruptedException Interruption when thread sleep
-     * @throws JMSException Error when running the test message consumer
-     * @throws SystemException XA Transaction exceptions
-     * @throws NotSupportedException Transaction exceptions
-     * @throws RollbackException Transaction exceptions
+     * @throws JMSConnectorException      Error when sending messages through JMS transport connector
+     * @throws InterruptedException       Interruption when thread sleep
+     * @throws JMSException               Error when running the test message consumer
+     * @throws SystemException            XA Transaction exceptions
+     * @throws NotSupportedException      Transaction exceptions
+     * @throws RollbackException          Transaction exceptions
      * @throws HeuristicRollbackException Transaction exceptions
-     * @throws HeuristicMixedException Transaction exceptions
-     * @throws NoSuchFieldException Error when accessing the private field
-     * @throws IllegalAccessException Error when accessing the private field
+     * @throws HeuristicMixedException    Transaction exceptions
+     * @throws NoSuchFieldException       Error when accessing the private field
+     * @throws IllegalAccessException     Error when accessing the private field
      */
     @Test(groups = "jmsSending",
           description = "XA transacted queue sending tested case")
@@ -126,16 +126,16 @@ public class QueueTopicXATransactedSenderTestCase {
      * messages. All this time a consumer will be running on the particular Topic, and total of the consumed messages
      * should be equal to the total number of committed messages
      *
-     * @throws JMSConnectorException Error when sending messages through JMS transport connector
-     * @throws InterruptedException Interruption when thread sleep
-     * @throws JMSException Error when running the test message consumer
-     * @throws SystemException XA Transaction exceptions
-     * @throws NotSupportedException Transaction exceptions
-     * @throws RollbackException Transaction exceptions
+     * @throws JMSConnectorException      Error when sending messages through JMS transport connector
+     * @throws InterruptedException       Interruption when thread sleep
+     * @throws JMSException               Error when running the test message consumer
+     * @throws SystemException            XA Transaction exceptions
+     * @throws NotSupportedException      Transaction exceptions
+     * @throws RollbackException          Transaction exceptions
      * @throws HeuristicRollbackException Transaction exceptions
-     * @throws HeuristicMixedException Transaction exceptions
-     * @throws NoSuchFieldException Error when accessing the private field
-     * @throws IllegalAccessException Error when accessing the private field
+     * @throws HeuristicMixedException    Transaction exceptions
+     * @throws NoSuchFieldException       Error when accessing the private field
+     * @throws IllegalAccessException     Error when accessing the private field
      */
     @Test(groups = "jmsSending",
           description = "XA transacted topic sending tested case")
@@ -154,7 +154,7 @@ public class QueueTopicXATransactedSenderTestCase {
                         + receivedMsgCount);
     }
 
-    private void performTransactedSend(JMSClientConnector jmsClientConnector, String xaDestinationName)
+    private void performXATransactedSend(JMSClientConnector jmsClientConnector, String xaDestinationName)
             throws JMSConnectorException, SystemException, NotSupportedException, RollbackException,
             HeuristicRollbackException, HeuristicMixedException {
 
@@ -176,14 +176,16 @@ public class QueueTopicXATransactedSenderTestCase {
 
         // Send message using the received XASessionsWrapper
         for (int i = 0; i < 5; i++) {
-            publishTransactedMessage(jmsClientConnector, xaDestinationName, sessionWrapper);
+            jmsClientConnector.sendTransactedMessage(jmsClientConnector.createMessage(JMSConstants.TEXT_MESSAGE_TYPE),
+                    xaDestinationName, sessionWrapper);
         }
 
         distributedTxManagerProvider.getTransactionManager().rollback();
         distributedTxManagerProvider.getTransactionManager().begin();
 
         for (int i = 0; i < 5; i++) {
-            publishTransactedMessage(jmsClientConnector, xaDestinationName, sessionWrapper);
+            jmsClientConnector.sendTransactedMessage(jmsClientConnector.createMessage(JMSConstants.TEXT_MESSAGE_TYPE),
+                    xaDestinationName, sessionWrapper);
         }
 
         distributedTxManagerProvider.getTransactionManager().commit();
@@ -221,7 +223,7 @@ public class QueueTopicXATransactedSenderTestCase {
             connection.start();
 
             // preform the transacted send through JMS transport implementation
-            performTransactedSend(clientConnector, destinationName);
+            performXATransactedSend(clientConnector, destinationName);
 
             // Wait for a timedout, until messages are consumed
             Thread.sleep(2000);
@@ -239,20 +241,5 @@ public class QueueTopicXATransactedSenderTestCase {
                 connection.close();
             }
         }
-    }
-
-    /**
-     * Perform a transacted publish through JMS client connector
-     *
-     * @param jmsClientConnector JMSClientConnector implementation
-     * @param destination Name of the destination
-     * @param sessionWrapper Session object
-     * @throws JMSConnectorException Error when publishing
-     */
-    private void publishTransactedMessage(JMSClientConnector jmsClientConnector, String destination,
-            SessionWrapper sessionWrapper) throws JMSConnectorException {
-        jmsClientConnector
-                .sendTransactedMessage(jmsClientConnector.createMessage(JMSConstants.TEXT_MESSAGE_TYPE), destination,
-                        sessionWrapper);
     }
 }

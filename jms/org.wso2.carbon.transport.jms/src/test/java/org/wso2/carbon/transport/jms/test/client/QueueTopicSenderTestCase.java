@@ -27,7 +27,6 @@ import org.wso2.carbon.transport.jms.contract.JMSClientConnector;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.impl.JMSConnectorFactoryImpl;
 import org.wso2.carbon.transport.jms.sender.JMSClientConnectorImpl;
-import org.wso2.carbon.transport.jms.sender.wrappers.SessionWrapper;
 import org.wso2.carbon.transport.jms.test.server.QueueTopicAutoAckListeningTestCase;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
@@ -38,23 +37,24 @@ import java.util.Map;
 import javax.jms.Connection;
 import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.Message;
 import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
 import javax.jms.Session;
 
 /**
- * Test case for queue topic sending in session transacted mode.
+ * Test case for queue topic sending
  */
-public class QueueTopicTransactedSenderTestCase {
+public class QueueTopicSenderTestCase {
     private static final Logger logger = LoggerFactory.getLogger(QueueTopicAutoAckListeningTestCase.class);
-    private final String txQueueName = "txQueue";
-    private final String txTopicName = "txTopic";
+    private final String queueName = "jmsQueue";
+    private final String topicName = "jmsTopic";
 
     private JMSServer jmsServer;
 
     private Map<String, String> queueListeningParameters;
     private Map<String, String> topicListeningParameters;
 
-    private int receivedMsgCount = 0;
     private JMSClientConnector jmsClientConnectorQueue;
     private JMSClientConnector jmsClientConnectorTopic;
 
@@ -67,11 +67,11 @@ public class QueueTopicTransactedSenderTestCase {
                  description = "Setting up the server, JMS senders")
     public void setUp() throws JMSConnectorException {
         queueListeningParameters = JMSTestUtils
-                .createJMSParameterMap(txQueueName, JMSTestConstants.QUEUE_CONNECTION_FACTORY,
-                        JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants.SESSION_TRANSACTED_MODE);
+                .createJMSParameterMap(queueName, JMSTestConstants.QUEUE_CONNECTION_FACTORY,
+                        JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants.AUTO_ACKNOWLEDGE_MODE);
         topicListeningParameters = JMSTestUtils
-                .createJMSParameterMap(txTopicName, JMSTestConstants.TOPIC_CONNECTION_FACTORY,
-                        JMSConstants.DESTINATION_TYPE_TOPIC, JMSConstants.SESSION_TRANSACTED_MODE);
+                .createJMSParameterMap(topicName, JMSTestConstants.TOPIC_CONNECTION_FACTORY,
+                        JMSConstants.DESTINATION_TYPE_TOPIC, JMSConstants.AUTO_ACKNOWLEDGE_MODE);
         jmsServer = new JMSServer();
         jmsServer.startServer();
 
@@ -80,9 +80,8 @@ public class QueueTopicTransactedSenderTestCase {
     }
 
     /**
-     * This test will publish set of messages through session transaction and then rollback, then publish another set of
-     * messages. All this time a consumer will be running on the particular Queue, and total of the consumed messages
-     * should be equal to the total number of committed messages
+     * This test will publish set of messages to a queue and then validate whether the same number of messages
+     * consumed by the listener
      *
      * @throws JMSConnectorException  Error when sending messages through JMS transport connector
      * @throws InterruptedException   Interruption when thread sleep
@@ -91,25 +90,23 @@ public class QueueTopicTransactedSenderTestCase {
      * @throws IllegalAccessException Error when accessing the private field
      */
     @Test(groups = "jmsSending",
-          description = "Session transacted queue sending tested case")
+          description = "Queue sending test case")
     public void queueSendingTestCase()
             throws InterruptedException, JMSException, JMSConnectorException, NoSuchFieldException,
             IllegalAccessException {
 
         // Run message consumer and publish messages
-        performPublishAndConsume(jmsClientConnectorQueue, txQueueName, false);
+        int receivedMsgCount = performPublishAndConsume(jmsClientConnectorQueue, queueName, false, this.jmsServer);
 
         JMSTestUtils.closeResources((JMSClientConnectorImpl) jmsClientConnectorQueue);
 
         Assert.assertEquals(receivedMsgCount, 5,
-                "Session transacted queue sender expected message count " + 5 + " , received message count "
-                        + receivedMsgCount);
+                "Session queue sender expected message count " + 5 + " , received message count " + receivedMsgCount);
     }
 
     /**
-     * This test will publish set of messages through Session transaction and then rollback, then publish another set of
-     * messages. All this time a consumer will be running on the particular Topic, and total of the consumed messages
-     * should be equal to the total number of committed messages
+     * This test will publish set of messages to a queue and then validate whether the same number of messages
+     * consumed by the listener
      *
      * @throws JMSConnectorException  Error when sending messages through JMS transport connector
      * @throws InterruptedException   Interruption when thread sleep
@@ -118,56 +115,31 @@ public class QueueTopicTransactedSenderTestCase {
      * @throws IllegalAccessException Error when accessing the private field
      */
     @Test(groups = "jmsSending",
-          description = "Session transacted topic sending tested case")
+          description = "Topic sending test case")
     public void topicSendingTestCase()
             throws InterruptedException, JMSException, JMSConnectorException, NoSuchFieldException,
             IllegalAccessException {
 
         // Run message consumer and publish messages
-        performPublishAndConsume(jmsClientConnectorTopic, txTopicName, true);
+        int receivedMsgCount = performPublishAndConsume(jmsClientConnectorTopic, topicName, true, this.jmsServer);
 
         JMSTestUtils.closeResources((JMSClientConnectorImpl) jmsClientConnectorTopic);
 
         Assert.assertEquals(receivedMsgCount, 5,
-                "Session transacted topic sender expected message count " + 5 + " , received message count "
-                        + receivedMsgCount);
-    }
-
-    private void performTransactedSend(JMSClientConnector jmsClientConnector, String txDestinationName)
-            throws JMSConnectorException, JMSException {
-
-        SessionWrapper sessionWrapper;
-        sessionWrapper = jmsClientConnector.acquireSession();
-
-        // Send message using the received XASessionsWrapper
-        for (int i = 0; i < 5; i++) {
-            jmsClientConnector.sendTransactedMessage(jmsClientConnector.createMessage(JMSConstants.TEXT_MESSAGE_TYPE),
-                    txDestinationName, sessionWrapper);
-        }
-
-        sessionWrapper.getSession().rollback();
-
-        for (int i = 0; i < 5; i++) {
-            jmsClientConnector.sendTransactedMessage(jmsClientConnector.createMessage(JMSConstants.TEXT_MESSAGE_TYPE),
-                    txDestinationName, sessionWrapper);
-        }
-
-        sessionWrapper.getSession().commit();
+                "Session topic sender expected message count " + 5 + " , received message count " + receivedMsgCount);
     }
 
     /**
      * Run a message Listener, perform the message publish and wait for a pre-defined time interval until it consumes
      * all the messages from the destination
      *
+     * @return int instance
      * @throws JMSException          Error when consuming messages
      * @throws InterruptedException  interruption occurred while sleeping
      * @throws JMSConnectorException Error when publishing the messages
      */
-    private void performPublishAndConsume(JMSClientConnector clientConnector, String destinationName, boolean isTopic)
-            throws JMSException, InterruptedException, JMSConnectorException {
-
-        //init the message count
-        receivedMsgCount = 0;
+    protected int performPublishAndConsume(JMSClientConnector clientConnector, String destinationName, boolean isTopic,
+            JMSServer jmsServer) throws JMSException, InterruptedException, JMSConnectorException {
 
         Connection connection = null;
         Session session = null;
@@ -181,19 +153,23 @@ public class QueueTopicTransactedSenderTestCase {
                     session.createTopic(destinationName) :
                     session.createQueue(destinationName);
             messageConsumer = session.createConsumer(destination);
-
-            messageConsumer.setMessageListener(message -> receivedMsgCount++);
+            MessageListenerCounter messageListenerCounter = new MessageListenerCounter();
+            messageConsumer.setMessageListener(messageListenerCounter);
 
             // Start to consume messages
             connection.start();
 
-            // preform the transacted send through JMS transport implementation
-            performTransactedSend(clientConnector, destinationName);
+            // preform the send through JMS transport implementation
+            for (int i = 0; i < 5; i++) {
+                clientConnector.send(clientConnector.createMessage(JMSConstants.TEXT_MESSAGE_TYPE), destinationName);
+            }
 
             // Wait for a timedout, until messages are consumed
             Thread.sleep(2000);
             // Stop consumer
             connection.stop();
+
+            return messageListenerCounter.getReceivedMsgCount();
         } finally {
             //close resources
             if (messageConsumer != null) {
@@ -207,4 +183,22 @@ public class QueueTopicTransactedSenderTestCase {
             }
         }
     }
+
+    /**
+     * Sample Message Listener to count the number of consumed messages
+     */
+    class MessageListenerCounter implements MessageListener {
+
+        private int receivedMsgCount = 0;
+
+        @Override
+        public void onMessage(Message message) {
+            receivedMsgCount++;
+        }
+
+        public int getReceivedMsgCount() {
+            return receivedMsgCount;
+        }
+    }
+
 }

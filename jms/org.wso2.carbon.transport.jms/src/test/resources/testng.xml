@@ -33,6 +33,7 @@
             <class name="org.wso2.carbon.transport.jms.test.resource.JMSXAResourceCreationTestCase" />
             <class name="org.wso2.carbon.transport.jms.test.resource.JMSQueueXAResourceCreationTestCase" />
             <class name="org.wso2.carbon.transport.jms.test.resource.JMSTopicXAResourceCreationTestCase" />
+            <class name="org.wso2.carbon.transport.jms.test.resource.JMSResourceCreationWithCredentialsTestCase" />
         </classes>
     </test>
 
@@ -46,8 +47,11 @@
 
     <test name="JMS Client Connector message flow" >
         <classes>
-            <class name="org.wso2.carbon.transport.jms.test.client.QueueTopicXATransactedSenderTestCase" />
+            <class name="org.wso2.carbon.transport.jms.test.client.QueueTopicSenderTestCase" />
             <class name="org.wso2.carbon.transport.jms.test.client.QueueTopicTransactedSenderTestCase" />
+            <class name="org.wso2.carbon.transport.jms.test.client.QueueTopicXATransactedSenderTestCase" />
+            <class name="org.wso2.carbon.transport.jms.test.client.QueueTopicNonCachedSenderTestCase" />
         </classes>
     </test>
+
 </suite>

@@ -29,6 +29,7 @@ import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.JMSSecurityException;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.QueueConnection;
@@ -601,10 +602,13 @@ public class JMSConnectionResourceFactory {
      *
      * @param connection Connection that need to be started
      * @throws JMSConnectorException Thrown when starting jms connection
+     * @throws JMSSecurityException Thrown for issues in security (eg: credentials)
      */
-    public void start(Connection connection) throws JMSConnectorException {
+    public void start(Connection connection) throws JMSConnectorException, JMSSecurityException {
         try {
             connection.start();
+        } catch (JMSSecurityException e) {
+            throw e;
         } catch (JMSException e) {
             throw new JMSConnectorException(
                     "JMS Exception while starting connection for factory " + this.connectionFactoryString, e);

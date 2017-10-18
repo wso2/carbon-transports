@@ -75,9 +75,9 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
      * @param properties JMS properties
      * @throws JMSConnectorException if an error thrown from parents constructor
      */
-    public JMSClientConnectionFactory(Properties properties) throws JMSConnectorException {
+    public JMSClientConnectionFactory(Properties properties, boolean isCached) throws JMSConnectorException {
         super(properties);
-        setCache(properties);
+        this.clientCaching = isCached;
 
         // session pool configurations
         if (properties.getProperty(JMSConstants.PARAM_MAX_CONNECTIONS) != null) {
@@ -129,21 +129,12 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
         sessionPool = new GenericObjectPool<SessionWrapper>(sessionPoolFactory, config);
     }
 
-    private void setCache(Properties properties) {
-        String cacheLevel = properties.getProperty(JMSConstants.PARAM_JMS_CACHING);
-        if (null != cacheLevel && !cacheLevel.isEmpty()) {
-            this.clientCaching = Boolean.parseBoolean(cacheLevel);
-        } else {
-            this.clientCaching = Boolean.TRUE;
-        }
-    }
-
     /**
      * {@inheritDoc}
      */
     @Override
     public synchronized void notifyError(JMSException ex) {
-        logger.error("Error occurred in JMS Client Connections. Re-initializing the resources. " + ex.getMessage());
+        logger.error("Error occurred in JMS Client Connections. Re-initializing the resources. ", ex);
 
         try {
             closeJMSResources();

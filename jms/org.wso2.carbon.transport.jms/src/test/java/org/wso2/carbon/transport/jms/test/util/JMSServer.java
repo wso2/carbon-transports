@@ -52,6 +52,13 @@ public class JMSServer {
     }
 
     /**
+     * To start the embedded activemq server with credentials
+     */
+    public void startServer(String username, String password) {
+        connectionFactory = new ActiveMQConnectionFactory(username, password, JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
+    }
+
+    /**
      * To publish the messages to a queue.
      *
      * @throws JMSException         JMS Exception

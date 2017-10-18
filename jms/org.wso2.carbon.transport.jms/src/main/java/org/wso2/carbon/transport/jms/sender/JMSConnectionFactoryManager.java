@@ -75,6 +75,12 @@ public class JMSConnectionFactoryManager {
             throws JMSConnectorException {
         Iterator<String> it = connectionFactoryMap.keySet().iterator();
         JMSClientConnectionFactory jmsConnectionFactory;
+
+        // if caching is disabled return a new Connection factory
+        if (!isCached(properties)) {
+            return new JMSClientConnectionFactory(properties, Boolean.FALSE);
+        }
+
         while (it.hasNext()) {
             jmsConnectionFactory = connectionFactoryMap.get(it.next());
             Properties facProperties = jmsConnectionFactory.getProperties();
@@ -93,11 +99,26 @@ public class JMSConnectionFactoryManager {
             }
         }
 
-        jmsConnectionFactory = new JMSClientConnectionFactory(properties);
+        jmsConnectionFactory = new JMSClientConnectionFactory(properties, Boolean.TRUE);
 
         if (jmsConnectionFactory.isClientCaching()) {
             connectionFactoryMap.put(UUID.randomUUID().toString(), jmsConnectionFactory);
         }
         return jmsConnectionFactory;
+    }
+
+    /**
+     * Check if the caching is set in the properties
+     * @param properties Connection factory properties
+     * @return false is the caching is disabled, true otherwise
+     */
+    private boolean isCached(Properties properties) {
+        String cacheLevel = properties.getProperty(JMSConstants.PARAM_JMS_CACHING);
+        // We need to check this following because default should be caching enabled
+        if (null != cacheLevel && !cacheLevel.isEmpty()) {
+            return Boolean.parseBoolean(cacheLevel);
+        } else {
+            return Boolean.TRUE;
+        }
     }
 }
