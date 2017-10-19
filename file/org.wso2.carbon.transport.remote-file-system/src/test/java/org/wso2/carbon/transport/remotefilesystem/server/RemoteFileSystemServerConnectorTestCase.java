@@ -33,11 +33,10 @@ import org.wso2.carbon.transport.remotefilesystem.Constants;
 import org.wso2.carbon.transport.remotefilesystem.RemoteFileSystemConnectorFactory;
 import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.impl.RemoteFileSystemConnectorFactoryImpl;
-import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnector;
 
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -82,15 +81,15 @@ public class RemoteFileSystemServerConnectorTestCase {
         testConnector.start();
         fileSystem.add(new FileEntry("/home/wso2/file2.txt"));
         latch.await(3, TimeUnit.SECONDS);
-        LinkedList<RemoteFileSystemEvent> eventQueue = fileSystemListener.getEventQueue();
-        if (eventQueue.size() == 0) {
+        List<String> eventList = fileSystemListener.getEventList();
+        if (eventList.size() == 0) {
             Assert.fail("File event didn't triggered.");
         }
-        Assert.assertEquals(eventQueue.size(), expectedEventCount, "Generated events count mismatch " +
+        Assert.assertEquals(eventList.size(), expectedEventCount, "Generated events count mismatch " +
                 "with the expected.");
-        Assert.assertEquals(eventQueue.pop().getText(), buildConnectionURL() + "/exe/run.exe");
-        Assert.assertEquals(eventQueue.pop().getText(), buildConnectionURL() + "/file1.txt");
-        Assert.assertEquals(eventQueue.pop().getText(), buildConnectionURL() + "/file2.txt");
+        Assert.assertTrue(eventList.contains(buildConnectionURL() + "/exe/run.exe"));
+        Assert.assertTrue(eventList.contains(buildConnectionURL() + "/file1.txt"));
+        Assert.assertTrue(eventList.contains(buildConnectionURL() + "/file2.txt"));
         testConnector.stop();
     }
 
@@ -109,14 +108,14 @@ public class RemoteFileSystemServerConnectorTestCase {
                 connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
         testConnector.start();
         latch.await(3, TimeUnit.SECONDS);
-        LinkedList<RemoteFileSystemEvent> eventQueue = fileSystemListener.getEventQueue();
-        if (eventQueue.size() == 0) {
+        List<String> eventList = fileSystemListener.getEventList();
+        if (eventList.size() == 0) {
             Assert.fail("File event didn't triggered.");
         }
-        Assert.assertEquals(eventQueue.size(), expectedEventCount, "Generated events count mismatch " +
+        Assert.assertEquals(eventList.size(), expectedEventCount, "Generated events count mismatch " +
                 "with the expected.");
-        Assert.assertEquals(eventQueue.pop().getText(), buildConnectionURL() + "/exe/run.exe");
-        Assert.assertEquals(eventQueue.pop().getText(), buildConnectionURL() + "/file1.txt");
+        Assert.assertTrue(eventList.contains(buildConnectionURL() + "/exe/run.exe"));
+        Assert.assertTrue(eventList.contains(buildConnectionURL() + "/file1.txt"));
         testConnector.stop();
     }
 
@@ -138,14 +137,14 @@ public class RemoteFileSystemServerConnectorTestCase {
                 connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
         testConnector.start();
         latch.await(3, TimeUnit.SECONDS);
-        LinkedList<RemoteFileSystemEvent> eventQueue = fileSystemListener.getEventQueue();
-        if (eventQueue.size() == 0) {
+        List<String> eventList = fileSystemListener.getEventList();
+        if (eventList.size() == 0) {
             Assert.fail("File event didn't triggered.");
         }
-        Assert.assertEquals(eventQueue.size(), expectedEventCount, "Generated events count mismatch " +
+        Assert.assertEquals(eventList.size(), expectedEventCount, "Generated events count mismatch " +
                 "with the expected.");
-        Assert.assertEquals(eventQueue.pop().getText(), buildConnectionURL() + "/del1.txt");
-        Assert.assertEquals(eventQueue.pop().getText(), buildConnectionURL() + "/del2.txt");
+        Assert.assertTrue(eventList.contains(buildConnectionURL() + "/del1.txt"));
+        Assert.assertTrue(eventList.contains(buildConnectionURL() + "/del2.txt"));
         testConnector.stop();
     }
 
@@ -165,8 +164,7 @@ public class RemoteFileSystemServerConnectorTestCase {
         TestServerRemoteFileSystemListener fileSystemListener =
                 new TestServerRemoteFileSystemListener(latch, expectedEventCount);
         try {
-            RemoteFileSystemServerConnector testConnector =
-                    connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
+            connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
         } catch (RemoteFileSystemConnectorException e) {
             Assert.assertEquals(e.getCause().getMessage(),
                     "File system server connector is used to listen to a folder. " +

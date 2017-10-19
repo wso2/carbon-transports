@@ -116,6 +116,10 @@ public class DirectoryListener implements Runnable {
     public void stop() throws LocalFileSystemServerConnectorException {
         try {
             watcher.close();
+        } catch (IOException e) {
+            throw new LocalFileSystemServerConnectorException("Unable to stop watching for service: " + serviceName, e);
+        }
+        if (executorService != null) {
             executorService.shutdown();
             try {
                 if (!executorService.awaitTermination(500, TimeUnit.MILLISECONDS)) {
@@ -124,8 +128,6 @@ public class DirectoryListener implements Runnable {
             } catch (InterruptedException e) {
                 executorService.shutdownNow();
             }
-        } catch (IOException e) {
-            throw new LocalFileSystemServerConnectorException("Unable to stop watching for service: " + serviceName, e);
         }
         if (log.isDebugEnabled()) {
             log.debug("Successfully stop directory listen for service: " + serviceName);

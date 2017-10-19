@@ -296,8 +296,8 @@ public class LocalFileSystemServerConnectorTestCase {
         parameters.put(Constants.DIRECTORY_WATCH_RECURSIVE, String.valueOf(true));
         LocalFileSystemConnectorFactory connectorFactory = new LocalFileSystemConnectorFactoryImpl();
         TestRemoteFileSystemListener fileSystemListener = new TestRemoteFileSystemListener(null, 1);
-        LocalFileSystemServerConnector testConnector =
-                connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
+        connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
+
     }
 
     @Test(expectedExceptions = LocalFileSystemServerConnectorException.class)
@@ -306,8 +306,7 @@ public class LocalFileSystemServerConnectorTestCase {
         parameters.put(Constants.TRANSPORT_FILE_FILE_URI, rootDirectory.getAbsolutePath());
         LocalFileSystemConnectorFactory connectorFactory = new LocalFileSystemConnectorFactoryImpl();
         TestRemoteFileSystemListener fileSystemListener = new TestRemoteFileSystemListener(null, 1);
-        LocalFileSystemServerConnector testConnector =
-                connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
+        connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
     }
 
     @Test(expectedExceptions = LocalFileSystemServerConnectorException.class)
@@ -317,8 +316,7 @@ public class LocalFileSystemServerConnectorTestCase {
         parameters.put(Constants.DIRECTORY_WATCH_EVENTS, "create,delete,invalid");
         LocalFileSystemConnectorFactory connectorFactory = new LocalFileSystemConnectorFactoryImpl();
         TestRemoteFileSystemListener fileSystemListener = new TestRemoteFileSystemListener(null, 1);
-        LocalFileSystemServerConnector testConnector =
-                connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
+        connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
     }
 
     @Test(expectedExceptions = LocalFileSystemServerConnectorException.class)

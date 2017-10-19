@@ -22,7 +22,8 @@ import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListe
 import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemBaseMessage;
 import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -34,7 +35,7 @@ public class TestServerRemoteFileSystemListener implements RemoteFileSystemListe
     private int expectedEventCount;
     private Throwable throwable;
     private int eventCounter = 0;
-    private LinkedList<RemoteFileSystemEvent> eventQueue = new LinkedList<>();
+    private List<String> eventQueue = new ArrayList<>();
 
     TestServerRemoteFileSystemListener(CountDownLatch latch, int expectedEventCount) {
         this.latch = latch;
@@ -43,7 +44,7 @@ public class TestServerRemoteFileSystemListener implements RemoteFileSystemListe
 
     @Override
     public void onMessage(RemoteFileSystemBaseMessage remoteFileSystemEvent) {
-        eventQueue.add((RemoteFileSystemEvent) remoteFileSystemEvent);
+        eventQueue.add(((RemoteFileSystemEvent) remoteFileSystemEvent).getText());
         if (++eventCounter >= this.expectedEventCount) {
             latch.countDown();
         }
@@ -60,7 +61,7 @@ public class TestServerRemoteFileSystemListener implements RemoteFileSystemListe
         latch.countDown();
     }
 
-    LinkedList<RemoteFileSystemEvent> getEventQueue() {
+    List<String> getEventList() {
         return eventQueue;
     }
 
