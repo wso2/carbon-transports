@@ -62,7 +62,6 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         try {
             if (!jmsConnectionFactory.isClientCaching()) {
                 sendNonCached(jmsMessage, destinationName);
-                return false;
             }
             sessionWrapper = jmsConnectionFactory.getSessionWrapper();
             Destination destination = jmsConnectionFactory
@@ -79,7 +78,7 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
                 jmsConnectionFactory.returnSessionWrapper(sessionWrapper);
             }
         }
-        return false;
+        return true;
     }
 
     @Override
@@ -96,7 +95,7 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         } catch (Exception e) {
             throw new JMSConnectorException("Error acquiring the session. " + e.getMessage(), e);
         }
-        return false;
+        return true;
     }
 
     @Override
