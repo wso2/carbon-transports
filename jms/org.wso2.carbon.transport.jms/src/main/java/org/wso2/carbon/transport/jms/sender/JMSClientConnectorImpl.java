@@ -62,6 +62,7 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         try {
             if (!jmsConnectionFactory.isClientCaching()) {
                 sendNonCached(jmsMessage, destinationName);
+                return true;
             }
             sessionWrapper = jmsConnectionFactory.getSessionWrapper();
             Destination destination = jmsConnectionFactory

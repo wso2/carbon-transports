@@ -31,10 +31,9 @@ public class TransactedSessionCallback extends JMSCallback {
      * Creates a call back for the transacted session.
      *
      * @param session JMS Session connected with this callback
-     * @param caller {@link Object} The caller object which needs to wait for the jms acknowledgement to be completed
      */
-    public TransactedSessionCallback(Session session, Object caller) {
-        super(session, caller);
+    public TransactedSessionCallback(Session session) {
+        super(session);
     }
 
     @Override

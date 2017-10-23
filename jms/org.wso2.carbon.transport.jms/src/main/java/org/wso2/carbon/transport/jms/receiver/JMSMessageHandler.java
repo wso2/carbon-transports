@@ -72,25 +72,16 @@ class JMSMessageHandler {
         try {
             switch (acknowledgementMode) {
                 case Session.CLIENT_ACKNOWLEDGE:
-                    AcknowledgementCallback acknowledgementCallback = new AcknowledgementCallback(session, this,
-                            message);
+                    AcknowledgementCallback acknowledgementCallback = new AcknowledgementCallback(session, message);
                     jmsServerConnectorFuture.notifyJMSListener(message, acknowledgementCallback);
-                    synchronized (this) {
-                        while (!acknowledgementCallback.isOperationComplete()) {
-                            wait();
-                        }
-                        acknowledgementCallback.updateAcknowledgementStatus();
-                    }
+                    acknowledgementCallback.waitForProcessing();
+                    acknowledgementCallback.updateAcknowledgementStatus();
                     break;
                 case Session.SESSION_TRANSACTED:
-                    TransactedSessionCallback transactedSessionCallback = new TransactedSessionCallback(session, this);
+                    TransactedSessionCallback transactedSessionCallback = new TransactedSessionCallback(session);
                     jmsServerConnectorFuture.notifyJMSListener(message, transactedSessionCallback);
-                    synchronized (this) {
-                        while (!transactedSessionCallback.isOperationComplete()) {
-                            wait();
-                        }
-                        transactedSessionCallback.updateTransactionStatus();
-                    }
+                    transactedSessionCallback.waitForProcessing();
+                    transactedSessionCallback.updateTransactionStatus();
                     break;
                 default:
                     //Session.AUTO_ACKNOWLEDGE and Session.DUPS_OK_ACKNOWLEDGE will be handled by this

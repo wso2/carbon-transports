@@ -20,6 +20,7 @@ package org.wso2.carbon.transport.jms.callback;
 
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 
+import java.util.concurrent.CountDownLatch;
 import javax.jms.JMSException;
 import javax.jms.Session;
 
@@ -34,11 +35,6 @@ public abstract class JMSCallback {
     private Session session;
 
     /**
-     * The object which invoked the acknowledgment.
-     */
-    private final Object caller;
-
-    /**
      * States whether the callback operation is completed.
      */
     private boolean operationComplete = false;
@@ -48,15 +44,15 @@ public abstract class JMSCallback {
      */
     private boolean success;
 
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
+
     /**
      * Creates a call back initializing the JMS session object and saving caller object to be notified.
      *
      * @param session JMS Session connected with this callback
-     * @param caller  {@link Object} The caller object which needs to wait for the jms acknowledgement to be completed
      */
-    public JMSCallback(Session session, Object caller) {
+    public JMSCallback(Session session) {
         this.session = session;
-        this.caller = caller;
     }
 
     /**
@@ -109,23 +105,13 @@ public abstract class JMSCallback {
     }
 
     /**
-     * Mark as this callback operation is complete and notify the caller.
-     */
-    protected void markAsComplete() {
-        operationComplete = true;
-        synchronized (caller) {
-            caller.notifyAll();
-        }
-    }
-
-    /**
      * Invoke this method to update the status of the message consumption
      *
       * @param success status of the message processing
      */
     public void done(boolean success) {
         this.success = success;
-        markAsComplete();
+        countDownLatch.countDown();
     }
 
     /**
@@ -141,5 +127,9 @@ public abstract class JMSCallback {
      */
     protected boolean isSuccess() {
         return success;
+    }
+
+    public void waitForProcessing() throws InterruptedException {
+        countDownLatch.await();
     }
 }

@@ -37,11 +37,10 @@ public class AcknowledgementCallback extends JMSCallback {
      * Creates a acknowledgement call back to acknowledge or recover messages in client acknowledgement mode
      *
      * @param session {@link Session} JMS session related with this call back
-     * @param caller {@link Object} The caller object which needs to wait for the jms acknowledgement to be completed
      * @param message {@link Message} JMS message related with this call back
      */
-    public AcknowledgementCallback(Session session, Object caller, Message message) {
-        super(session, caller);
+    public AcknowledgementCallback(Session session, Message message) {
+        super(session);
         this.message = message;
     }
 
