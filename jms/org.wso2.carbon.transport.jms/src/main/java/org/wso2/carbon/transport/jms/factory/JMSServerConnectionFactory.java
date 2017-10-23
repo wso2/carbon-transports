@@ -135,6 +135,9 @@ public class JMSServerConnectionFactory extends JMSConnectionResourceFactory {
      */
     public MessageConsumer createMessageConsumer(Session session, Destination destination)
             throws JMSConnectorException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating a JMS Message Consumer on: " + getConnectionFactoryString());
+        }
         try {
             if (JMSConstants.JMS_SPEC_VERSION_2_0.equals(jmsSpec) && isSharedSubscription) {
                 if (isDurable) {

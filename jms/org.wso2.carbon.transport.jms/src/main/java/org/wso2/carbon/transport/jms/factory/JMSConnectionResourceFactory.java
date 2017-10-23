@@ -249,6 +249,10 @@ public class JMSConnectionResourceFactory {
                     + "check the Please check the broker libs provided.");
         }
 
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating a new JMS Connection on: " + this.connectionFactoryString);
+        }
+
         if (username != null && password != null) {
             return createConnection(username, password);
         }
@@ -302,6 +306,10 @@ public class JMSConnectionResourceFactory {
         if (null == xAConnectionFactory) {
             throw new JMSException("XAConnection cannot be establish to the broker. XAConnection Factory is null. "
                     + "Please check the Please check the broker libs provided.");
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating a new JMS XAConnection on: " + this.connectionFactoryString);
         }
 
         if (username != null && password != null) {
@@ -358,6 +366,11 @@ public class JMSConnectionResourceFactory {
      */
     public Destination createDestination(Session session, String destinationName) throws JMSConnectorException {
         Destination destination = null;
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creating a new JMS Destination on: " + this.connectionFactoryString);
+        }
+
         try {
             if (JMSConstants.JMSDestinationType.QUEUE.equals(this.destinationType)) {
                 destination = JMSUtils.lookupDestination(ctx, destinationName, JMSConstants.DESTINATION_TYPE_QUEUE);
@@ -405,6 +418,9 @@ public class JMSConnectionResourceFactory {
      */
     public Session createSession(Connection connection) throws JMSConnectorException {
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Creating a new JMS Session on: " + this.connectionFactoryString);
+            }
             if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec) || JMSConstants.JMS_SPEC_VERSION_2_0
                     .equals(jmsSpec)) {
                 return connection.createSession(transactedSession, sessionAckMode);
@@ -429,6 +445,10 @@ public class JMSConnectionResourceFactory {
      */
     public XASession createXASession(XAConnection xAConnection) throws JMSConnectorException {
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Creating a new JMS XASession on: " + this.connectionFactoryString);
+            }
+
             if (JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec) || JMSConstants.JMS_SPEC_VERSION_2_0
                     .equals(jmsSpec)) {
                 return xAConnection.createXASession();
@@ -452,6 +472,9 @@ public class JMSConnectionResourceFactory {
      */
     public MessageProducer createMessageProducer(Session session) throws JMSConnectorException {
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Creating a new JMS Message Producer on: " + this.connectionFactoryString);
+            }
             if ((JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) || (JMSConstants.JMS_SPEC_VERSION_2_0
                     .equals(jmsSpec))) {
                 return session.createProducer(null);
@@ -520,6 +543,9 @@ public class JMSConnectionResourceFactory {
      */
     public void closeConnection(Connection connection) throws JMSException {
         if (connection != null) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Closing a JMS Connection of: " + this.connectionFactoryString);
+            }
             if ((JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) || (JMSConstants.JMS_SPEC_VERSION_2_0
                     .equals(jmsSpec))) {
                 connection.close();
@@ -540,6 +566,9 @@ public class JMSConnectionResourceFactory {
      */
     public void closeSession(Session session) throws JMSException {
         if (session != null) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Closing a JMS Session of: " + this.connectionFactoryString);
+            }
             if ((JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) || (JMSConstants.JMS_SPEC_VERSION_2_0
                     .equals(jmsSpec))) {
                 session.close();
@@ -560,6 +589,9 @@ public class JMSConnectionResourceFactory {
      */
     public void closeProducer(MessageProducer messageProducer) throws JMSException {
         if (messageProducer != null) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Closing a JMS Message Producer of: " + this.connectionFactoryString);
+            }
             if ((JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) || (JMSConstants.JMS_SPEC_VERSION_2_0
                     .equals(jmsSpec))) {
                 messageProducer.close();
@@ -580,6 +612,9 @@ public class JMSConnectionResourceFactory {
      */
     public void closeConsumer(MessageConsumer messageConsumer) throws JMSException {
         if (messageConsumer != null) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Closing a JMS Message Consumer of: " + this.connectionFactoryString);
+            }
             if ((JMSConstants.JMS_SPEC_VERSION_1_1.equals(jmsSpec)) || (JMSConstants.JMS_SPEC_VERSION_2_0
                     .equals(jmsSpec))) {
                 messageConsumer.close();
@@ -606,6 +641,9 @@ public class JMSConnectionResourceFactory {
      */
     public void start(Connection connection) throws JMSConnectorException, JMSSecurityException {
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Starting a JMS Connection of: " + this.connectionFactoryString);
+            }
             connection.start();
         } catch (JMSSecurityException e) {
             throw e;
@@ -624,11 +662,22 @@ public class JMSConnectionResourceFactory {
     public void stop(Connection connection) throws JMSConnectorException {
         try {
             if (null != connection) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Stopping a JMS Connection of: " + this.connectionFactoryString);
+                }
                 connection.stop();
             }
         } catch (JMSException e) {
             throw new JMSConnectorException(
                     "JMS Exception while stopping the connection for factory " + this.connectionFactoryString, e);
         }
+    }
+
+    /**
+     * Get ConnectionFactory Name
+     * @return Connection factory name
+     */
+    protected String getConnectionFactoryString() {
+        return this.connectionFactoryString;
     }
 }
