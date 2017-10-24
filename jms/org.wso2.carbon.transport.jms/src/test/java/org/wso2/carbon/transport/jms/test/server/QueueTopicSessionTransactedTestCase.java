@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.test;
+package org.wso2.carbon.transport.jms.test.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,10 +57,10 @@ public class QueueTopicSessionTransactedTestCase {
      */
     @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS receiver and message processor")
     public void setUp() throws JMSConnectorException {
-        queueListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.QUEUE_NAME_3,
+        queueListeningParameters = JMSTestUtils.createJMSParameterMap(JMSTestConstants.QUEUE_NAME_3,
                 JMSTestConstants.QUEUE_CONNECTION_FACTORY, JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants
                         .SESSION_TRANSACTED_MODE);
-        topicListeningParameters = JMSTestUtils.createJMSListeningParameterMap(JMSTestConstants.TOPIC_NAME_2,
+        topicListeningParameters = JMSTestUtils.createJMSParameterMap(JMSTestConstants.TOPIC_NAME_2,
                 JMSTestConstants.TOPIC_CONNECTION_FACTORY, JMSConstants.DESTINATION_TYPE_TOPIC, JMSConstants
                         .SESSION_TRANSACTED_MODE);
         jmsServer = new JMSServer();

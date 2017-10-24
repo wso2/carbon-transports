@@ -16,27 +16,25 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.impl;
+package org.wso2.carbon.transport.jms.sender.wrappers;
 
-import org.wso2.carbon.transport.jms.callback.JMSCallback;
-import org.wso2.carbon.transport.jms.contract.JMSListener;
-import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
-
-import javax.jms.Message;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.XASession;
 
 /**
- * Server connector future implementation
+ * Wrapper Class for JMS Sessions. This wll also hold the MessageProducer instance created on the Session.
+ * Instances of this class will be used as objects in the Session pool in the JMSClientConnectionFactory
  */
-public class JMSServerConnectorFutureImpl implements JMSServerConnectorFuture {
+public class XASessionWrapper extends SessionWrapper {
+    private XASession xASession;
 
-    private JMSListener jmsListener;
-
-    public JMSServerConnectorFutureImpl(JMSListener jmsListener) {
-        this.jmsListener = jmsListener;
+    public XASessionWrapper(XASession xASession, Session session, MessageProducer messageProducer) {
+        super(session, messageProducer);
+        this.xASession = xASession;
     }
 
-    @Override
-    public void notifyJMSListener(Message jmsMessage, JMSCallback jmsCallback) {
-        jmsListener.onMessage(jmsMessage, jmsCallback);
+    public XASession getXASession() {
+        return xASession;
     }
 }

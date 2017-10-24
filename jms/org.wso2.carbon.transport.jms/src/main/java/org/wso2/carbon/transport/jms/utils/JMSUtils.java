@@ -166,6 +166,7 @@ public class JMSUtils {
                 String name = (String) propertyNames.nextElement();
                 jmsCarbonMessage.setProperty(name, message.getStringProperty(name));
             }
+            jmsCarbonMessage.setProperty("JMS_API_MESSAGE", message);
             return jmsCarbonMessage;
         } catch (JMSException e) {
             throw new JMSConnectorException("Error while changing the jms message to carbon message", e);

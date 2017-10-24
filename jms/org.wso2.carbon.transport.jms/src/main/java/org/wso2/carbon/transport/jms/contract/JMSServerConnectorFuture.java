@@ -18,8 +18,9 @@
 
 package org.wso2.carbon.transport.jms.contract;
 
-import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.callback.JMSCallback;
+
+import javax.jms.Message;
 
 /**
  * Allows to set listeners.
@@ -31,5 +32,5 @@ public interface JMSServerConnectorFuture {
      * @param jmsMessage JMS message.
      * @param jmsCallback callback handler.
      */
-    void notifyJMSListener(CarbonMessage jmsMessage, JMSCallback jmsCallback);
+    void notifyJMSListener(Message jmsMessage, JMSCallback jmsCallback);
 }

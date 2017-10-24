@@ -30,7 +30,7 @@ import org.wso2.carbon.transport.jms.sender.JMSClientConnectorImpl;
 import java.util.Map;
 
 /**
- * Implementation of HTTPConnectorFactory interface
+ * Implementation of JMSConnectorFactory interface
  */
 public class JMSConnectorFactoryImpl implements JMSConnectorFactory {
 
@@ -42,7 +42,7 @@ public class JMSConnectorFactoryImpl implements JMSConnectorFactory {
     }
 
     @Override
-    public JMSClientConnector createClientConnector() throws JMSConnectorException {
-        return new JMSClientConnectorImpl();
+    public JMSClientConnector createClientConnector(Map<String, String> propertyMap) throws JMSConnectorException {
+        return new JMSClientConnectorImpl(propertyMap);
     }
 }

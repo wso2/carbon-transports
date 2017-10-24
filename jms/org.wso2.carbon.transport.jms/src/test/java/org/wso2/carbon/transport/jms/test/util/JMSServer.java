@@ -22,6 +22,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
@@ -48,6 +49,13 @@ public class JMSServer {
      */
     public void startServer() {
         connectionFactory = new ActiveMQConnectionFactory(JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
+    }
+
+    /**
+     * To start the embedded activemq server with credentials
+     */
+    public void startServer(String username, String password) {
+        connectionFactory = new ActiveMQConnectionFactory(username, password, JMSTestConstants.ACTIVEMQ_PROVIDER_URL);
     }
 
     /**
@@ -125,4 +133,14 @@ public class JMSServer {
         queueConn.start();
     }
 
+    public Connection createConnection(String username, String password) throws JMSException {
+        if (username != null && password != null) {
+            return connectionFactory.createConnection(username, password);
+        }
+        return connectionFactory.createConnection();
+    }
+
+    public Session createSession(Connection connection, boolean isTransacted, int ackMode) throws JMSException {
+        return connection.createSession(isTransacted, ackMode);
+    }
 }

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.jms.test;
+package org.wso2.carbon.transport.jms.test.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,12 +52,12 @@ public class QueueTopicAutoAckListeningTestCase {
     @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS receiver and message processor")
     public void setUp() throws JMSConnectorException {
         queueListeningParameters = JMSTestUtils.
-                createJMSListeningParameterMap(JMSTestConstants.QUEUE_NAME,
+                createJMSParameterMap(JMSTestConstants.QUEUE_NAME,
                                                JMSTestConstants.QUEUE_CONNECTION_FACTORY,
                                                JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants.AUTO_ACKNOWLEDGE_MODE);
 
         topicListeningParameters = JMSTestUtils.
-                createJMSListeningParameterMap(JMSTestConstants.TOPIC_NAME,
+                createJMSParameterMap(JMSTestConstants.TOPIC_NAME,
                                                JMSTestConstants.TOPIC_CONNECTION_FACTORY,
                                                JMSConstants.DESTINATION_TYPE_TOPIC, JMSConstants.AUTO_ACKNOWLEDGE_MODE);
         jmsServer = new JMSServer();

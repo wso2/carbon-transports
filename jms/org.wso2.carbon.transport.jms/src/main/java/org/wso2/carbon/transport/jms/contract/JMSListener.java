@@ -18,8 +18,9 @@
 
 package org.wso2.carbon.transport.jms.contract;
 
-import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.callback.JMSCallback;
+
+import javax.jms.Message;
 
 /**
  * Allows to get notifications.
@@ -31,7 +32,7 @@ public interface JMSListener {
      * @param jmsMessage contains the msg data.
      * @param jmsCallback callback for the message.
      */
-    void onMessage(CarbonMessage jmsMessage, JMSCallback jmsCallback);
+    void onMessage(Message jmsMessage, JMSCallback jmsCallback);
 
     /**
      * If there are errors, transport will trigger this method.

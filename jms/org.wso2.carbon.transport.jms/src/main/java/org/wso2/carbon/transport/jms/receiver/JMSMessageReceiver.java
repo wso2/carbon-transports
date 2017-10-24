@@ -76,6 +76,9 @@ public class JMSMessageReceiver implements Runnable, Thread.UncaughtExceptionHan
                 }
 
                 if (message != null) {
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Message Received. MessageId : " + message.getJMSMessageID());
+                    }
                     messageHandler.handle(message);
                 } else {
                     logger.warn("Timeout expired or message consumer is concurrently closed");
