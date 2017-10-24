@@ -36,10 +36,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.wso2.carbon.messaging</groupId>
-            <artifactId>org.wso2.carbon.messaging</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.wso2.carbon.transport</groupId>
             <artifactId>org.wso2.carbon.connector.framework</artifactId>
         </dependency>
@@ -134,5 +130,4 @@
             osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"
         </carbon.component>
     </properties>
-
 </project>

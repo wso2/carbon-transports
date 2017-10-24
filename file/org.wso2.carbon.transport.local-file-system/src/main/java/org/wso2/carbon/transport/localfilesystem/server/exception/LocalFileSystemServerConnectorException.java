@@ -18,12 +18,10 @@
 
 package org.wso2.carbon.transport.localfilesystem.server.exception;
 
-import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
-
 /**
  * Generic {@link Exception} for File Server connector.
  */
-public class LocalFileSystemServerConnectorException extends ServerConnectorException {
+public class LocalFileSystemServerConnectorException extends Exception {
 
     private static final long serialVersionUID = -6464399829332668446L;
 

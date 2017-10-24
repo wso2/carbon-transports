@@ -18,10 +18,21 @@
 
 package org.wso2.carbon.transport.remotefilesystem.message;
 
-import org.wso2.carbon.messaging.CarbonMessage;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This will work as base message for all the remote file system messages.
  */
-public abstract class RemoteFileSystemBaseMessage extends CarbonMessage {
+public abstract class RemoteFileSystemBaseMessage {
+
+    private Map<String, Object> properties = new HashMap<>();
+
+    public void setProperty(String key, Object value) {
+        this.properties.put(key, value);
+    }
+
+    public Object getProperty(String key) {
+        return this.properties != null ? this.properties.get(key) : null;
+    }
 }

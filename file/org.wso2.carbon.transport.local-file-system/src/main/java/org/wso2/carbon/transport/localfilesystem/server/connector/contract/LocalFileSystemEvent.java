@@ -18,15 +18,17 @@
 
 package org.wso2.carbon.transport.localfilesystem.server.connector.contract;
 
-import org.wso2.carbon.messaging.CarbonMessage;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represent the events like create, delete, modify that happen in local file system.
  */
-public class LocalFileSystemEvent extends CarbonMessage {
+public class LocalFileSystemEvent /*extends CarbonMessage*/ {
 
     private final String fileName;
     private final String event;
+    private Map<String, Object> properties = new HashMap<>();
 
     public LocalFileSystemEvent(String fileName, String event) {
         this.fileName = fileName;
@@ -39,5 +41,13 @@ public class LocalFileSystemEvent extends CarbonMessage {
 
     public String getEvent() {
         return event;
+    }
+
+    public void setProperty(String key, Object value) {
+        this.properties.put(key, value);
+    }
+
+    public Object getProperty(String key) {
+        return this.properties != null ? this.properties.get(key) : null;
     }
 }
