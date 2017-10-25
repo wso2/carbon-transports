@@ -20,7 +20,7 @@ package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
+import org.wso2.carbon.transport.jms.contract.JMSListener;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 
 import javax.jms.JMSException;
@@ -32,7 +32,7 @@ import javax.jms.Session;
  */
 public class JMSMessageListener implements javax.jms.MessageListener {
     private static final Logger logger = LoggerFactory.getLogger(JMSMessageListener.class);
-    private JMSServerConnectorFuture jmsServerConnectorFuture;
+    private JMSListener jmsListener;
     private String serviceId;
     private int acknowledgementMode;
     private Session session;
@@ -45,17 +45,17 @@ public class JMSMessageListener implements javax.jms.MessageListener {
     /**
      * Creates a jms message receiver which receives message from a particular queue or topic.
      *
-     * @param jmsServerConnectorFuture Message where the relevant jms message should be passed to
+     * @param jmsListener Message where the relevant jms message should be passed to
      * @param serviceId        Id of the service that is interested in particular destination
      * @param session          Relevant session that is listening to the jms destination
      * @throws JMSConnectorException
      */
-    JMSMessageListener(JMSServerConnectorFuture jmsServerConnectorFuture, String serviceId, Session session) throws
+    JMSMessageListener(JMSListener jmsListener, String serviceId, Session session) throws
             JMSConnectorException {
-        this.jmsServerConnectorFuture = jmsServerConnectorFuture;
+        this.jmsListener = jmsListener;
         this.serviceId = serviceId;
         this.session = session;
-        this.messageHandler = new JMSMessageHandler(jmsServerConnectorFuture, serviceId, session);
+        this.messageHandler = new JMSMessageHandler(jmsListener, serviceId, session);
     }
 
     /**

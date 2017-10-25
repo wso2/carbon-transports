@@ -20,7 +20,7 @@ package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
+import org.wso2.carbon.transport.jms.contract.JMSListener;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.factory.JMSServerConnectionFactory;
 
@@ -76,10 +76,10 @@ public class JMSMessageConsumer implements MessageConsumer {
     private String serviceId;
 
     /**
-     * The {@link JMSServerConnectorFuture} instance represents the carbon message processor that handles the incoming
+     * The {@link JMSListener} instance represents the message listener that handles the incoming
      * messages.
      */
-    private JMSServerConnectorFuture jmsServerConnectorFuture;
+    private JMSListener jmsListener;
     /**
      * The retry handle which is going to retry connections when failed.
      */
@@ -99,18 +99,18 @@ public class JMSMessageConsumer implements MessageConsumer {
      *
      * @param connectionFactory The connection factory to use when creating the connection
      * @param useReceiver Whether to use consumer.receive or use a listener when consuming messages
-     * @param jmsServerConnectorFuture The message processor who is going to process messages consumed from this
+     * @param jmsListener The message listener who is going to process messages consumed from this
      * @param serviceId The service Id which this consumer belongs to
      * @param retryInterval The retry interval in milliseconds to retry connection to JMS provider when failed
      * @param maxRetryCount The maximum retry count to retry when connection to the JMS provider fails
      * @throws JMSConnectorException if any error occurred staring consuming data.
      */
     public JMSMessageConsumer(JMSServerConnectionFactory connectionFactory, boolean useReceiver,
-                              JMSServerConnectorFuture jmsServerConnectorFuture, String serviceId,
+                              JMSListener jmsListener, String serviceId,
             long retryInterval, int maxRetryCount) throws JMSConnectorException {
         this.connectionFactory = connectionFactory;
         this.useReceiver = useReceiver;
-        this.jmsServerConnectorFuture = jmsServerConnectorFuture;
+        this.jmsListener = jmsListener;
         this.serviceId = serviceId;
         this.retryInterval = retryInterval;
         this.maxRetryCount = maxRetryCount;
@@ -188,7 +188,7 @@ public class JMSMessageConsumer implements MessageConsumer {
      */
     private void createMessageListener() throws JMSConnectorException {
         try {
-            messageConsumer.setMessageListener(new JMSMessageListener(jmsServerConnectorFuture, serviceId, session));
+            messageConsumer.setMessageListener(new JMSMessageListener(jmsListener, serviceId, session));
             if (logger.isDebugEnabled()) {
                 logger.debug("Message listener created for service " + serviceId);
             }
@@ -207,7 +207,7 @@ public class JMSMessageConsumer implements MessageConsumer {
             logger.debug("Creating message receiver for service " + serviceId);
         }
         JMSMessageReceiver messageReceiver =
-                new JMSMessageReceiver(jmsServerConnectorFuture, serviceId, session, this);
+                new JMSMessageReceiver(jmsListener, serviceId, session, this);
         messageReceiver.receive();
     }
 

@@ -19,7 +19,7 @@ package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
+import org.wso2.carbon.transport.jms.contract.JMSListener;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 
 import javax.jms.JMSException;
@@ -48,16 +48,16 @@ public class JMSMessageReceiver implements Runnable, Thread.UncaughtExceptionHan
     /**
      * Initializes the message receiver with consumer and session details.
      *
-     * @param jmsServerConnectorFuture The message processor which is going to process the received messages
+     * @param jmsListener The message listener which is going to process the received messages
      * @param serviceId        Id of the service that is interested in particular destination
      * @param session          The session that is used to create the consumer
      * @param messageConsumer  The {@link MessageConsumer} to use to receive messages
      * @throws JMSConnectorException Throws if message handler cannot be initialized
      */
-    JMSMessageReceiver(JMSServerConnectorFuture jmsServerConnectorFuture, String serviceId, Session session,
+    JMSMessageReceiver(JMSListener jmsListener, String serviceId, Session session,
                        MessageConsumer messageConsumer) throws JMSConnectorException {
         this.messageConsumer = messageConsumer;
-        messageHandler = new JMSMessageHandler(jmsServerConnectorFuture, serviceId, session);
+        messageHandler = new JMSMessageHandler(jmsListener, serviceId, session);
     }
 
     /**
