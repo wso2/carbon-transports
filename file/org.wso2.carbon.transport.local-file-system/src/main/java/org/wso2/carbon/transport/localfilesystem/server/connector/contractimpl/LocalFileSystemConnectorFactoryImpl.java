@@ -21,7 +21,6 @@ package org.wso2.carbon.transport.localfilesystem.server.connector.contractimpl;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemConnectorFactory;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemListener;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemServerConnector;
-import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemServerConnectorFuture;
 import org.wso2.carbon.transport.localfilesystem.server.exception.LocalFileSystemServerConnectorException;
 
 import java.util.Map;
@@ -35,9 +34,6 @@ public class LocalFileSystemConnectorFactoryImpl implements LocalFileSystemConne
     public LocalFileSystemServerConnector createServerConnector(String serviceId, Map<String, String> connectorConfig,
                                                                 LocalFileSystemListener localFileSystemListener)
             throws LocalFileSystemServerConnectorException {
-        LocalFileSystemServerConnectorFuture localFileSystemServerConnectorFuture
-                = new LocalFileSystemServerConnectorFutureImpl(localFileSystemListener);
-        return new LocalFileSystemServerConnectorImpl(serviceId, connectorConfig,
-                localFileSystemServerConnectorFuture);
+        return new LocalFileSystemServerConnectorImpl(serviceId, connectorConfig, localFileSystemListener);
     }
 }

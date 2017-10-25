@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.Constants;
 import org.wso2.carbon.transport.remotefilesystem.client.connector.contract.VFSClientConnector;
-import org.wso2.carbon.transport.remotefilesystem.client.connector.contract.VFSClientConnectorFuture;
 import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListener;
 import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemMessage;
 
@@ -70,10 +69,7 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
     }
 
     @Override
-    public VFSClientConnectorFuture send(RemoteFileSystemMessage message) {
-        VFSClientConnectorFuture connectorFuture = new VFSClientConnectorFutureImpl();
-        connectorFuture.setFileSystemListener(remoteFileSystemListener);
-
+    public void send(RemoteFileSystemMessage message) {
         FtpFileSystemConfigBuilder.getInstance().setPassiveMode(opts, true);
         String fileURI = connectorConfig.get(Constants.URI);
         String action = connectorConfig.get(Constants.ACTION);
@@ -165,7 +161,7 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                         inputStream = path.getContent().getInputStream();
                         byte[] bytes = toByteArray(inputStream);
                         RemoteFileSystemMessage fileContent = new RemoteFileSystemMessage(ByteBuffer.wrap(bytes));
-                        connectorFuture.notifyFileSystemListener(fileContent);
+                        remoteFileSystemListener.onMessage(fileContent);
                     } else {
                         throw new ClientConnectorException(
                                 "Failed to read file: " + path.getName().getURI() + " not found");
@@ -173,14 +169,14 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                     break;
                 case Constants.EXISTS:
                     RemoteFileSystemMessage fileContent = new RemoteFileSystemMessage(Boolean.toString(path.exists()));
-                    connectorFuture.notifyFileSystemListener(fileContent);
+                    remoteFileSystemListener.onMessage(fileContent);
                     break;
                 default:
                     break;
             }
-            connectorFuture.done();
+            remoteFileSystemListener.done();
         } catch (ClientConnectorException | IOException e) {
-            connectorFuture.notifyFileSystemListener(e);
+            remoteFileSystemListener.onError(e);
         } finally {
             if (path != null) {
                 try {
@@ -192,7 +188,6 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
             closeQuietly(inputStream);
             closeQuietly(outputStream);
         }
-        return connectorFuture;
     }
 
     /**

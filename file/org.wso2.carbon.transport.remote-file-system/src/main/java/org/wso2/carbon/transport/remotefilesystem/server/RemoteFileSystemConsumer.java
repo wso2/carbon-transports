@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.Constants;
 import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnectorFuture;
+import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListener;
 import org.wso2.carbon.transport.remotefilesystem.server.util.FileTransportUtils;
 import org.wso2.carbon.transport.remotefilesystem.server.util.ThreadPoolFactory;
 
@@ -56,7 +56,7 @@ public class RemoteFileSystemConsumer {
     private Map<String, String> fileProperties;
     private FileSystemManager fsManager = null;
     private String serviceName;
-    private RemoteFileSystemServerConnectorFuture connectorFuture;
+    private RemoteFileSystemListener remoteFileSystemListener;
     private String listeningDirURI; // The URI of the currently listening directory
     private FileObject listeningDir; // The directory we are currently listening to
     private FileSystemOptions fso;
@@ -77,15 +77,15 @@ public class RemoteFileSystemConsumer {
      *
      * @param id                Name of the service that creates the consumer
      * @param fileProperties    Map of property values
-     * @param connectorFuture  RemoteFileSystemServerConnectorFuture instance to send callback
+     * @param listener  RemoteFileSystemListener instance to send callback
      * @throws ServerConnectorException if unable to start the connect to the remote server
      */
     public RemoteFileSystemConsumer(String id, Map<String, String> fileProperties,
-                                    RemoteFileSystemServerConnectorFuture connectorFuture)
+                                    RemoteFileSystemListener listener)
             throws ServerConnectorException {
         this.serviceName = id;
         this.fileProperties = fileProperties;
-        this.connectorFuture = connectorFuture;
+        this.remoteFileSystemListener = listener;
         setupParams();
         try {
             fsManager = VFS.getManager();
@@ -103,13 +103,13 @@ public class RemoteFileSystemConsumer {
             if (fileType != FileType.FOLDER) {
                 String errorMsg = "File system server connector is used to " +
                         "listen to a folder. But the given path does not refer to a folder.";
-                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(errorMsg));
+                remoteFileSystemListener.onError(new RemoteFileSystemConnectorException(errorMsg));
                 throw new ServerConnectorException(errorMsg);
             }
             //Initialize the thread executor based on properties
             threadPool = new ThreadPoolFactory(threadPoolSize, parallelProcess);
         } catch (FileSystemException | RemoteFileSystemConnectorException e) {
-            connectorFuture.notifyFileSystemListener(e);
+            remoteFileSystemListener.onError(e);
             throw new ServerConnectorException("Unable to initialize the connection with server.", e);
         }
     }
@@ -120,10 +120,10 @@ public class RemoteFileSystemConsumer {
     private void setupParams() throws ServerConnectorException {
         listeningDirURI = fileProperties.get(Constants.TRANSPORT_FILE_FILE_URI);
         if (listeningDirURI == null) {
-            connectorFuture.notifyFileSystemListener(new ServerConnectorException(
+            remoteFileSystemListener.onError(new ServerConnectorException(
                     Constants.TRANSPORT_FILE_FILE_URI + " is a mandatory parameter for FTP transport."));
         } else if (listeningDirURI.trim().equals("")) {
-            connectorFuture.notifyFileSystemListener(new
+            remoteFileSystemListener.onError(new
                     RemoteFileSystemConnectorException(Constants.TRANSPORT_FILE_FILE_URI + " " +
                     "parameter cannot be empty for FTP transport."));
         }
@@ -240,13 +240,13 @@ public class RemoteFileSystemConsumer {
                     directoryHandler(children);
                 }
             } else {
-                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
+                remoteFileSystemListener.onError(new RemoteFileSystemConnectorException(
                         "Unable to access or read file or directory : " + FileTransportUtils.maskURLPassword(
                                 listeningDirURI) + ". Reason: " +
                                 (isFileExists ? "The file can not be read!" : "The file does not exist!")));
             }
         } catch (FileSystemException e) {
-            connectorFuture.notifyFileSystemListener(e);
+            remoteFileSystemListener.onError(e);
             throw new RemoteFileSystemConnectorException("Unable to get details from remote server.", e);
         } finally {
             try {
@@ -393,7 +393,7 @@ public class RemoteFileSystemConsumer {
                     log.debug("Processing file: " + FileTransportUtils.maskURLPassword(file.getName().getBaseName()));
                 }
                 RemoteFileSystemProcessor fsp =
-                        new RemoteFileSystemProcessor(connectorFuture, serviceName, file, uri,
+                        new RemoteFileSystemProcessor(remoteFileSystemListener, serviceName, file, uri,
                                 this, postProcessAction);
                 threadPool.execute(fsp);
                 processCount++;
@@ -438,7 +438,7 @@ public class RemoteFileSystemConsumer {
                     }
                 }
             } catch (FileSystemException e) {
-                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
+                remoteFileSystemListener.onError(new RemoteFileSystemConnectorException(
                         "Error occurred when resolving move destination file: " +
                                 FileTransportUtils.maskURLPassword(listeningDirURI), e));
             }
@@ -483,7 +483,7 @@ public class RemoteFileSystemConsumer {
                     if (!isFailRecord(file)) {
                         markFailRecord(file);
                     }
-                    connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
+                    remoteFileSystemListener.onError(new RemoteFileSystemConnectorException(
                             "Error moving file: " + FileTransportUtils.maskURLPassword(file.toString()) + " to " +
                                     FileTransportUtils.maskURLPassword(moveToDirectoryURI), e));
                 }
@@ -506,7 +506,7 @@ public class RemoteFileSystemConsumer {
                         }
                     }
                 } catch (FileSystemException e) {
-                    connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
+                    remoteFileSystemListener.onError(new RemoteFileSystemConnectorException(
                             "Could not delete file: " + FileTransportUtils.maskURLPassword(
                                     file.getName().getBaseName()), e));
                 }
@@ -514,7 +514,7 @@ public class RemoteFileSystemConsumer {
         } catch (FileSystemException e) {
             if (!isFailRecord(file)) {
                 markFailRecord(file);
-                connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
+                remoteFileSystemListener.onError(new RemoteFileSystemConnectorException(
                         "Error resolving directory to move file : " +
                                 FileTransportUtils.maskURLPassword(moveToDirectoryURI), e));
             }
@@ -539,7 +539,7 @@ public class RemoteFileSystemConsumer {
         try {
             return fileObject.getType();
         } catch (FileSystemException e) {
-            connectorFuture.notifyFileSystemListener(new RemoteFileSystemConnectorException(
+            remoteFileSystemListener.onError(new RemoteFileSystemConnectorException(
                     "Error occurred when determining whether file: " +
                             FileTransportUtils.maskURLPassword(fileObject.getName().getURI()) +
                             " is a file or a folder", e));

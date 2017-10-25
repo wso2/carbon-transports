@@ -21,7 +21,7 @@ package org.wso2.carbon.transport.localfilesystem.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemEvent;
-import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemServerConnectorFuture;
+import org.wso2.carbon.transport.localfilesystem.server.connector.contract.LocalFileSystemListener;
 import org.wso2.carbon.transport.localfilesystem.server.exception.LocalFileSystemServerConnectorException;
 import org.wso2.carbon.transport.localfilesystem.server.util.Constants;
 
@@ -62,14 +62,14 @@ public class DirectoryListener implements Runnable {
     private final Map<WatchKey, Path> keys;
     private final boolean recursive;
     private final String serviceName;
-    private final LocalFileSystemServerConnectorFuture connectorFuture;
     private ExecutorService executorService;
     private final WatchEvent.Kind[] registeredEvents;
+    private LocalFileSystemListener localFileSystemListener;
 
-    public DirectoryListener(String id, Map<String, String> config, LocalFileSystemServerConnectorFuture future)
+    public DirectoryListener(String id, Map<String, String> config, LocalFileSystemListener listener)
             throws LocalFileSystemServerConnectorException {
         serviceName = id;
-        connectorFuture = future;
+        localFileSystemListener = listener;
         String path = config.get(Constants.TRANSPORT_FILE_FILE_URI);
         if (path == null || path.isEmpty()) {
             throw new LocalFileSystemServerConnectorException("Directory path[dirURI] property empty or " +
@@ -245,7 +245,7 @@ public class DirectoryListener implements Runnable {
         }
         LocalFileSystemEvent message = new LocalFileSystemEvent(child.toString(), eventType);
         message.setProperty(Constants.FILE_TRANSPORT_PROPERTY_SERVICE_NAME, serviceName);
-        connectorFuture.notifyFileSystemListener(message);
+        localFileSystemListener.onMessage(message);
     }
 
     @SuppressWarnings("unchecked")

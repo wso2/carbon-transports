@@ -24,8 +24,6 @@ import org.wso2.carbon.transport.remotefilesystem.client.connector.contractimpl.
 import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListener;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnector;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnectorFuture;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contractimpl.RemoteFileSystemServerConnectorFutureImpl;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contractimpl.RemoteFileSystemServerConnectorImpl;
 
 import java.util.Map;
@@ -39,10 +37,7 @@ public class RemoteFileSystemConnectorFactoryImpl implements RemoteFileSystemCon
     public RemoteFileSystemServerConnector createServerConnector(String serviceId, Map<String, String> connectorConfig,
                                                                  RemoteFileSystemListener remoteFileSystemListener)
             throws RemoteFileSystemConnectorException {
-        RemoteFileSystemServerConnectorFuture remoteFileSystemServerConnectorFuture
-                = new RemoteFileSystemServerConnectorFutureImpl(remoteFileSystemListener);
-        return new RemoteFileSystemServerConnectorImpl(serviceId, connectorConfig,
-                remoteFileSystemServerConnectorFuture);
+        return new RemoteFileSystemServerConnectorImpl(serviceId, connectorConfig, remoteFileSystemListener);
     }
 
     @Override

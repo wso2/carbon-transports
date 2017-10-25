@@ -30,7 +30,6 @@ public interface VFSClientConnector {
      *
      * @param message {@link RemoteFileSystemMessage} which contains relevant information which need to send to target
      *                file system.
-     * @return {@link VFSClientConnectorFuture} instance which contains response from the target file system.
      */
-    VFSClientConnectorFuture send(RemoteFileSystemMessage message);
+    void send(RemoteFileSystemMessage message);
 }
