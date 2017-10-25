@@ -21,8 +21,8 @@ package org.wso2.carbon.transport.jms.receiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.kernel.utils.StringUtils;
+import org.wso2.carbon.transport.jms.contract.JMSListener;
 import org.wso2.carbon.transport.jms.contract.JMSServerConnector;
-import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.factory.JMSServerConnectionFactory;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
@@ -40,7 +40,7 @@ public class JMSServerConnectorImpl implements JMSServerConnector {
 
     private String serviceId;
 
-    private JMSServerConnectorFuture jmsServerConnectorFuture;
+    private JMSListener jmsListener;
 
     /**
      * The {@link JMSServerConnectionFactory} instance represents the jms connection factory related with this server
@@ -82,8 +82,8 @@ public class JMSServerConnectorImpl implements JMSServerConnector {
     private String connectionFactoryNature = JMSConstants.DEFAULT_CONNECTION_FACTORY;
 
     public JMSServerConnectorImpl(String serviceId, Map<String, String> connectorConfig,
-                                  JMSServerConnectorFuture jmsServerConnectorFuture) throws JMSConnectorException {
-        this.jmsServerConnectorFuture = jmsServerConnectorFuture;
+                                  JMSListener jmsListener) throws JMSConnectorException {
+        this.jmsListener = jmsListener;
         this.serviceId = serviceId;
         init(connectorConfig);
     }
@@ -197,7 +197,7 @@ public class JMSServerConnectorImpl implements JMSServerConnector {
             }
             messageConsumers = new ArrayList<>();
             JMSMessageConsumerBuilder consumerBuilder = new JMSMessageConsumerBuilder(jmsConnectionFactory,
-                    jmsServerConnectorFuture, serviceId);
+                    jmsListener, serviceId);
             consumerBuilder.setUseReceiver(useReceiver)
                     .setRetryInterval(retryInterval)
                     .setMaxRetryCount(maxRetryCount);

@@ -23,9 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.impl.JMSServerConnectorFutureImpl;
 import org.wso2.carbon.transport.jms.receiver.JMSServerConnectorImpl;
 import org.wso2.carbon.transport.jms.test.util.JMSServer;
 import org.wso2.carbon.transport.jms.test.util.JMSTestConstants;
@@ -40,6 +38,7 @@ import javax.jms.JMSException;
  * A test class for testing queue listening and topic listening in auto ack mode.
  */
 public class QueueTopicAutoAckListeningTestCase {
+    private static final Logger logger = LoggerFactory.getLogger(QueueTopicAutoAckListeningTestCase.class);
     private JMSServer jmsServer;
     private TestMessageListener queueTestMessageProcessor;
     private TestMessageListener topicTestMessageProcessor;
@@ -47,31 +46,29 @@ public class QueueTopicAutoAckListeningTestCase {
     private Map<String, String> topicListeningParameters;
     private JMSServerConnectorImpl jmsQueueTransportListener;
     private JMSServerConnectorImpl jmsTopicTransportListener;
-    private static final Logger logger = LoggerFactory.getLogger(QueueTopicAutoAckListeningTestCase.class);
 
-    @BeforeClass(groups = "jmsListening", description = "Setting up the server, JMS receiver and message processor")
+    @BeforeClass(groups = "jmsListening",
+                 description = "Setting up the server, JMS receiver and message processor")
     public void setUp() throws JMSConnectorException {
         queueListeningParameters = JMSTestUtils.
-                createJMSParameterMap(JMSTestConstants.QUEUE_NAME,
-                                               JMSTestConstants.QUEUE_CONNECTION_FACTORY,
-                                               JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants.AUTO_ACKNOWLEDGE_MODE);
+                createJMSParameterMap(JMSTestConstants.QUEUE_NAME, JMSTestConstants.QUEUE_CONNECTION_FACTORY,
+                        JMSConstants.DESTINATION_TYPE_QUEUE, JMSConstants.AUTO_ACKNOWLEDGE_MODE);
 
         topicListeningParameters = JMSTestUtils.
-                createJMSParameterMap(JMSTestConstants.TOPIC_NAME,
-                                               JMSTestConstants.TOPIC_CONNECTION_FACTORY,
-                                               JMSConstants.DESTINATION_TYPE_TOPIC, JMSConstants.AUTO_ACKNOWLEDGE_MODE);
+                createJMSParameterMap(JMSTestConstants.TOPIC_NAME, JMSTestConstants.TOPIC_CONNECTION_FACTORY,
+                        JMSConstants.DESTINATION_TYPE_TOPIC, JMSConstants.AUTO_ACKNOWLEDGE_MODE);
         jmsServer = new JMSServer();
         jmsServer.startServer();
 
         // Create a queue transport listener
         queueTestMessageProcessor = new TestMessageListener();
-        JMSServerConnectorFuture queueFuture = new JMSServerConnectorFutureImpl(queueTestMessageProcessor);
-        jmsQueueTransportListener = new JMSServerConnectorImpl("1", queueListeningParameters, queueFuture);
+        jmsQueueTransportListener = new JMSServerConnectorImpl("1", queueListeningParameters,
+                queueTestMessageProcessor);
 
         // Create a topic transport listener
         topicTestMessageProcessor = new TestMessageListener();
-        JMSServerConnectorFuture topicFuture = new JMSServerConnectorFutureImpl(topicTestMessageProcessor);
-        jmsTopicTransportListener = new JMSServerConnectorImpl("2", topicListeningParameters, topicFuture);
+        jmsTopicTransportListener = new JMSServerConnectorImpl("2", topicListeningParameters,
+                topicTestMessageProcessor);
 
     }
 
@@ -80,15 +77,15 @@ public class QueueTopicAutoAckListeningTestCase {
      * the queue. After publishing the messages to queue, check whether the count of messages received is equal to
      * number of messages sent.
      */
-    @Test(groups = "jmsListening", description = "Testing whether queue listening is working correctly without any "
-            + "exceptions in auto ack mode")
+    @Test(groups = "jmsListening",
+          description = "Testing whether queue listening is working correctly without any "
+                  + "exceptions in auto ack mode")
     public void queueListeningTestCase() throws JMSConnectorException, InterruptedException, JMSException {
         jmsQueueTransportListener.start();
         logger.info("JMS Transport Listener is starting to listen to the queue " + JMSTestConstants.QUEUE_NAME);
         jmsServer.publishMessagesToQueue(JMSTestConstants.QUEUE_NAME);
         Assert.assertEquals(queueTestMessageProcessor.getCount(), 10,
-                            "Expected message count is not received when " + "listening to queue "
-                                    + JMSTestConstants.QUEUE_NAME);
+                "Expected message count is not received when " + "listening to queue " + JMSTestConstants.QUEUE_NAME);
         jmsQueueTransportListener.stop();
     }
 
@@ -97,15 +94,15 @@ public class QueueTopicAutoAckListeningTestCase {
      * to the queue.After publishing the messages to queue, check whether the count of messages received is equal to
      * number of messages sent.
      */
-    @Test(groups = "jmsListening", description = "Testing whether topic listening is working correctly without any "
-            + "exceptions in auto ack mode")
+    @Test(groups = "jmsListening",
+          description = "Testing whether topic listening is working correctly without any "
+                  + "exceptions in auto ack mode")
     public void topicListeningTestCase() throws InterruptedException, JMSException, JMSConnectorException {
         jmsTopicTransportListener.start();
         logger.info("JMS Transport Listener is starting to listen to the topic " + JMSTestConstants.TOPIC_NAME);
         jmsServer.publishMessagesToTopic(JMSTestConstants.TOPIC_NAME);
         Assert.assertEquals(topicTestMessageProcessor.getCount(), 10,
-                            "Expected message count is not received when " + "listening to topic "
-                                    + JMSTestConstants.TOPIC_NAME);
+                "Expected message count is not received when " + "listening to topic " + JMSTestConstants.TOPIC_NAME);
         jmsTopicTransportListener.stop();
     }
 

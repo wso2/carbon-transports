@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.transport.jms.receiver;
 
-import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
+import org.wso2.carbon.transport.jms.contract.JMSListener;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import org.wso2.carbon.transport.jms.factory.JMSServerConnectionFactory;
 
@@ -42,10 +42,10 @@ public class JMSMessageConsumerBuilder {
     private String serviceId;
 
     /**
-     * The {@link JMSServerConnectorFuture} instance represents the carbon message processor that handles the incoming
+     * The {@link JMSListener} instance represents the message listener that handles the incoming
      * messages.
      */
-    private JMSServerConnectorFuture jmsServerConnectorFuture;
+    private JMSListener jmsListener;
 
     /**
      * The retry interval (in milli seconds) if the connection is lost or if the connection cannot be established.
@@ -60,13 +60,13 @@ public class JMSMessageConsumerBuilder {
      * Initialize the builder with mandatory properties.
      *
      * @param connectionFactory The connection factory to use when creating the JMS connection
-     * @param jmsServerConnectorFuture The message processor who is going to process the consumed messages from this
+     * @param jmsListener The message listener who is going to process the consumed messages from this
      * @param serviceId The service Id which invoked this consumer
      */
     public JMSMessageConsumerBuilder(JMSServerConnectionFactory connectionFactory,
-                                     JMSServerConnectorFuture jmsServerConnectorFuture, String serviceId) {
+                                     JMSListener jmsListener, String serviceId) {
         this.connectionFactory = connectionFactory;
-        this.jmsServerConnectorFuture = jmsServerConnectorFuture;
+        this.jmsListener = jmsListener;
         this.serviceId = serviceId;
     }
 
@@ -92,7 +92,7 @@ public class JMSMessageConsumerBuilder {
      * @throws JMSConnectorException If initializing the consumer fails
      */
     public JMSMessageConsumer build() throws JMSConnectorException {
-        return new JMSMessageConsumer(connectionFactory, useReceiver, jmsServerConnectorFuture, serviceId,
+        return new JMSMessageConsumer(connectionFactory, useReceiver, jmsListener, serviceId,
                 retryInterval, maxRetryCount);
     }
 
