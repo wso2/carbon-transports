@@ -63,9 +63,9 @@ class JMSConnectionRetryHandler {
     /**
      * Creates a jms connection retry handler.
      *
-     * @param messageConsumer JMS message consumer that needs to retry
-     * @param retryInterval   Retry interval between
-     * @param maxRetryCount   Maximum retries
+     * @param messageConsumer JMS message consumer that needs to retry.
+     * @param retryInterval   Retry interval between.
+     * @param maxRetryCount   Maximum retries.
      */
     JMSConnectionRetryHandler(JMSMessageConsumer messageConsumer, long retryInterval, int maxRetryCount) {
         this.messageConsumer = messageConsumer;
@@ -77,8 +77,8 @@ class JMSConnectionRetryHandler {
     /**
      * To retry the retrying to connect to JMS provider.
      *
-     * @return True if retrying was successfull
-     * @throws JMSConnectorException JMS Connector Exception
+     * @return True if retrying was successful.
+     * @throws JMSConnectorException JMS Connector Exception.
      */
     boolean retry() throws JMSConnectorException {
 

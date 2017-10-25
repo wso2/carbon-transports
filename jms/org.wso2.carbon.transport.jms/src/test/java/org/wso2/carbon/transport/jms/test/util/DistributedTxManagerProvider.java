@@ -26,7 +26,7 @@ import javax.transaction.TransactionManager;
 
 /**
  * This class is used for creating and XA transaction Manager for testing XA transaction flow implementation
- * of the JMS transport
+ * of the JMS transport.
  */
 public class DistributedTxManagerProvider {
     private static final Logger logger = LoggerFactory.getLogger(DistributedTxManagerProvider.class);

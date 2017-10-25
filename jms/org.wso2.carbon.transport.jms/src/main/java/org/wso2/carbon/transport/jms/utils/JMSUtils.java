@@ -47,10 +47,10 @@ public class JMSUtils {
     /**
      * Return the JMS destination with the given destination name looked up from the context.
      *
-     * @param context         the Context to lookup
-     * @param destinationName name of the destination to be looked up
-     * @param destinationType type of the destination to be looked up
-     * @return the JMS destination, or null if it does not exist
+     * @param context         the Context to lookup.
+     * @param destinationName name of the destination to be looked up.
+     * @param destinationType type of the destination to be looked up.
+     * @return the JMS destination, or null if it does not exist.
      * @throws NamingException if any naming error occurred when looking up destination.
      */
     public static Destination lookupDestination(Context context, String destinationName, String destinationType)
@@ -64,12 +64,12 @@ public class JMSUtils {
     /**
      * JNDI look up in the context.
      *
-     * @param context Context that need to looked up
-     * @param clazz   Class of the object that need to be found
-     * @param name    Name of the object that need to be looked up
-     * @param <T>     Class of the Object that need to be found
-     * @return the relevant object, if found in the context
-     * @throws NamingException, if the found object is different from the expected object
+     * @param context Context that need to looked up.
+     * @param clazz   Class of the object that need to be found.
+     * @param name    Name of the object that need to be looked up.
+     * @param <T>     Class of the Object that need to be found.
+     * @return the relevant object, if found in the context.
+     * @throws NamingException, if the found object is different from the expected object.
      */
     private static <T> T lookup(Context context, Class<T> clazz, String name) throws NamingException {
         Object object = context.lookup(name);
@@ -94,10 +94,10 @@ public class JMSUtils {
     }
 
     /**
-     * Create a {@link CarbonMessage} using the provided JMS {@link Message}
+     * Create a {@link CarbonMessage} using the provided JMS {@link Message}.
      *
-     * @param message JMS message that need to be changed as carbon message
-     * @return the carbon message converted from jms message
+     * @param message JMS message that need to be changed as carbon message.
+     * @return the carbon message converted from jms message.
      * @throws JMSConnectorException if error occurred while changing the jms message to carbon message.
      */
     public static CarbonMessage createJMSCarbonMessage(Message message) throws JMSConnectorException {
@@ -179,10 +179,10 @@ public class JMSUtils {
      *
      * Provided {@link Destination} should be not null.
      *
-     * @param jmsDestination {@link Destination}
-     * @return name of the destination
+     * @param jmsDestination {@link Destination}.
+     * @return name of the destination.
      * @throws JMSConnectorException throws when there is an unknown {@link Destination} type is provided or
-     *                               JMS error when trying to retrieve the destination name
+     *                               JMS error when trying to retrieve the destination name.
      */
     private static String getDestinationName(Destination jmsDestination) throws JMSConnectorException {
 

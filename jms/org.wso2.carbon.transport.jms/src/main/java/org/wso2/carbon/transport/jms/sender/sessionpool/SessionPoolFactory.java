@@ -37,7 +37,7 @@ import javax.jms.XAConnection;
 import javax.jms.XASession;
 
 /**
- * Class responsible for creation/deletion of pooled objects
+ * Class responsible for creation/deletion of pooled objects.
  */
 public class SessionPoolFactory extends BasePooledObjectFactory<SessionWrapper> {
 

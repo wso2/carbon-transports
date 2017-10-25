@@ -42,37 +42,37 @@ public interface JMSClientConnector {
     /**
      * Create a {@link Message} instance using a {@link javax.jms.Session}.
      *
-     * @param messageType Type of the JMS Message
-     * @return  Created JMS Message instance
-     * @throws JMSConnectorException Error when creating a {@link Message}
+     * @param messageType Type of the JMS Message.
+     * @return  Created JMS Message instance.
+     * @throws JMSConnectorException Error when creating a {@link Message}.
      */
     Message createMessage(String messageType) throws JMSConnectorException;
 
     /**
-     * Get a {@link SessionWrapper} instance on this particular connection factory
+     * Get a {@link SessionWrapper} instance on this particular connection factory.
      *
-     * @return a SessionWrapper
-     * @throws JMSConnectorException Error when acquiring a session wrapper instance
+     * @return a SessionWrapper.
+     * @throws JMSConnectorException Error when acquiring a session wrapper instance.
      */
     SessionWrapper acquireSession() throws JMSConnectorException;
 
     /**
-     * Send a message using provided transacted session
+     * Send a message using provided transacted session.
      *
-     * @param jmsMessage JMS Message instance
-     * @param destinationName Name of the outbound queue/topic
-     * @param sessionWrapper   SessionWrapper instance
+     * @param jmsMessage JMS Message instance.
+     * @param destinationName Name of the outbound queue/topic.
+     * @param sessionWrapper   SessionWrapper instance.
      * @return return true if the sending was successful, false otherwise.
-     * @throws JMSConnectorException error when sending the transacted message
+     * @throws JMSConnectorException error when sending the transacted message.
      */
     boolean sendTransactedMessage(Message jmsMessage, String destinationName, SessionWrapper sessionWrapper)
             throws JMSConnectorException;
 
     /**
-     * Release a SessionWrapper instance to the pool after completing the task
+     * Release a SessionWrapper instance to the pool after completing the task.
      *
-     * @param sessionWrapper SessionWrapper to be released
-     * @throws JMSConnectorException error when releasing the session wrapper instance
+     * @param sessionWrapper SessionWrapper to be released.
+     * @throws JMSConnectorException error when releasing the session wrapper instance.
      */
     void releaseSession(SessionWrapper sessionWrapper) throws JMSConnectorException;
 

@@ -75,7 +75,7 @@ public class JMSConstants {
     public static final String PARAM_CLIENT_ID = "transport.jms.DurableSubscriberClientId";
 
     /**
-     * Acknowledgements to client
+     * Acknowledgements to client.
      */
     public static final String JMS_MESSAGE_DELIVERY_ERROR = "ERROR";
     public static final String JMS_MESSAGE_DELIVERY_SUCCESS = "SUCCESS";
@@ -113,7 +113,7 @@ public class JMSConstants {
      */
     public static final String JMS_MAP_NS = "http://axis.apache.org/axis2/java/transports/jms/map-payload";
     /**
-     * Root element name of JMS Map message payload representation
+     * Root element name of JMS Map message payload representation.
      */
     public static final String JMS_MAP_ELEMENT_NAME = "JMSMap";
     public static final String SET_ROLLBACK_ONLY = "SET_ROLLBACK_ONLY";
@@ -121,7 +121,7 @@ public class JMSConstants {
     /**
      * Constant that holds the name of the environment property
      * for specifying configuration information for the service provider
-     * to use. The value of the property should contain a URL string
+     * to use. The value of the property should contain a URL string.
      * (e.g. "ldap://somehost:389").
      * This property may be specified in the environment,
      * an applet parameter, a system property, or a resource file.
@@ -143,7 +143,7 @@ public class JMSConstants {
 
     /**
      * The parameter indicating the JMS API specification to be used - if this
-     * is "1.1" the JMS 1.1 API would be used, else the JMS 1.0.2B
+     * is "1.1" the JMS 1.1 API would be used, else the JMS 1.0.2B.
      */
     public static final String PARAM_JMS_SPEC_VER = "transport.jms.JMSSpecVersion";
 
@@ -157,7 +157,7 @@ public class JMSConstants {
     public static final String PARAM_PUBSUB_NO_LOCAL = "transport.jms.PubSubNoLocal";
 
     /**
-     * JMS 2.0 Parameters
+     * JMS 2.0 Parameters.
      */
     public static final String PARAM_IS_SHARED_SUBSCRIPTION = "transport.jms.SharedSubscription";
 
@@ -205,12 +205,12 @@ public class JMSConstants {
     public static final String POOLED_CONNECTION_FACTORY = "pooled";
 
     /**
-     * Parameter for passing in cache in client mode
+     * Parameter for passing in cache in client mode.
      */
     public static final String PARAM_JMS_CACHING = "transport.jms.caching";
 
     /**
-     * Client side pooling configurations
+     * Client side pooling configurations.
      */
     public static final String PARAM_MAX_CONNECTIONS = "connectionCount";
 

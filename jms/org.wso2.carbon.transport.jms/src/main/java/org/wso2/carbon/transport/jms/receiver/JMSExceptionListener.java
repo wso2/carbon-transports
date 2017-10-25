@@ -24,7 +24,7 @@ public class JMSExceptionListener implements ExceptionListener {
     /**
      * Creates a exception listening to track the exceptions in jms connection and to handle it.
      *
-     * @param messageConsumer JMS consumer related with the particular connection
+     * @param messageConsumer JMS consumer related with the particular connection.
      */
     JMSExceptionListener(JMSMessageConsumer messageConsumer) {
         messageConsumers.add(messageConsumer);

@@ -38,7 +38,7 @@ public class JMSTestUtils {
      *
      * @param destinationName   Particular jms destination name.
      * @param connectionFactory Connection Factory name.
-     * @param destinationType   Destination type, whether queue or topic
+     * @param destinationType   Destination type, whether queue or topic.
      * @param jmsMode           jms acknowledgement mode.
      * @return a map of the jms properties that is needed to listen to a particular queue or topic.
      */
@@ -56,9 +56,9 @@ public class JMSTestUtils {
     }
 
     /**
-     * Method to convert Strings map to Properties object
-     * @param stringsMap Map of string key, value pair
-     * @return Properties object created with provided String key value pairs
+     * Method to convert Strings map to Properties object.
+     * @param stringsMap Map of string key, value pair.
+     * @return Properties object created with provided String key value pairs.
      */
     public static Properties convertStringsToProperties(Map<String, String> stringsMap) {
         Properties properties = new Properties();
@@ -70,12 +70,12 @@ public class JMSTestUtils {
 
     /**
      * Close JMS Senders resources, as a good practise this needs to be invoked before shutting down the Broker.
-     * Otherwise errors will be thrown from Error Listeners
+     * Otherwise errors will be thrown from Error Listeners.
      *
-     * @param jmsClientConnector JMSClientConnectorImpl that contains resources which needs to be closed
-     * @throws IllegalAccessException Error when accessing private fields
-     * @throws NoSuchFieldException Error when accessing private fields
-     * @throws JMSConnectorException Error when closing the resources
+     * @param jmsClientConnector JMSClientConnectorImpl that contains resources which needs to be closed.
+     * @throws IllegalAccessException Error when accessing private fields.
+     * @throws NoSuchFieldException Error when accessing private fields.
+     * @throws JMSConnectorException Error when closing the resources.
      */
     public static void closeResources (JMSClientConnectorImpl jmsClientConnector)
             throws IllegalAccessException, NoSuchFieldException, JMSConnectorException {

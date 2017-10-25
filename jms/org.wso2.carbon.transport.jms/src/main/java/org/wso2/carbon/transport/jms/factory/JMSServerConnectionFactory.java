@@ -73,7 +73,7 @@ public class JMSServerConnectionFactory extends JMSConnectionResourceFactory {
     /**
      * Initialization of JMS ConnectionFactory with the user specified properties.
      *
-     * @param properties Properties to be added to the initial context
+     * @param properties Properties to be added to the initial context.
      * @throws JMSConnectorException Thrown when initial context name is wrong or when creating connection factory.
      */
     public JMSServerConnectionFactory(Properties properties) throws JMSConnectorException {
@@ -128,10 +128,10 @@ public class JMSServerConnectionFactory extends JMSConnectionResourceFactory {
     /**
      * Create a message consumer for particular session and destination.
      *
-     * @param session     JMS Session to create the consumer
-     * @param destination JMS destination which the consumer should listen to
-     * @return Message Consumer, who is listening in particular destination with the given session
-     * @throws JMSConnectorException Thrown when creating jms message consumer
+     * @param session     JMS Session to create the consumer.
+     * @param destination JMS destination which the consumer should listen to.
+     * @return Message Consumer, who is listening in particular destination with the given session.
+     * @throws JMSConnectorException Thrown when creating jms message consumer.
      */
     public MessageConsumer createMessageConsumer(Session session, Destination destination)
             throws JMSConnectorException {
@@ -175,9 +175,9 @@ public class JMSServerConnectionFactory extends JMSConnectionResourceFactory {
     /**
      * To get the destination of the particular session.
      *
-     * @param session JMS session that we need to find the destination
-     * @return destination the particular is related with
-     * @throws JMSConnectorException Thrown when looking up destination
+     * @param session JMS session that we need to find the destination.
+     * @return destination the particular is related with.
+     * @throws JMSConnectorException Thrown when looking up destination.
      */
     public Destination getDestination(Session session) throws JMSConnectorException {
         if (null != this.destination) {

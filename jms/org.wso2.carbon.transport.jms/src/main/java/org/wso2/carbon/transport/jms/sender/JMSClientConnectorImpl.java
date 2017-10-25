@@ -36,7 +36,7 @@ import javax.jms.Session;
 import javax.jms.TopicPublisher;
 
 /**
- * JMS sender Connector API Implementation. JMS transport sender is invoked through this API
+ * JMS sender Connector API Implementation. JMS transport sender is invoked through this API.
  */
 public class JMSClientConnectorImpl implements JMSClientConnector {
 
@@ -157,12 +157,12 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
     }
 
     /**
-     * Send the JMS Message using matching Message Sender implementation
+     * Send the JMS Message using matching Message Sender implementation.
      *
-     * @param destination JMS Queue/Topic
-     * @param message   JMS Message
-     * @param producer JMS Message Producer
-     * @throws JMSException Thrown when sending the message
+     * @param destination JMS Queue/Topic.
+     * @param message   JMS Message.
+     * @param producer JMS Message Producer.
+     * @throws JMSException Thrown when sending the message.
      */
     private void sendJMSMessage(Destination destination, Message message, MessageProducer producer)
             throws JMSException {
@@ -180,12 +180,12 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
 
     /**
      * Send the JMS Message by bypassing the Caching pool. This is used when the connector is created using caching
-     * disabled
+     * disabled.
      *
-     * @param message JMS Message
-     * @param destinationName Name of the JMS queue/topic
-     * @throws JMSException Thrown when creating connection, session, messageProducer and destination
-     * @throws JMSConnectorException If the destination is not found, NameNotfound exceptions are notified through
+     * @param message JMS Message.
+     * @param destinationName Name of the JMS queue/topic.
+     * @throws JMSException Thrown when creating connection, session, messageProducer and destination.
+     * @throws JMSConnectorException If the destination is not found, NameNotfound exceptions are notified through.
      * JMSConnectorExceptions.
      */
     private void sendNonCached(Message message, String destinationName) throws JMSException, JMSConnectorException {

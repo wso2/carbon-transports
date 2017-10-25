@@ -30,7 +30,7 @@ import javax.jms.Session;
 public abstract class JMSCallback {
 
     /**
-     * The {@link Session} instance representing JMS Session related with this call back
+     * The {@link Session} instance representing JMS Session related with this call back.
      */
     private Session session;
 
@@ -40,7 +40,7 @@ public abstract class JMSCallback {
     private boolean operationComplete = false;
 
     /**
-     * Is the operation a success
+     * Is the operation a success.
      */
     private boolean success;
 
@@ -49,7 +49,7 @@ public abstract class JMSCallback {
     /**
      * Creates a call back initializing the JMS session object and saving caller object to be notified.
      *
-     * @param session JMS Session connected with this callback
+     * @param session JMS Session connected with this callback.
      */
     public JMSCallback(Session session) {
         this.session = session;
@@ -68,7 +68,7 @@ public abstract class JMSCallback {
     /**
      * Commits the JMS session.
      *
-     * @throws JMSConnectorException if the JMS provider fails to commit the transaction due to
+     * @throws JMSConnectorException if the JMS provider fails to commit the transaction.
      */
     protected void commitSession() throws JMSConnectorException {
         try {
@@ -81,7 +81,7 @@ public abstract class JMSCallback {
     /**
      * Rollbacks the JMS session.
      *
-     * @throws JMSConnectorException if the JMS provider fails to roll back the transaction
+     * @throws JMSConnectorException if the JMS provider fails to roll back the transaction.
      */
     protected void rollbackSession() throws JMSConnectorException {
         try {
@@ -94,7 +94,7 @@ public abstract class JMSCallback {
     /**
      * Recover the JMS session.
      *
-     * @throws JMSConnectorException if the JMS provider fails to recover the session
+     * @throws JMSConnectorException if the JMS provider fails to recover the session.
      */
     protected void recoverSession() throws JMSConnectorException {
         try {
@@ -105,9 +105,9 @@ public abstract class JMSCallback {
     }
 
     /**
-     * Invoke this method to update the status of the message consumption
+     * Invoke this method to update the status of the message consumption.
      *
-      * @param success status of the message processing
+      * @param success status of the message processing.
      */
     public void done(boolean success) {
         this.success = success;
@@ -115,15 +115,15 @@ public abstract class JMSCallback {
     }
 
     /**
-     * Get acknowledgement mode of this JMSCallback
-     * @return Ack mode
+     * Get acknowledgement mode of this JMSCallback.
+     * @return Ack mode.
      */
     public abstract int getAcknowledgementMode();
 
     /**
-     * Is this transaction/ack a success
+     * Is this transaction/ack a success.
      *
-     * @return true if success false otherwise
+     * @return true if success false otherwise.
      */
     protected boolean isSuccess() {
         return success;

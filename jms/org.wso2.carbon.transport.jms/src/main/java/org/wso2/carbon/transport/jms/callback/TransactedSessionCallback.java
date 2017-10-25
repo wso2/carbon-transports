@@ -30,7 +30,7 @@ public class TransactedSessionCallback extends JMSCallback {
     /**
      * Creates a call back for the transacted session.
      *
-     * @param session JMS Session connected with this callback
+     * @param session JMS Session connected with this callback.
      */
     public TransactedSessionCallback(Session session) {
         super(session);
@@ -43,7 +43,7 @@ public class TransactedSessionCallback extends JMSCallback {
 
     /**
      * Update the status of the transaction to the side of the JMS transport by reading the status provided by the
-     * Ballerina
+     * Ballerina.
      */
     public void updateTransactionStatus() {
         try {

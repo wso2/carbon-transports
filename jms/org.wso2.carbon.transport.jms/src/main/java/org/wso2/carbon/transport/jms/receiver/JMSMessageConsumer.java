@@ -97,12 +97,12 @@ public class JMSMessageConsumer implements MessageConsumer {
     /**
      * Create a JMS message consumer and start consuming messages.
      *
-     * @param connectionFactory The connection factory to use when creating the connection
-     * @param useReceiver Whether to use consumer.receive or use a listener when consuming messages
-     * @param jmsListener The message listener who is going to process messages consumed from this
-     * @param serviceId The service Id which this consumer belongs to
-     * @param retryInterval The retry interval in milliseconds to retry connection to JMS provider when failed
-     * @param maxRetryCount The maximum retry count to retry when connection to the JMS provider fails
+     * @param connectionFactory The connection factory to use when creating the connection.
+     * @param useReceiver Whether to use consumer.receive or use a listener when consuming messages.
+     * @param jmsListener The message listener who is going to process messages consumed from this.
+     * @param serviceId The service Id which this consumer belongs to.
+     * @param retryInterval The retry interval in milliseconds to retry connection to JMS provider when failed.
+     * @param maxRetryCount The maximum retry count to retry when connection to the JMS provider fails.
      * @throws JMSConnectorException if any error occurred staring consuming data.
      */
     public JMSMessageConsumer(JMSServerConnectionFactory connectionFactory, boolean useReceiver,
@@ -162,9 +162,9 @@ public class JMSMessageConsumer implements MessageConsumer {
     }
 
     /**
-     * Close the consumer by closing the relevant {@link Connection}
+     * Close the consumer by closing the relevant {@link Connection}.
      *
-     * @throws JMSConnectorException if closing the connection fails
+     * @throws JMSConnectorException if closing the connection fails.
      */
     public void closeAll() throws JMSConnectorException {
         try {
@@ -184,7 +184,7 @@ public class JMSMessageConsumer implements MessageConsumer {
     /**
      * Create a message listener to a particular jms destination.
      *
-     * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider
+     * @throws JMSConnectorException JMS Connector exception can be thrown when trying to connect to jms provider.
      */
     private void createMessageListener() throws JMSConnectorException {
         try {
@@ -200,7 +200,7 @@ public class JMSMessageConsumer implements MessageConsumer {
     /**
      * Create a message receiver to retrieve messages.
      *
-     * @throws JMSConnectorException Can be thrown when initializing the message handler or receiving messages
+     * @throws JMSConnectorException Can be thrown when initializing the message handler or receiving messages.
      */
     private void createMessageReceiver() throws JMSConnectorException {
         if (logger.isDebugEnabled()) {

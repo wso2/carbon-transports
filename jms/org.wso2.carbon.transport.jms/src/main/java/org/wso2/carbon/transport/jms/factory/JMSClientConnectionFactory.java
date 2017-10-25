@@ -37,21 +37,21 @@ import javax.jms.JMSException;
 import javax.jms.XAConnection;
 
 /**
- * Extended class to handle Client side Connection Factory requirements
+ * Extended class to handle Client side Connection Factory requirements.
  */
 public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(JMSClientConnectionFactory.class);
     /**
-     * Default Wait timeout (in milliseconds) for the Session pool
+     * Default Wait timeout (in milliseconds) for the Session pool.
      */
     private static final int poolWaitTimeout = 30 * 1000;
     /**
-     * Default Size of the Connection list
+     * Default Size of the Connection list.
      */
     private int maxNumberOfConnections = 5;
     /**
-     * Default Number of session per Connection
+     * Default Number of session per Connection.
      */
     private int maxSessionsPerConnection = 10;
     /**
@@ -60,20 +60,20 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     private boolean clientCaching = true;
 
     /**
-     * List of Connection wrapper objects
+     * List of Connection wrapper objects.
      */
     private List<ConnectionWrapper> connections = null;
 
     /**
-     * Pool of Session wrapper objects
+     * Pool of Session wrapper objects.
      */
     private GenericObjectPool<SessionWrapper> sessionPool = null;
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param properties JMS properties
-     * @throws JMSConnectorException if an error thrown from parents constructor
+     * @param properties JMS properties.
+     * @throws JMSConnectorException if an error thrown from parents constructor.
      */
     public JMSClientConnectionFactory(Properties properties, boolean isCached) throws JMSConnectorException {
         super(properties);
@@ -112,7 +112,7 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     }
 
     /**
-     * Initialize the session pool with provided configuration
+     * Initialize the session pool with provided configuration.
      */
     private void initSessionPool() {
         SessionPoolFactory sessionPoolFactory = new SessionPoolFactory(this);
@@ -150,33 +150,33 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     }
 
     /**
-     * @return Connections list
+     * @return Connections list.
      */
     public List<ConnectionWrapper> getConnections() {
         return connections;
     }
 
     /**
-     * Borrow an object from the session pool
+     * Borrow an object from the session pool.
      *
-     * @return SessionWrapper instance
-     * @throws Exception Exception when borrowing an object from the pool
+     * @return SessionWrapper instance.
+     * @throws Exception Exception when borrowing an object from the pool.
      */
     public SessionWrapper getSessionWrapper() throws Exception {
         return sessionPool.borrowObject();
     }
 
     /**
-     * Return an object to the Session pool
+     * Return an object to the Session pool.
      *
-     * @param sessionWrapper SessionWrapper instance
+     * @param sessionWrapper SessionWrapper instance.
      */
     public void returnSessionWrapper(SessionWrapper sessionWrapper) {
         sessionPool.returnObject(sessionWrapper);
     }
 
     /**
-     * Close cached JMS resources allocated for this Connection Factory
+     * Close cached JMS resources allocated for this Connection Factory.
      */
     public void closeJMSResources() throws JMSConnectorException {
         if (clientCaching) {
@@ -193,9 +193,9 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     }
 
     /**
-     * Is this Client Connection factory is configured to use caching/pooling
+     * Is this Client Connection factory is configured to use caching/pooling.
      *
-     * @return isClientCaching set
+     * @return isClientCaching set.
      */
     public boolean isClientCaching() {
         return clientCaching;
@@ -216,7 +216,7 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
     }
 
     /**
-     * JMS Client Connection Error Listener class that implements {@link ExceptionListener} from JMS API
+     * JMS Client Connection Error Listener class that implements {@link ExceptionListener} from JMS API.
      */
     private class JMSErrorListener implements ExceptionListener {
         @Override

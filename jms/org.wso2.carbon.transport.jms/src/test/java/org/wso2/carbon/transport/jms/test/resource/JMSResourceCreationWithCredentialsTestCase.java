@@ -37,7 +37,7 @@ import javax.jms.JMSException;
 
 /**
  * A test class for JMS connection creation methods with credentials
- * {@link JMSConnectionResourceFactory}
+ * {@link JMSConnectionResourceFactory}.
  */
 public class JMSResourceCreationWithCredentialsTestCase {
     private static final Logger logger = LoggerFactory.getLogger(JMSResourceCreationWithCredentialsTestCase.class);

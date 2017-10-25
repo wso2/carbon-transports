@@ -163,7 +163,7 @@ public class JMSServerConnectorImpl implements JMSServerConnector {
      * Close the connection, session and consumers.
      *
      * @throws JMSConnectorException Exception that can be thrown when trying to close the connection, session
-     *                               and message consumer
+     *                               and message consumer.
      */
     void closeAll() throws JMSConnectorException {
         JMSConnectorException exception = null;
@@ -188,7 +188,7 @@ public class JMSServerConnectorImpl implements JMSServerConnector {
     /**
      * Start message consuming threads.
      *
-     * @throws JMSConnectorException when consumer creation is failed due to a JMS layer error
+     * @throws JMSConnectorException when consumer creation is failed due to a JMS layer error.
      */
     void startConsuming() throws JMSConnectorException {
         try {

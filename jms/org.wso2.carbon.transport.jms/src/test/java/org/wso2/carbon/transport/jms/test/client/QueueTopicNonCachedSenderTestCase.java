@@ -36,7 +36,7 @@ import java.util.Map;
 import javax.jms.JMSException;
 
 /**
- * Test case for queue topic sending nonCached
+ * Test case for queue topic sending nonCached.
  */
 public class QueueTopicNonCachedSenderTestCase extends QueueTopicSenderTestCase {
     private static final Logger logger = LoggerFactory.getLogger(QueueTopicAutoAckListeningTestCase.class);
@@ -54,7 +54,7 @@ public class QueueTopicNonCachedSenderTestCase extends QueueTopicSenderTestCase 
     /**
      * Starts the JMS Server, and create two jms client connectors.
      *
-     * @throws JMSConnectorException Client Connector Exception
+     * @throws JMSConnectorException Client Connector Exception.
      */
     @BeforeClass(groups = "jmsListening",
                  description = "Setting up the server, JMS senders")
@@ -79,13 +79,13 @@ public class QueueTopicNonCachedSenderTestCase extends QueueTopicSenderTestCase 
 
     /**
      * This test will publish set of messages to a queue and then validate whether the same number of messages
-     * consumed by the listener
+     * consumed by the listener.
      *
-     * @throws JMSConnectorException  Error when sending messages through JMS transport connector
-     * @throws InterruptedException   Interruption when thread sleep
-     * @throws JMSException           Error when running the test message consumer
-     * @throws NoSuchFieldException   Error when accessing the private field
-     * @throws IllegalAccessException Error when accessing the private field
+     * @throws JMSConnectorException  Error when sending messages through JMS transport connector.
+     * @throws InterruptedException   Interruption when thread sleep.
+     * @throws JMSException           Error when running the test message consumer.
+     * @throws NoSuchFieldException   Error when accessing the private field.
+     * @throws IllegalAccessException Error when accessing the private field.
      */
     @Test(groups = "jmsSending",
           description = "Non-cached queue sending test case")
@@ -102,13 +102,13 @@ public class QueueTopicNonCachedSenderTestCase extends QueueTopicSenderTestCase 
 
     /**
      * This test will publish set of messages to a queue and then validate whether the same number of messages
-     * consumed by the listener
+     * consumed by the listener.
      *
-     * @throws JMSConnectorException  Error when sending messages through JMS transport connector
-     * @throws InterruptedException   Interruption when thread sleep
-     * @throws JMSException           Error when running the test message consumer
-     * @throws NoSuchFieldException   Error when accessing the private field
-     * @throws IllegalAccessException Error when accessing the private field
+     * @throws JMSConnectorException  Error when sending messages through JMS transport connector.
+     * @throws InterruptedException   Interruption when thread sleep.
+     * @throws JMSException           Error when running the test message consumer.
+     * @throws NoSuchFieldException   Error when accessing the private field.
+     * @throws IllegalAccessException Error when accessing the private field.
      */
     @Test(groups = "jmsSending",
           description = "Non cached topic sending test case")
