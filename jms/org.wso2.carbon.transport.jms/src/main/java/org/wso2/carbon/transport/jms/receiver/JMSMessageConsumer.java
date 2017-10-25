@@ -20,14 +20,15 @@ package org.wso2.carbon.transport.jms.receiver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
+import org.wso2.carbon.transport.jms.contract.JMSListener;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.factory.JMSConnectionFactory;
+import org.wso2.carbon.transport.jms.factory.JMSServerConnectionFactory;
 
 import javax.jms.Connection;
 import javax.jms.Destination;
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
+import javax.jms.JMSSecurityException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
@@ -41,9 +42,9 @@ public class JMSMessageConsumer implements MessageConsumer {
     private static final Logger logger = LoggerFactory.getLogger(JMSMessageConsumer.class);
 
     /**
-     * The {@link JMSConnectionFactory} instance which is used to create the consumer.
+     * The {@link JMSServerConnectionFactory} instance which is used to create the consumer.
      */
-    private JMSConnectionFactory connectionFactory = null;
+    private JMSServerConnectionFactory connectionFactory = null;
 
     /**
      * The JMS message consumer instance created by the respective JMS client.
@@ -75,20 +76,10 @@ public class JMSMessageConsumer implements MessageConsumer {
     private String serviceId;
 
     /**
-     * The {@link JMSServerConnectorFuture} instance represents the carbon message processor that handles the incoming
+     * The {@link JMSListener} instance represents the message listener that handles the incoming
      * messages.
      */
-    private JMSServerConnectorFuture jmsServerConnectorFuture;
-
-    /**
-     * The {@link String} instance represents the jms connection username.
-     */
-    private String username;
-    /**
-     * The {@link String} instance represents the jms connection password.
-     */
-    private String password;
-
+    private JMSListener jmsListener;
     /**
      * The retry handle which is going to retry connections when failed.
      */
@@ -108,27 +99,23 @@ public class JMSMessageConsumer implements MessageConsumer {
      *
      * @param connectionFactory The connection factory to use when creating the connection
      * @param useReceiver Whether to use consumer.receive or use a listener when consuming messages
-     * @param jmsServerConnectorFuture The message processor who is going to process messages consumed from this
+     * @param jmsListener The message listener who is going to process messages consumed from this
      * @param serviceId The service Id which this consumer belongs to
-     * @param username The username to use when connecting to the JMS provider
-     * @param password The password to use when connecting to the JMS provider
      * @param retryInterval The retry interval in milliseconds to retry connection to JMS provider when failed
      * @param maxRetryCount The maximum retry count to retry when connection to the JMS provider fails
      * @throws JMSConnectorException if any error occurred staring consuming data.
      */
-    public JMSMessageConsumer(JMSConnectionFactory connectionFactory, boolean useReceiver,
-                              JMSServerConnectorFuture jmsServerConnectorFuture, String serviceId, String username,
-                              String password, long retryInterval, int maxRetryCount) throws JMSConnectorException {
+    public JMSMessageConsumer(JMSServerConnectionFactory connectionFactory, boolean useReceiver,
+                              JMSListener jmsListener, String serviceId,
+            long retryInterval, int maxRetryCount) throws JMSConnectorException {
         this.connectionFactory = connectionFactory;
         this.useReceiver = useReceiver;
-        this.username = username;
-        this.password = password;
-        this.jmsServerConnectorFuture = jmsServerConnectorFuture;
+        this.jmsListener = jmsListener;
         this.serviceId = serviceId;
         this.retryInterval = retryInterval;
         this.maxRetryCount = maxRetryCount;
 
-        retryHandler = new JMSConnectionRetryHandler(this, retryInterval, maxRetryCount);
+        retryHandler = new JMSConnectionRetryHandler(this, this.retryInterval, this.maxRetryCount);
 
         startConsuming();
     }
@@ -139,14 +126,8 @@ public class JMSMessageConsumer implements MessageConsumer {
      * @throws JMSConnectorException if starting consumer fails due to a JMS layer error.
      */
     void startConsuming() throws JMSConnectorException {
-
         try {
-            if (null != username && null != password) {
-                connection = connectionFactory.createConnection(username, password);
-            } else {
-                connection = connectionFactory.createConnection();
-            }
-
+            connection = connectionFactory.createConnection();
             ExceptionListener exceptionListener = connection.getExceptionListener();
             if (exceptionListener == null) {
                 ExceptionListener jmsExceptionListener = new JMSExceptionListener(this);
@@ -170,6 +151,9 @@ public class JMSMessageConsumer implements MessageConsumer {
             } else {
                 createMessageListener();
             }
+        } catch (JMSSecurityException e) {
+            // Retrying will not be happen for security exceptions (eg: invalid credentials)
+            throw  new JMSConnectorException("Security error occurred when starting the consumer", e);
         } catch (JMSException | JMSConnectorException e) {
             if (!retryHandler.retry()) {
                 throw new JMSConnectorException("Connection to JMS server failed and retry was not successful", e);
@@ -184,12 +168,11 @@ public class JMSMessageConsumer implements MessageConsumer {
      */
     public void closeAll() throws JMSConnectorException {
         try {
-            if (connection != null) {
-                connectionFactory.closeConnection(connection);
-                connection = null;
-            }
-        } catch (JMSConnectorException e) {
-            throw new JMSConnectorException("Error closing connection of JMS Service " + serviceId, e);
+            connectionFactory.closeConsumer(messageConsumer);
+            connectionFactory.closeSession(session);
+            connectionFactory.closeConnection(connection);
+        } catch (JMSException e) {
+            throw new JMSConnectorException("Error closing connection/session/consumer of JMS Service " + serviceId, e);
         } finally {
             messageConsumer = null;
             session = null;
@@ -205,7 +188,7 @@ public class JMSMessageConsumer implements MessageConsumer {
      */
     private void createMessageListener() throws JMSConnectorException {
         try {
-            messageConsumer.setMessageListener(new JMSMessageListener(jmsServerConnectorFuture, serviceId, session));
+            messageConsumer.setMessageListener(new JMSMessageListener(jmsListener, serviceId, session));
             if (logger.isDebugEnabled()) {
                 logger.debug("Message listener created for service " + serviceId);
             }
@@ -224,7 +207,7 @@ public class JMSMessageConsumer implements MessageConsumer {
             logger.debug("Creating message receiver for service " + serviceId);
         }
         JMSMessageReceiver messageReceiver =
-                new JMSMessageReceiver(jmsServerConnectorFuture, serviceId, session, this);
+                new JMSMessageReceiver(jmsListener, serviceId, session, this);
         messageReceiver.receive();
     }
 
@@ -232,7 +215,7 @@ public class JMSMessageConsumer implements MessageConsumer {
         connectionFactory.stop(connection);
     }
 
-    void start() throws JMSConnectorException {
+    void start() throws JMSConnectorException, JMSSecurityException {
         connectionFactory.start(connection);
     }
 

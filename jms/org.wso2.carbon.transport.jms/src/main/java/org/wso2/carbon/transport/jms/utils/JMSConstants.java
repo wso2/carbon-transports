@@ -55,6 +55,7 @@ public class JMSConstants {
     public static final String BYTES_MESSAGE_TYPE = "BytesMessage";
     public static final String OBJECT_MESSAGE_TYPE = "ObjectMessage";
     public static final String MAP_MESSAGE_TYPE = "MapMessage";
+    public static final String STREAM_MESSAGE_TYPE = "StreamMessage";
 
     public static final String TOPIC_PREFIX = "topic.";
     public static final String QUEUE_PREFIX = "queue.";
@@ -87,6 +88,7 @@ public class JMSConstants {
     public static final String CLIENT_ACKNOWLEDGE_MODE = "CLIENT_ACKNOWLEDGE";
     public static final String DUPS_OK_ACKNOWLEDGE_MODE = "DUPS_OK_ACKNOWLEDGE";
     public static final String SESSION_TRANSACTED_MODE = "SESSION_TRANSACTED";
+    public static final String XA_TRANSACTED_MODE = "XA_TRANSACTED";
 
     /**
      * Number of concurrent consumers to be spawned when the server connector is starting.
@@ -103,14 +105,8 @@ public class JMSConstants {
     public static final String TRANSPORT_HEADERS = "TransportHeaders";
     public static final String TEXT_DATA = "TextData";
 
-    /**
-     * Max number of connection to create when {@link org.wso2.carbon.transport.jms.factory.PooledJMSConnectionFactory}
-     * is used.
-     */
-    public static final String MAX_CONNECTIONS = "maxConnections";
 
-
-    public static final String USE_RECEIVER = "useReceiver";
+    public static final String USE_RECEIVER = "synchronousConsume";
 
     /**
      * Namespace for JMS map payload representation.
@@ -207,6 +203,19 @@ public class JMSConstants {
      * Parameter to be passed in to select pooled connection factory nature.
      */
     public static final String POOLED_CONNECTION_FACTORY = "pooled";
+
+    /**
+     * Parameter for passing in cache in client mode
+     */
+    public static final String PARAM_JMS_CACHING = "transport.jms.caching";
+
+    /**
+     * Client side pooling configurations
+     */
+    public static final String PARAM_MAX_CONNECTIONS = "connectionCount";
+
+    public static final String PARAM_MAX_SESSIONS_ON_CONNECTION = "sessionCount";
+
 
 
 }

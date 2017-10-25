@@ -17,13 +17,10 @@
  */
 package org.wso2.carbon.transport.jms.receiver;
 
-import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.callback.AcknowledgementCallback;
 import org.wso2.carbon.transport.jms.callback.TransactedSessionCallback;
-import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
+import org.wso2.carbon.transport.jms.contract.JMSListener;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.utils.JMSConstants;
-import org.wso2.carbon.transport.jms.utils.JMSUtils;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -34,23 +31,21 @@ import javax.jms.Session;
  */
 class JMSMessageHandler {
 
-    private JMSServerConnectorFuture jmsServerConnectorFuture;
-    private String serviceId;
+    private JMSListener jmsListener;
     private int acknowledgementMode;
     private Session session;
 
     /**
      * Initializes the message handler with connection details.
      *
-     * @param jmsServerConnectorFuture The message processor which is going to process the received messages
+     * @param jmsListener The message processor which is going to process the received messages
      * @param serviceId              Id of the service that is interested in particular destination
      * @param session                The session that is used to create the consumer
      * @throws JMSConnectorException Throws if an error occurs when retrieving session acknowledgement mode
      */
-    JMSMessageHandler(JMSServerConnectorFuture jmsServerConnectorFuture, String serviceId, Session session) throws
+    JMSMessageHandler(JMSListener jmsListener, String serviceId, Session session) throws
             JMSConnectorException {
-        this.jmsServerConnectorFuture = jmsServerConnectorFuture;
-        this.serviceId = serviceId;
+        this.jmsListener = jmsListener;
         this.session = session;
 
         try {
@@ -61,7 +56,7 @@ class JMSMessageHandler {
     }
 
     /**
-     * Processes a received JMS message and forward to the relevant {@link JMSServerConnectorFuture}
+     * Processes a received JMS message and forward to the relevant {@link JMSListener}
      * <br>
      * <br>
      * Acknowledge/Commit/Rollback .etc needs to be handled within the same thread since JMS API specifies that
@@ -75,34 +70,22 @@ class JMSMessageHandler {
      */
     void handle(Message message) throws JMSConnectorException {
         try {
-            CarbonMessage jmsCarbonMessage = JMSUtils.createJMSCarbonMessage(message);
-            jmsCarbonMessage.setProperty(org.wso2.carbon.messaging.Constants.PROTOCOL, JMSConstants.PROTOCOL_JMS);
-            jmsCarbonMessage.setProperty(JMSConstants.JMS_SERVICE_ID, serviceId);
-            jmsCarbonMessage.setProperty(JMSConstants.JMS_SESSION_ACKNOWLEDGEMENT_MODE, this.acknowledgementMode);
-
             switch (acknowledgementMode) {
                 case Session.CLIENT_ACKNOWLEDGE:
-                    AcknowledgementCallback acknowledgementCallback = new AcknowledgementCallback(session, this,
-                            message);
-                    jmsServerConnectorFuture.notifyJMSListener(jmsCarbonMessage, acknowledgementCallback);
-                    synchronized (this) {
-                        while (!acknowledgementCallback.isOperationComplete()) {
-                            wait();
-                        }
-                    }
+                    AcknowledgementCallback acknowledgementCallback = new AcknowledgementCallback(session, message);
+                    jmsListener.onMessage(message, acknowledgementCallback);
+                    acknowledgementCallback.waitForProcessing();
+                    acknowledgementCallback.updateAcknowledgementStatus();
                     break;
                 case Session.SESSION_TRANSACTED:
-                    TransactedSessionCallback transactedSessionCallback = new TransactedSessionCallback(session, this);
-                    jmsServerConnectorFuture.notifyJMSListener(jmsCarbonMessage, transactedSessionCallback);
-                    synchronized (this) {
-                        while (!transactedSessionCallback.isOperationComplete()) {
-                            wait();
-                        }
-                    }
+                    TransactedSessionCallback transactedSessionCallback = new TransactedSessionCallback(session);
+                    jmsListener.onMessage(message, transactedSessionCallback);
+                    transactedSessionCallback.waitForProcessing();
+                    transactedSessionCallback.updateTransactionStatus();
                     break;
                 default:
                     //Session.AUTO_ACKNOWLEDGE and Session.DUPS_OK_ACKNOWLEDGE will be handled by this
-                    jmsServerConnectorFuture.notifyJMSListener(jmsCarbonMessage, null);
+                    jmsListener.onMessage(message, null);
             }
 
         } catch (InterruptedException e) {

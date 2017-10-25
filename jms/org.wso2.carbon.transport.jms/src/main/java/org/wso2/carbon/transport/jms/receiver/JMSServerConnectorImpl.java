@@ -21,12 +21,10 @@ package org.wso2.carbon.transport.jms.receiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.kernel.utils.StringUtils;
+import org.wso2.carbon.transport.jms.contract.JMSListener;
 import org.wso2.carbon.transport.jms.contract.JMSServerConnector;
-import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.factory.CachedJMSConnectionFactory;
-import org.wso2.carbon.transport.jms.factory.JMSConnectionFactory;
-import org.wso2.carbon.transport.jms.factory.PooledJMSConnectionFactory;
+import org.wso2.carbon.transport.jms.factory.JMSServerConnectionFactory;
 import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import java.util.ArrayList;
@@ -42,13 +40,13 @@ public class JMSServerConnectorImpl implements JMSServerConnector {
 
     private String serviceId;
 
-    private JMSServerConnectorFuture jmsServerConnectorFuture;
+    private JMSListener jmsListener;
 
     /**
-     * The {@link JMSConnectionFactory} instance represents the jms connection factory related with this server
+     * The {@link JMSServerConnectionFactory} instance represents the jms connection factory related with this server
      * connector.
      */
-    private JMSConnectionFactory jmsConnectionFactory = null;
+    private JMSServerConnectionFactory jmsConnectionFactory = null;
 
     /**
      * The number of concurrent consumers that needs to be created.
@@ -59,14 +57,6 @@ public class JMSServerConnectorImpl implements JMSServerConnector {
      * List of {@link JMSMessageConsumer} instances that are created for this connector instance.
      */
     private List<JMSMessageConsumer> messageConsumers;
-    /**
-     * The {@link String} instance represents the jms connection user-name.
-     */
-    private String userName;
-    /**
-     * The {@link String} instance represents the jms connection password.
-     */
-    private String password;
     /**
      * The {@link Properties} instance represents the jms connection properties.
      */
@@ -92,8 +82,8 @@ public class JMSServerConnectorImpl implements JMSServerConnector {
     private String connectionFactoryNature = JMSConstants.DEFAULT_CONNECTION_FACTORY;
 
     public JMSServerConnectorImpl(String serviceId, Map<String, String> connectorConfig,
-                                  JMSServerConnectorFuture jmsServerConnectorFuture) throws JMSConnectorException {
-        this.jmsServerConnectorFuture = jmsServerConnectorFuture;
+                                  JMSListener jmsListener) throws JMSConnectorException {
+        this.jmsListener = jmsListener;
         this.serviceId = serviceId;
         init(connectorConfig);
     }
@@ -101,9 +91,6 @@ public class JMSServerConnectorImpl implements JMSServerConnector {
     private void init(Map<String, String> connectorConfig) throws JMSConnectorException {
         properties = new Properties();
         properties.putAll(connectorConfig);
-
-        userName = connectorConfig.get(JMSConstants.CONNECTION_USERNAME);
-        password = connectorConfig.get(JMSConstants.CONNECTION_PASSWORD);
 
         String retryIntervalParam = connectorConfig.get(JMSConstants.RETRY_INTERVAL);
         if (retryIntervalParam != null) {
@@ -206,27 +193,15 @@ public class JMSServerConnectorImpl implements JMSServerConnector {
     void startConsuming() throws JMSConnectorException {
         try {
             if (jmsConnectionFactory == null) {
-                switch (connectionFactoryNature) {
-                    case JMSConstants.CACHED_CONNECTION_FACTORY :
-                        jmsConnectionFactory = new CachedJMSConnectionFactory(properties);
-                        break;
-                    case JMSConstants.POOLED_CONNECTION_FACTORY :
-                        jmsConnectionFactory = new PooledJMSConnectionFactory(properties);
-                        break;
-                    default :
-                        jmsConnectionFactory = new JMSConnectionFactory(properties);
-                }
+                jmsConnectionFactory = new JMSServerConnectionFactory(properties);
             }
-
             messageConsumers = new ArrayList<>();
+            JMSMessageConsumerBuilder consumerBuilder = new JMSMessageConsumerBuilder(jmsConnectionFactory,
+                    jmsListener, serviceId);
+            consumerBuilder.setUseReceiver(useReceiver)
+                    .setRetryInterval(retryInterval)
+                    .setMaxRetryCount(maxRetryCount);
             for (int i = 0; i < numOfConcurrentConsumers; i++) {
-                JMSMessageConsumerBuilder consumerBuilder = new JMSMessageConsumerBuilder(jmsConnectionFactory,
-                        jmsServerConnectorFuture, serviceId);
-                consumerBuilder.setUseReceiver(useReceiver)
-                        .setUsername(userName)
-                        .setPassword(password)
-                        .setRetryInterval(retryInterval)
-                        .setMaxRetryCount(maxRetryCount);
                 messageConsumers.add(consumerBuilder.build());
             }
         } catch (JMSConnectorException e) {

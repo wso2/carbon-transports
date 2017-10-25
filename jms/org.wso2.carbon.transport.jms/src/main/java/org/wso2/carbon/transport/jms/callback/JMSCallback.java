@@ -18,16 +18,16 @@
 
 package org.wso2.carbon.transport.jms.callback;
 
-import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 
+import java.util.concurrent.CountDownLatch;
 import javax.jms.JMSException;
 import javax.jms.Session;
 
 /**
  * Holds common fields and operations for a JMS callback implementation.
  */
-public abstract class JMSCallback implements CarbonCallback {
+public abstract class JMSCallback {
 
     /**
      * The {@link Session} instance representing JMS Session related with this call back
@@ -35,24 +35,24 @@ public abstract class JMSCallback implements CarbonCallback {
     private Session session;
 
     /**
-     * The object which invoked the acknowledgment.
-     */
-    private final Object caller;
-
-    /**
      * States whether the callback operation is completed.
      */
     private boolean operationComplete = false;
 
     /**
+     * Is the operation a success
+     */
+    private boolean success;
+
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
+
+    /**
      * Creates a call back initializing the JMS session object and saving caller object to be notified.
      *
      * @param session JMS Session connected with this callback
-     * @param caller  {@link Object} The caller object which needs to wait for the jms acknowledgement to be completed
      */
-    public JMSCallback(Session session, Object caller) {
+    public JMSCallback(Session session) {
         this.session = session;
-        this.caller = caller;
     }
 
     /**
@@ -105,12 +105,31 @@ public abstract class JMSCallback implements CarbonCallback {
     }
 
     /**
-     * Mark as this callback operation is complete and notify the caller.
+     * Invoke this method to update the status of the message consumption
+     *
+      * @param success status of the message processing
      */
-    protected void markAsComplete() {
-        operationComplete = true;
-        synchronized (caller) {
-            caller.notifyAll();
-        }
+    public void done(boolean success) {
+        this.success = success;
+        countDownLatch.countDown();
+    }
+
+    /**
+     * Get acknowledgement mode of this JMSCallback
+     * @return Ack mode
+     */
+    public abstract int getAcknowledgementMode();
+
+    /**
+     * Is this transaction/ack a success
+     *
+     * @return true if success false otherwise
+     */
+    protected boolean isSuccess() {
+        return success;
+    }
+
+    public void waitForProcessing() throws InterruptedException {
+        countDownLatch.await();
     }
 }
