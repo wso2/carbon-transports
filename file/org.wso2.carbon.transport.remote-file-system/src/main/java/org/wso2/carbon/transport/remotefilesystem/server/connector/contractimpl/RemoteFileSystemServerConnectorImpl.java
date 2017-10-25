@@ -25,9 +25,9 @@ import org.wso2.carbon.connector.framework.server.polling.PollingServerConnector
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
+import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListener;
 import org.wso2.carbon.transport.remotefilesystem.server.RemoteFileSystemConsumer;
 import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnector;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnectorFuture;
 
 import java.util.Map;
 
@@ -43,12 +43,12 @@ public class RemoteFileSystemServerConnectorImpl extends PollingServerConnector
     private RemoteFileSystemConsumer consumer;
 
     public RemoteFileSystemServerConnectorImpl(String id, Map<String, String> properties,
-                                               RemoteFileSystemServerConnectorFuture connectorFuture)
+                                               RemoteFileSystemListener remoteFileSystemListener)
             throws RemoteFileSystemConnectorException {
         super(id, properties);
         interval = FILE_CONNECTOR_DEFAULT_INTERVAL; //this might be overridden in super.start()
         try {
-            consumer = new RemoteFileSystemConsumer(id, getProperties(), connectorFuture);
+            consumer = new RemoteFileSystemConsumer(id, getProperties(), remoteFileSystemListener);
         } catch (ServerConnectorException e) {
             throw new RemoteFileSystemConnectorException("Failed to initialize File server connector " +
                     "for Service: " + id, e);

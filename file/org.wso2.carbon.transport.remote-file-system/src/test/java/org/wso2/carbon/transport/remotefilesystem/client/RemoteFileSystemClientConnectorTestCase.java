@@ -33,7 +33,6 @@ import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.Constants;
 import org.wso2.carbon.transport.remotefilesystem.RemoteFileSystemConnectorFactory;
 import org.wso2.carbon.transport.remotefilesystem.client.connector.contract.VFSClientConnector;
-import org.wso2.carbon.transport.remotefilesystem.client.connector.contract.VFSClientConnectorFuture;
 import org.wso2.carbon.transport.remotefilesystem.impl.RemoteFileSystemConnectorFactoryImpl;
 import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemMessage;
 
@@ -90,8 +89,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestExistActionListener fileSystemListener = new TestExistActionListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertEquals(fileSystemListener.isFileExist(), true, "Did not identified " +
                 "the existing file.");
@@ -109,8 +107,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestReadActionListener fileSystemListener = new TestReadActionListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertEquals(fileSystemListener.getContent(), content, "File content invalid.");
     }
@@ -127,8 +124,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestReadActionListener fileSystemListener = new TestReadActionListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertNull(fileSystemListener.getContent(), "File content invalid.");
         Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,
@@ -149,8 +145,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
         RemoteFileSystemMessage message = new RemoteFileSystemMessage(ByteBuffer.wrap(newContent.getBytes()));
-        VFSClientConnectorFuture send = clientConnector.send(message);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(message);
         latch.await(3, TimeUnit.SECONDS);
         FileEntry entry = (FileEntry) fileSystem.getEntry("/home/wso2/file2.txt");
         InputStream inputStream = entry.createInputStream();
@@ -173,8 +168,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
         RemoteFileSystemMessage message = new RemoteFileSystemMessage(ByteBuffer.wrap(newContent.getBytes()));
-        VFSClientConnectorFuture send = clientConnector.send(message);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(message);
         latch.await(3, TimeUnit.SECONDS);
         FileEntry entry = (FileEntry) fileSystem.getEntry("/home/wso2/file4.txt");
         InputStream inputStream = entry.createInputStream();
@@ -198,8 +192,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
         RemoteFileSystemMessage message = new RemoteFileSystemMessage(ByteBuffer.wrap(newContent.getBytes()));
-        VFSClientConnectorFuture send = clientConnector.send(message);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(message);
         latch.await(3, TimeUnit.SECONDS);
         FileEntry entry = (FileEntry) fileSystem.getEntry("/home/wso2/file1.txt");
         InputStream inputStream = entry.createInputStream();
@@ -222,8 +215,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestClientRemoteFileSystemListener fileSystemListener = new TestClientRemoteFileSystemListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertTrue(fileSystem.exists(rootFolder + filePath), "File not created.");
     }
@@ -242,8 +234,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestClientRemoteFileSystemListener fileSystemListener = new TestClientRemoteFileSystemListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,
                 "Exception did not throw as expected.");
@@ -263,8 +254,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestClientRemoteFileSystemListener fileSystemListener = new TestClientRemoteFileSystemListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertTrue(fileSystem.exists(rootFolder + filePath), "File not created.");
     }
@@ -282,8 +272,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestClientRemoteFileSystemListener fileSystemListener = new TestClientRemoteFileSystemListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertFalse(fileSystem.exists(rootFolder + filePath), "File not deleted.");
     }
@@ -301,8 +290,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestClientRemoteFileSystemListener fileSystemListener = new TestClientRemoteFileSystemListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,
                 "Exception did not throw as expected.");
@@ -321,8 +309,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestClientRemoteFileSystemListener fileSystemListener = new TestClientRemoteFileSystemListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertTrue(fileSystem.exists(rootFolder + "/copy/file2-copy.txt"), "File not copied.");
     }
@@ -340,8 +327,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestClientRemoteFileSystemListener fileSystemListener = new TestClientRemoteFileSystemListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,
                 "Exception did not throw as expected.");
@@ -362,8 +348,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestClientRemoteFileSystemListener fileSystemListener = new TestClientRemoteFileSystemListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertTrue(fileSystem.exists(rootFolder + "/move/file2-move.txt"), "File not moved.");
         Assert.assertFalse(fileSystem.exists(rootFolder + "/file2.txt"), "File not moved.");
@@ -382,8 +367,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestClientRemoteFileSystemListener fileSystemListener = new TestClientRemoteFileSystemListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertTrue(fileSystem.exists(rootFolder + "/newMoveFolder/file2-move.txt"),
                 "File not moved.");
@@ -403,8 +387,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestClientRemoteFileSystemListener fileSystemListener = new TestClientRemoteFileSystemListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertTrue(fileSystem.exists(rootFolder + "/file11.txt"), "File moved.");
         Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,
@@ -424,8 +407,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         TestClientRemoteFileSystemListener fileSystemListener = new TestClientRemoteFileSystemListener(latch);
         VFSClientConnector clientConnector =
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
-        VFSClientConnectorFuture send = clientConnector.send(null);
-        send.setFileSystemListener(fileSystemListener);
+        clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertFalse(fileSystem.exists(rootFolder + "/move/file7-move.txt"), "File moved.");
         Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,

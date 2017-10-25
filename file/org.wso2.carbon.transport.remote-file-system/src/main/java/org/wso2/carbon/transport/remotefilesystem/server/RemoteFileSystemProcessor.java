@@ -24,8 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.transport.remotefilesystem.Constants;
 import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
+import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListener;
 import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemEvent;
-import org.wso2.carbon.transport.remotefilesystem.server.connector.contract.RemoteFileSystemServerConnectorFuture;
 import org.wso2.carbon.transport.remotefilesystem.server.util.FileTransportUtils;
 
 
@@ -36,7 +36,7 @@ public class RemoteFileSystemProcessor implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(RemoteFileSystemProcessor.class);
 
-    private RemoteFileSystemServerConnectorFuture connectorFuture;
+    private RemoteFileSystemListener listener;
     private FileObject file;
     private String serviceName;
     private String fileURI;
@@ -46,17 +46,17 @@ public class RemoteFileSystemProcessor implements Runnable {
     /**
      * Initializes the message processor with file details.
      *
-     * @param connectorFuture   The RemoteFileSystemServerConnectorFuture instance to notify callback
+     * @param remoteFileSystemListener   The RemoteFileSystemListener instance to notify callback
      * @param serviceName        The name of the destination service
      * @param file               The file to be processed
      * @param fileURI            The URI of the file which is being processed
      * @param remoteFileSystemConsumer RemoteFileSystemConsumer instance of processed file/directory
      * @param postProcessAction  Action to be applied to file once it is processed
      */
-    RemoteFileSystemProcessor(RemoteFileSystemServerConnectorFuture connectorFuture, String serviceName,
-                                     FileObject file, String fileURI, RemoteFileSystemConsumer remoteFileSystemConsumer,
-                                     String postProcessAction) {
-        this.connectorFuture = connectorFuture;
+    RemoteFileSystemProcessor(RemoteFileSystemListener remoteFileSystemListener, String serviceName,
+                              FileObject file, String fileURI, RemoteFileSystemConsumer remoteFileSystemConsumer,
+                              String postProcessAction) {
+        this.listener = remoteFileSystemListener;
         this.file = file;
         this.serviceName = serviceName;
         this.fileURI = fileURI;
@@ -78,13 +78,13 @@ public class RemoteFileSystemProcessor implements Runnable {
             message.setProperty(Constants.META_FILE_LAST_MODIFIED_TIME, file.getContent().getLastModifiedTime());
         } catch (FileSystemException e) {
             logger.error("Failed to set meta data for file: " + file.getName().getURI(), e);
-            connectorFuture.notifyFileSystemListener(e);
+            listener.onError(e);
         }
         boolean processFailed = false;
         try {
-            connectorFuture.notifyFileSystemListener(message);
+            listener.onMessage(message);
         } catch (Exception e) {
-            connectorFuture.notifyFileSystemListener(e);
+            listener.onError(e);
             logger.warn(
                     "Failed to send stream from file: " + FileTransportUtils.maskURLPassword(fileURI)
                     + " to message processor. ", e);
@@ -96,7 +96,7 @@ public class RemoteFileSystemProcessor implements Runnable {
             try {
                 remoteFileSystemConsumer.postProcess(file, processFailed);
             } catch (RemoteFileSystemConnectorException e) {
-                connectorFuture.notifyFileSystemListener(e);
+                listener.onError(e);
                 logger.error("File object '" + FileTransportUtils.maskURLPassword(file.getName().toString()) + "' " +
                              "could not be moved", e);
             }
