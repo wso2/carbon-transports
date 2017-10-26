@@ -30,6 +30,7 @@ import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.email.connector.factory.EmailConnectorFactoryImpl;
 import org.wso2.carbon.transport.email.contract.EmailConnectorFactory;
 import org.wso2.carbon.transport.email.contract.EmailServerConnector;
+import org.wso2.carbon.transport.email.exception.EmailConnectorException;
 import org.wso2.carbon.transport.email.server.utils.EmailTestConstant;
 import org.wso2.carbon.transport.email.server.utils.TestEmailMessageListener;
 
@@ -98,6 +99,7 @@ public class EmailServerConnectorViaImapTestCase {
         messageListener.setNumberOfEvent(1);
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
         emailServerConnector.start(messageListener);
         messageListener.waitForEvent();
         Assert.assertEquals(messageListener.subject, EMAIL_SUBJECT);
@@ -126,6 +128,7 @@ public class EmailServerConnectorViaImapTestCase {
         messageListener.setNumberOfEvent(1);
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
         emailServerConnector.start(messageListener);
         messageListener.waitForEvent();
         Assert.assertEquals(messageListener.subject, EMAIL_SUBJECT);
@@ -153,6 +156,7 @@ public class EmailServerConnectorViaImapTestCase {
         messageListener.setNumberOfEvent(1);
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
         emailServerConnector.start(messageListener);
         messageListener.waitForEvent();
         Assert.assertEquals(messageListener.subject, EMAIL_SUBJECT);
@@ -182,6 +186,7 @@ public class EmailServerConnectorViaImapTestCase {
         messageListener.setNumberOfEvent(1);
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
         emailServerConnector.start(messageListener);
         messageListener.waitForEvent();
         Assert.assertEquals(messageListener.subject, EMAIL_SUBJECT);
@@ -209,6 +214,7 @@ public class EmailServerConnectorViaImapTestCase {
         messageListener.setNumberOfEvent(1);
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
         emailServerConnector.start(messageListener);
         messageListener.waitForEvent();
         Assert.assertEquals(messageListener.subject, EMAIL_SUBJECT);
@@ -219,6 +225,34 @@ public class EmailServerConnectorViaImapTestCase {
         Assert.assertEquals(messages.length, 0, "Message count in the 'INBOX' is zero,"
                 + " since messages in the folder have been deleted by the email server connector"
                 + " after processing them.");
+    }
+
+    @Test(description = "Test the scenario: Receiving messages with autoAcknowledgement true.")
+    public void imapServerWithAutoAckTrue()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+        deliverMassage(user, "This is the a email message", "Test message", "from@localhost.com",
+                "carbon@localhost.com", "cc@localhost.com", "bcc@localhost.com", "text/plain");
+        deliverMassage(user, "This is the a email message", "Test message", "from1@localhost.com",
+                "carbon@localhost.com", "cc1@localhost.com", "bcc1@localhost.com", "text/plain");
+
+        emailProperties.put(EmailTestConstant.AUTO_ACKNOWLEDGE, "true");
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+        emailServerConnector.start(messageListener);
+        messageListener.waitForEvent();
+        Assert.assertEquals(messageListener.subject, EMAIL_SUBJECT);
+        emailServerConnector.stop();
+        Thread.sleep(1000);
+
+        MimeMessage[] messages = mailServer.getReceivedMessages();
+        Assert.assertEquals(messages.length, 2);
     }
 
     @Test(description = "Test the scenario: receiving messages via imap server when search term is "
@@ -243,6 +277,7 @@ public class EmailServerConnectorViaImapTestCase {
         messageListener.setNumberOfEvent(1);
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
         emailServerConnector.start(messageListener);
         messageListener.waitForEvent();
 
@@ -274,6 +309,7 @@ public class EmailServerConnectorViaImapTestCase {
         messageListener.setNumberOfEvent(3);
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
         emailServerConnector.start(messageListener);
         messageListener.waitForEvent();
 
@@ -305,6 +341,7 @@ public class EmailServerConnectorViaImapTestCase {
         messageListener.setNumberOfEvent(1);
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
         emailServerConnector.start(messageListener);
         messageListener.waitForEvent();
 
@@ -315,7 +352,8 @@ public class EmailServerConnectorViaImapTestCase {
     }
 
     @Test(description = "Test the scenario: receiving messages via imap server when multiple conditions"
-            + " are defined in search term.") public void searchByMultipleConditionsTestCase()
+            + " are defined in search term.")
+    public void searchByMultipleConditionsTestCase()
             throws MessagingException, ServerConnectorException, InterruptedException {
 
         GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
@@ -340,6 +378,7 @@ public class EmailServerConnectorViaImapTestCase {
         messageListener.setNumberOfEvent(1);
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
         emailServerConnector.start(messageListener);
         messageListener.waitForEvent();
 
@@ -348,6 +387,82 @@ public class EmailServerConnectorViaImapTestCase {
         Assert.assertEquals(messageListener.from, "from@localhost.com");
         Assert.assertEquals(messageListener.cc, "cc@localhost.com");
         Assert.assertEquals(messageListener.bcc, "bcc@localhost.com");
+        emailServerConnector.stop();
+        Thread.sleep(1000);
+    }
+
+    @Test(description = "Test the scenario: Search condition without @ symbol")
+    public void searchByWithoutAtSymbolTestCase()
+            throws MessagingException, InterruptedException, EmailConnectorException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+        deliverMassage(user, "This is the first email message", "Test message one",
+                "from1@localhost.com", "carbon@localhost.com", "cc1@localhost.com",
+                "bcc1@localhost.com", "text/plain");
+        deliverMassage(user, "This is the second email message", "Test message two",
+                "from2@localhost.com", "carbon@localhost.com", "cc2@localhost.com",
+                "bcc2@localhost.com", "text/plain");
+        emailProperties.put(EmailTestConstant.SEARCH_TERM, "from:from, to:carbon, cc:cc, bcc:bcc,"
+                + " subject: Test message");
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(2);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+        emailServerConnector.start(messageListener);
+        messageListener.waitForEvent();
+        Assert.assertEquals(messageListener.numberOfEventArrived, 2, "Both messages should be"
+                + "delivered");
+        emailServerConnector.stop();
+        Thread.sleep(1000);
+    }
+
+    @Test(description = "Test the scenario: Search condition when more than one recipients are defined in each type.")
+    public void searchWithMultipleRecipientsTestCase()
+            throws MessagingException, InterruptedException, EmailConnectorException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+        deliverMassage(user, "This is the first email message", "Test message one",
+                "from1@localhost.com", "carbon@localhost.com, carbon1@localhost.com",
+                "cc@localhost.com,cc1@localhost", "bcc1@localhost.com,bcc@localhost.com",
+                "text/plain");
+
+        emailProperties.put(EmailTestConstant.SEARCH_TERM, "from:from1, to:carbon, cc:cc1, bcc:bcc1,"
+                + " subject: Test message");
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+        emailServerConnector.start(messageListener);
+        messageListener.waitForEvent();
+        Assert.assertEquals(messageListener.numberOfEventArrived, 1, "Both messages should be"
+                + "delivered");
+        emailServerConnector.stop();
+        Thread.sleep(1000);
+    }
+
+    @Test(description = "Test the scenario: receiving messages via imap server when multiple conditions"
+            + " are defined in search term.", expectedExceptions = EmailConnectorException.class)
+    public void searchByWrongConditionTestCase()
+            throws MessagingException, InterruptedException, EmailConnectorException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.SEARCH_TERM, "from:from@, to:carbon@, cc:cc@, bb:bcc@");
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+        emailServerConnector.start(messageListener);
+        messageListener.waitForEvent();
         emailServerConnector.stop();
         Thread.sleep(1000);
     }
@@ -371,11 +486,80 @@ public class EmailServerConnectorViaImapTestCase {
         messageListener.setNumberOfEvent(1);
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
         emailServerConnector.start(messageListener);
         messageListener.waitForEvent();
 
         Assert.assertEquals(messageListener.subject, "Test message two",
                 "Only the message2 is received since the messages content is text/html");
+        emailServerConnector.stop();
+        Thread.sleep(1000);
+    }
+
+    @Test(description = "Test the scenario: Test the scenario destroying the server connector")
+    public void  destroyMethodTestCase()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+        deliverMassage(user, "This is the a email message", "Test message", "from@localhost.com",
+                "carbon@localhost.com", "cc@localhost.com", "bcc@localhost.com", "text/plain");
+        deliverMassage(user, "This is the a email message", "Test message", "from1@localhost.com",
+                "carbon@localhost.com", "cc1@localhost.com", "bcc1@localhost.com", "text/plain");
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+        emailServerConnector.destroy();
+        emailServerConnector.init();
+        emailServerConnector.start(messageListener);
+        messageListener.waitForEvent();
+        emailServerConnector.stop();
+        emailServerConnector.destroy();
+    }
+
+    @Test(description = "Test the scenario: invalid server parameters are given",
+            expectedExceptions = EmailConnectorException.class)
+    public void  invalidServerParametersTestCase()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.MAIL_IMAP_PORT, "100");
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+    }
+
+    @Test(description = "Test the scenario: Connect with minimum parameters required")
+    public void connectWithMinimumParametersTestCase()
+            throws MessagingException, InterruptedException, EmailConnectorException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+        deliverMassage(user, "This is the first email message", "Test message one",
+                "from1@localhost.com", "carbon@localhost.com, carbon1@localhost.com",
+                "cc@localhost.com,cc1@localhost", "bcc1@localhost.com,bcc@localhost.com",
+                "text/plain");
+
+        emailProperties.put(EmailTestConstant.MAIL_RECEIVER_FOLDER_NAME, null);
+        emailProperties.put(EmailTestConstant.POLLING_INTERVAL, null);
+        emailProperties.put(EmailTestConstant.AUTO_ACKNOWLEDGE, null);
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+        emailServerConnector.start(messageListener);
+        messageListener.waitForEvent();
+        Assert.assertEquals(messageListener.numberOfEventArrived, 1, "Both messages should be"
+                + "delivered");
         emailServerConnector.stop();
         Thread.sleep(1000);
     }
@@ -397,9 +581,9 @@ public class EmailServerConnectorViaImapTestCase {
             String bcc, String contentType) throws MessagingException {
         MimeMessage message = new MimeMessage((Session) null);
         message.setFrom(new InternetAddress(from));
-        message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-        message.addRecipient(Message.RecipientType.CC, new InternetAddress(cc));
-        message.addRecipient(Message.RecipientType.BCC, new InternetAddress(bcc));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+        message.setRecipients(Message.RecipientType.CC, InternetAddress.parse(cc));
+        message.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(bcc));
         message.setSubject(subject);
         message.setContent(content, contentType);
         user.deliver(message);

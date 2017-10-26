@@ -56,7 +56,7 @@ public class EmailTestConstant {
      * property whether to Auto Acknowledge or not. If false then wait for acknowledge.
      */
     public static final String AUTO_ACKNOWLEDGE = "autoAcknowledge";
-    public static final String AUTO_ACKNOWLWDGE_VALUE = "true";
+    public static final String AUTO_ACKNOWLWDGE_VALUE = "false";
 
     /**
      * String search term to give the conditions to filter the messages
@@ -87,6 +87,7 @@ public class EmailTestConstant {
     public static final String MAIL_HEADER_FROM = "From";
     public static final String MAIL_HEADER_SUBJECT = "Subject";
     public static final String MAIL_HEADER_CONTENT_TYPE = "Content-Type";
+    public static final String MAIL_PROPERTY_UID = "messageUid";
 
     public static final String MAIL_IMAP_PORT = "mail.imap.port";
     public static final String MAIL_IMAP_PORT_VALUE = "3143";

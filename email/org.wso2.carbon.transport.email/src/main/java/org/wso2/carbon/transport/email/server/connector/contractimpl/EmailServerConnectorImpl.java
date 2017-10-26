@@ -91,11 +91,23 @@ public class EmailServerConnectorImpl extends PollingServerConnector implements 
     }
 
     @Override
-    protected void init() throws ServerConnectorException {
+    public void init() throws EmailConnectorException {
+        if (stringEmailSearchTerm != null) {
+            //convert string search term to SearchTerm instance
+            this.emailSearchTerm = stringToSearchTermConverter(stringEmailSearchTerm);
+        }
+
+        consumer = new EmailConsumer(id, getProperties(), emailSearchTerm);
+
+        //This is important if email store is 'imap'. By setting the UID, it start to process mail at the point
+        //it stop in the previous polling cycle. Initial startUID is 1.
+        consumer.setStartUIDNumber(startUIDNumber);
+        consumer.connectToEmailStore();
+        consumer.setAction();
     }
 
     @Override
-    protected void destroy() throws ServerConnectorException {
+    public void destroy() throws EmailConnectorException {
         try {
             if (consumer != null) {
                 consumer.closeAll();
@@ -109,19 +121,7 @@ public class EmailServerConnectorImpl extends PollingServerConnector implements 
 
     @Override
     public void start(EmailMessageListener emailMessageListener) throws EmailConnectorException {
-        if (stringEmailSearchTerm != null) {
-            //convert string search term to SearchTerm instance
-            this.emailSearchTerm = stringToSearchTermConverter(stringEmailSearchTerm);
-        }
-
-        consumer = new EmailConsumer(id, getProperties(), emailSearchTerm, emailMessageListener);
-
-        //This is important if email store is 'imap'. By setting the UID, it start to process mail at the point
-        //it stop in the previous polling cycle. Initial startUID is 1.
-        consumer.setStartUIDNumber(startUIDNumber);
-        consumer.connectToEmailStore();
-        consumer.setAction();
-
+        consumer.setEmailMessageListener(emailMessageListener);
         try {
             super.start();
         } catch (Exception e) {

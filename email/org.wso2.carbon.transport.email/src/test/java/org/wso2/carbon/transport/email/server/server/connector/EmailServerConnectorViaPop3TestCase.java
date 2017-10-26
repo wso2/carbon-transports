@@ -105,15 +105,16 @@ public class EmailServerConnectorViaPop3TestCase {
         messageListener.setNumberOfEvent(1);
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
         emailServerConnector.start(messageListener);
         messageListener.waitForEvent();
 
         Assert.assertEquals(messageListener.subject, EMAIL_SUBJECT);
-        emailServerConnector.stop();
         Thread.sleep(1000);
         Message[] messages = mailServer.getReceivedMessages();
         Assert.assertEquals(messages.length, 0, "Since the message is deleted by"
                 + " the pop3 server after reading the message content, Number of messages in the"
                 + " 'INBOX' after processing is 'zero'.");
+        emailServerConnector.stop();
     }
 }

@@ -26,6 +26,11 @@ import org.wso2.carbon.transport.email.exception.EmailConnectorException;
 public interface EmailServerConnector {
 
     /**
+     * Validate the server parameters and establish the connection.
+     */
+     void init() throws EmailConnectorException;
+
+    /**
      * Start the polling operation.
      *
      * @param emailMessageListener listener which gets triggered when message comes.
@@ -39,4 +44,9 @@ public interface EmailServerConnector {
      * @throws EmailConnectorException If unable to stop the polling.
      */
     void stop() throws EmailConnectorException;
+
+    /**
+     * Destroy the email server connector. (Close the connection and clear the store)
+     */
+    void destroy() throws EmailConnectorException;
 }

@@ -40,6 +40,8 @@ public class TestEmailMessageListener implements EmailMessageListener {
     public String from;
     public String cc;
     public String content;
+    public int numberOfEventArrived = 0;
+    public Long uid = 0L;
 
     /**
      * Set the number of times countDown in Latch which is equal to the expecting number of events (emails).
@@ -50,7 +52,8 @@ public class TestEmailMessageListener implements EmailMessageListener {
         latch = new CountDownLatch(count);
     }
 
-    @Override public void onMessage(EmailBaseMessage emailTextMessage) {
+    @Override
+    public void onMessage(EmailBaseMessage emailTextMessage) {
 
         this.emailTextMessage = (EmailTextMessage) emailTextMessage;
 
@@ -66,7 +69,9 @@ public class TestEmailMessageListener implements EmailMessageListener {
                     "Message received with subject '" + subject + "' content: '" + content + "' from address: '" + from
                             + "' to address: '" + to + "' bcc address: '" + bcc + "' cc address '" + cc + "'.");
         }
+
         emailTextMessage.sendAck();
+        numberOfEventArrived++;
         done();
     }
 
@@ -76,7 +81,7 @@ public class TestEmailMessageListener implements EmailMessageListener {
      * @throws InterruptedException InterruptedException if error is occurred while waiting.
      */
     public void waitForEvent() throws InterruptedException {
-        latch.await(600000, TimeUnit.MILLISECONDS);
+       latch.await(600000, TimeUnit.MILLISECONDS);
     }
 
     /**

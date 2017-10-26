@@ -79,16 +79,14 @@ public class EmailConsumer {
      * @param id                    The service Id which this consumer belongs to
      * @param properties            Map which contains parameters needed to initialize the email server connector
      * @param emailSearchTerm       The search term which is going to use for fetch emails
-     * @param emailMessageListener The EmailMessageListener who is going to listen the messages in front end.
      * @throws EmailConnectorException EmailConnectorException when action is failed
      *                                       due to a email layer error.
      */
-    public EmailConsumer(String id, Map<String, String> properties, SearchTerm emailSearchTerm,
-            EmailMessageListener emailMessageListener) throws EmailConnectorException {
+    public EmailConsumer(String id, Map<String, String> properties, SearchTerm emailSearchTerm) throws
+            EmailConnectorException {
         this.serviceId = id;
         this.emailProperties = properties;
         this.emailSearchTerm = emailSearchTerm;
-        this.emailMessageListener = emailMessageListener;
 
         if (emailProperties.get(Constants.MAIL_RECEIVER_USERNAME) != null) {
             this.username = emailProperties.get(Constants.MAIL_RECEIVER_USERNAME);
@@ -221,6 +219,15 @@ public class EmailConsumer {
                     "Couldn't initialize the store '" + storeType + "' in the email server connector for service id: "
                             + serviceId + "." + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Method to set the email message listener.
+     *
+     * @param emailMessageListener Instance of the MessageListener belong to the server connector.
+     */
+    public void setEmailMessageListener(EmailMessageListener emailMessageListener) {
+         this.emailMessageListener = emailMessageListener;
     }
 
     /**

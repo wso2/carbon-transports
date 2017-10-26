@@ -24,7 +24,8 @@ import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
  * Exception that happens in Email transport level.
  */
 public class EmailConnectorException extends ServerConnectorException {
-    //since polling framework is used, sever connector exception which is carbon messaging dependency have to used.
+    //since polling framework is used in email server connector, EmailConnectorException class have to extended
+    // by SeverConnectorException class which is come with carbon messaging dependency.
     //This will be removed in the future.
 
     public EmailConnectorException(String message) {

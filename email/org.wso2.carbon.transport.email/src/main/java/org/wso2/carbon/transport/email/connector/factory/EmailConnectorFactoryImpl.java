@@ -31,13 +31,15 @@ import java.util.Map;
  * Implementation for {@link EmailConnectorFactory}.
  */
 public class EmailConnectorFactoryImpl implements EmailConnectorFactory {
-    @Override public EmailServerConnector createEmailServerConnector(String serviceId,
+    @Override
+    public EmailServerConnector createEmailServerConnector(String serviceId,
             Map<String, String> connectorConfig)
             throws EmailConnectorException {
         return new EmailServerConnectorImpl(serviceId, connectorConfig);
     }
 
-    @Override public EmailClientConnector createEmailClientConnector()
+    @Override
+    public EmailClientConnector createEmailClientConnector()
             throws EmailConnectorException {
         return new EmailClientConnectorImpl();
     }

@@ -85,7 +85,7 @@ public class Constants {
      */
     public static final String MAIL_PROPERTY_FLAGS = "flags";
     public static final String MAIL_PROPERTY_MESSAGE_NUMBER = "messageNumber";
-    public static final String MAIL_PROPERTY_UID = "messageUID";
+    public static final String MAIL_PROPERTY_UID = "messageUid";
 
 
     /**
