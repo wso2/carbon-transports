@@ -48,6 +48,7 @@ public class SmtpServerMailTestCase {
     private static final String PASSWORD = "carbon123";
     private static final String USERNAME = "carbon";
     private static final String ADDRESS = "carbon@localhost.com";
+    private static final String HOST = "127.0.0.1";
     private Map<String, String> initProperties;
     private GreenMail mailServer;
 
@@ -61,7 +62,7 @@ public class SmtpServerMailTestCase {
         initProperties.put("mail.smtp.port", "3025");
         //It is required to set auth 'true' to create connection.
         initProperties.put("mail.smtp.auth", "true");
-        initProperties.put("mail.smtp.host", "127.0.0.1");
+        initProperties.put("mail.smtp.host", HOST);
 
         //start the green mail server
         mailServer = new GreenMail(ServerSetupTest.SMTP);
