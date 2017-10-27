@@ -76,4 +76,10 @@ public interface JMSClientConnector {
      */
     void releaseSession(SessionWrapper sessionWrapper) throws JMSConnectorException;
 
+    /**
+     * Close the Client Connection factory resources
+     * @throws JMSConnectorException error when closing the connection factory resources
+     */
+    void closeConnectionFactory() throws JMSConnectorException;
+
 }

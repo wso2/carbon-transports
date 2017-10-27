@@ -156,6 +156,11 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         jmsConnectionFactory.returnSessionWrapper(sessionWrapper);
     }
 
+    @Override
+    public void closeConnectionFactory() throws JMSConnectorException {
+        jmsConnectionFactory.closeJMSResources();
+    }
+
     /**
      * Send the JMS Message using matching Message Sender implementation.
      *

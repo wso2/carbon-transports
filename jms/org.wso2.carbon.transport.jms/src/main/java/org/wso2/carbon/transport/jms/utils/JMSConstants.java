@@ -207,7 +207,7 @@ public class JMSConstants {
     /**
      * Parameter for passing in cache in client mode.
      */
-    public static final String PARAM_JMS_CACHING = "transport.jms.caching";
+    public static final String PARAM_JMS_CACHING = "clientCaching";
 
     /**
      * Client side pooling configurations.
