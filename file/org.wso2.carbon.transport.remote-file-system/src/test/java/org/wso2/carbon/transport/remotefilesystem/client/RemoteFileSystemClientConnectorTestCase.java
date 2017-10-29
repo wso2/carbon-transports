@@ -28,11 +28,11 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 import org.wso2.carbon.messaging.exceptions.ServerConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.Constants;
 import org.wso2.carbon.transport.remotefilesystem.RemoteFileSystemConnectorFactory;
 import org.wso2.carbon.transport.remotefilesystem.client.connector.contract.VFSClientConnector;
+import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.impl.RemoteFileSystemConnectorFactoryImpl;
 import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemMessage;
 
@@ -127,7 +127,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertNull(fileSystemListener.getContent(), "File content invalid.");
-        Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,
+        Assert.assertTrue(fileSystemListener.getThrowable() instanceof RemoteFileSystemConnectorException,
                 "Exception did not throw as expected.");
     }
 
@@ -236,7 +236,7 @@ public class RemoteFileSystemClientConnectorTestCase {
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
         clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
-        Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,
+        Assert.assertTrue(fileSystemListener.getThrowable() instanceof RemoteFileSystemConnectorException,
                 "Exception did not throw as expected.");
     }
 
@@ -292,7 +292,7 @@ public class RemoteFileSystemClientConnectorTestCase {
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
         clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
-        Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,
+        Assert.assertTrue(fileSystemListener.getThrowable() instanceof RemoteFileSystemConnectorException,
                 "Exception did not throw as expected.");
     }
 
@@ -329,7 +329,7 @@ public class RemoteFileSystemClientConnectorTestCase {
                 connectorFactory.createVFSClientConnector(parameters, fileSystemListener);
         clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
-        Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,
+        Assert.assertTrue(fileSystemListener.getThrowable() instanceof RemoteFileSystemConnectorException,
                 "Exception did not throw as expected.");
         Assert.assertFalse(fileSystem.exists(rootFolder + "/copy/file2-non-copy.txt"),
                 "Non exist file copied.");
@@ -390,7 +390,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertTrue(fileSystem.exists(rootFolder + "/file11.txt"), "File moved.");
-        Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,
+        Assert.assertTrue(fileSystemListener.getThrowable() instanceof RemoteFileSystemConnectorException,
                 "Exception did not throw as expected.");
     }
 
@@ -410,7 +410,7 @@ public class RemoteFileSystemClientConnectorTestCase {
         clientConnector.send(null);
         latch.await(3, TimeUnit.SECONDS);
         Assert.assertFalse(fileSystem.exists(rootFolder + "/move/file7-move.txt"), "File moved.");
-        Assert.assertTrue(fileSystemListener.getThrowable() instanceof ClientConnectorException,
+        Assert.assertTrue(fileSystemListener.getThrowable() instanceof RemoteFileSystemConnectorException,
                 "Exception did not throw as expected.");
     }
 

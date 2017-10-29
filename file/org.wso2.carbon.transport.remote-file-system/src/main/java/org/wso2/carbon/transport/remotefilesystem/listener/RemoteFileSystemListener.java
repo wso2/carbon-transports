@@ -29,8 +29,9 @@ public interface RemoteFileSystemListener {
      * Transport will trigger this method when for each file system notification.
      *
      * @param remoteFileSystemMessage contains the msg data.
+     * @return whether message delivery success or not.
      */
-    void onMessage(RemoteFileSystemBaseMessage remoteFileSystemMessage);
+    boolean onMessage(RemoteFileSystemBaseMessage remoteFileSystemMessage);
 
     /**
      * Notify error event triggered by transport to the listener.

@@ -38,10 +38,11 @@ public class TestReadActionListener implements RemoteFileSystemListener {
     }
 
     @Override
-    public void onMessage(RemoteFileSystemBaseMessage remoteFileSystemBaseMessage) {
+    public boolean onMessage(RemoteFileSystemBaseMessage remoteFileSystemBaseMessage) {
         RemoteFileSystemMessage message = (RemoteFileSystemMessage) remoteFileSystemBaseMessage;
         content = new String(message.getBytes().array());
         latch.countDown();
+        return true;
     }
 
     @Override

@@ -36,8 +36,9 @@ public class TestClientRemoteFileSystemListener implements RemoteFileSystemListe
     }
 
     @Override
-    public void onMessage(RemoteFileSystemBaseMessage remoteFileSystemEvent) {
+    public boolean onMessage(RemoteFileSystemBaseMessage remoteFileSystemEvent) {
         latch.countDown();
+        return true;
     }
 
     @Override

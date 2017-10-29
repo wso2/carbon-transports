@@ -29,11 +29,11 @@ import java.util.concurrent.TimeUnit;
 public class ThreadPoolFactory {
     private ExecutorService executorService;
 
-    public ThreadPoolFactory(int threadPoolSize, boolean parallel) {
-        if (parallel) {
-            executorService = Executors.newFixedThreadPool(threadPoolSize);
-        } else {
+    public ThreadPoolFactory(int threadPoolSize) {
+        if (threadPoolSize == 0) {
             executorService = Executors.newSingleThreadExecutor();
+        } else {
+            executorService = Executors.newFixedThreadPool(threadPoolSize);
         }
     }
 

@@ -61,8 +61,8 @@ public class RemoteFileSystemServerConnectorTestCase {
 
         fileSystem = new UnixFakeFileSystem();
         fileSystem.add(new DirectoryEntry(rootFolder));
-        fileSystem.add(new FileEntry("/home/wso2/file1.txt", "abcdef 1234567890"));
-        fileSystem.add(new FileEntry("/home/wso2/exe/run.exe"));
+        fileSystem.add(new FileEntry("/home/wso2/file1.txt", "some content 1234567890"));
+        fileSystem.add(new FileEntry("/home/wso2/exe/run.exe", "Test Value"));
         ftpServer.setFileSystem(fileSystem);
         ftpServer.start();
         serverPort = ftpServer.getServerControlPort();
@@ -153,7 +153,7 @@ public class RemoteFileSystemServerConnectorTestCase {
     public void invalidRootFolderTestCase() throws InterruptedException, RemoteFileSystemConnectorException {
         int expectedEventCount = 1;
         Map<String, String> parameters = new HashMap<>();
-        parameters.put(Constants.TRANSPORT_FILE_FILE_URI,
+        parameters.put(Constants.TRANSPORT_FILE_URI,
                 "ftp://" + username + ":" + password + "@localhost:" + serverPort + "/home/wso2/file1.txt");
         parameters.put(Constants.ACTION_AFTER_PROCESS, "NONE");
         parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "2000");
@@ -167,7 +167,7 @@ public class RemoteFileSystemServerConnectorTestCase {
             connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
         } catch (RemoteFileSystemConnectorException e) {
             Assert.assertEquals(e.getCause().getMessage(),
-                    "File system server connector is used to listen to a folder. " +
+                    "[TestService] File system server connector is used to listen to a folder. " +
                             "But the given path does not refer to a folder.");
             throw e;
         }
@@ -184,7 +184,7 @@ public class RemoteFileSystemServerConnectorTestCase {
 
     private Map<String, String> getPropertyMap(String action, boolean parallel) {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put(Constants.TRANSPORT_FILE_FILE_URI, buildConnectionURL());
+        parameters.put(Constants.TRANSPORT_FILE_URI, buildConnectionURL());
         parameters.put(Constants.ACTION_AFTER_PROCESS, action);
         parameters.put(org.wso2.carbon.connector.framework.server.polling.Constants.POLLING_INTERVAL, "2000");
         parameters.put(Constants.PARALLEL, String.valueOf(parallel));
