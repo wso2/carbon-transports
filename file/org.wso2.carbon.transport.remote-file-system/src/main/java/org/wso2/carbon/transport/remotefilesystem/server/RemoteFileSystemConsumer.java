@@ -64,8 +64,8 @@ public class RemoteFileSystemConsumer {
     private int fileProcessCount;
     private int processCount;
     private String fileNamePattern = null;
-    private String postProcessAction = Constants.ACTION_NONE;
-    private String postFailureAction = Constants.ACTION_NONE;
+    private String postProcessAction;
+    private String postFailureAction;
 
     private List<String> processed = new ArrayList<>();
     private List<String> processPending = new ArrayList<>();
@@ -118,15 +118,19 @@ public class RemoteFileSystemConsumer {
     /**
      * Setup the required transport parameters from properties provided.
      */
-    private void setupParams() {
+    private void setupParams() throws RemoteFileSystemConnectorException {
         listeningDirURI = fileProperties.get(Constants.TRANSPORT_FILE_URI);
         if (listeningDirURI == null) {
-            remoteFileSystemListener.onError(new RemoteFileSystemConnectorException(
-                    Constants.TRANSPORT_FILE_URI + " is a mandatory parameter for FTP transport."));
+            final RemoteFileSystemConnectorException exception = new RemoteFileSystemConnectorException(
+                    Constants.TRANSPORT_FILE_URI + " is a mandatory parameter for FTP transport.");
+            remoteFileSystemListener.onError(exception);
+            throw exception;
         } else if (listeningDirURI.trim().isEmpty()) {
-            remoteFileSystemListener.onError(new
-                    RemoteFileSystemConnectorException("[" + serviceName + "] " + Constants.TRANSPORT_FILE_URI + " " +
-                    "parameter cannot be empty for FTP transport."));
+            final RemoteFileSystemConnectorException e =
+                    new RemoteFileSystemConnectorException("[" + serviceName + "] "
+                            + Constants.TRANSPORT_FILE_URI + " parameter cannot be empty for FTP transport.");
+            remoteFileSystemListener.onError(e);
+            throw e;
         }
         String strParallel;
         if ((strParallel = fileProperties.get(Constants.PARALLEL)) != null) {
@@ -156,8 +160,14 @@ public class RemoteFileSystemConsumer {
                     postFailureAction = Constants.ACTION_DELETE;
                     break;
                 default:
-                    //TODO validate
-                    postFailureAction = Constants.ACTION_NONE;
+                    final RemoteFileSystemConnectorException e =
+                            new RemoteFileSystemConnectorException("[" + serviceName + "] "
+                                    + Constants.ACTION_AFTER_FAILURE + " parameter cannot be empty. " +
+                                    "Accepted values are [" + Constants.ACTION_NONE + ", " +
+                                    Constants.ACTION_MOVE + ", " +
+                                    Constants.ACTION_DELETE + "]");
+                    remoteFileSystemListener.onError(e);
+                    throw e;
             }
         }
         if (fileProperties.get(Constants.ACTION_AFTER_PROCESS) != null) {
@@ -172,8 +182,14 @@ public class RemoteFileSystemConsumer {
                     postProcessAction = Constants.ACTION_DELETE;
                     break;
                 default:
-                    //TODO validate
-                    postProcessAction = Constants.ACTION_NONE;
+                    final RemoteFileSystemConnectorException e =
+                            new RemoteFileSystemConnectorException("[" + serviceName + "] "
+                                    + Constants.ACTION_AFTER_PROCESS + " parameter cannot be empty. " +
+                                    "Accepted values are [" + Constants.ACTION_NONE + ", " +
+                                    Constants.ACTION_MOVE + ", " +
+                                    Constants.ACTION_DELETE + "]");
+                    remoteFileSystemListener.onError(e);
+                    throw e;
             }
         }
         String strPattern;
