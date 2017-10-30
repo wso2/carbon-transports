@@ -41,9 +41,9 @@ public interface JMSConnectorFactory {
 
     /**
      * Returns an instance of the {@link JMSClientConnector} class.
-     *
+     * @param propertyMap       properties required for the {@link JMSClientConnector} class.
      * @return jmsClientConnector   instance.
      * @throws JMSConnectorException if any error occurred when creating the client connector.
      */
-    JMSClientConnector createClientConnector() throws JMSConnectorException;
+    JMSClientConnector createClientConnector(Map<String, String> propertyMap) throws JMSConnectorException;
 }

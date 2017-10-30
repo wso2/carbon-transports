@@ -18,18 +18,18 @@
 
 package org.wso2.carbon.transport.jms.receiver;
 
-import org.wso2.carbon.transport.jms.contract.JMSServerConnectorFuture;
+import org.wso2.carbon.transport.jms.contract.JMSListener;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.factory.JMSConnectionFactory;
+import org.wso2.carbon.transport.jms.factory.JMSServerConnectionFactory;
 
 /**
  * The {@link JMSMessageConsumerBuilder} used to consume messages in carbon jms transport.
  */
 public class JMSMessageConsumerBuilder {
     /**
-     * The {@link JMSConnectionFactory} instance which is used to create the consumer.
+     * The {@link JMSServerConnectionFactory} instance which is used to create the consumer.
      */
-    private JMSConnectionFactory connectionFactory = null;
+    private JMSServerConnectionFactory connectionFactory = null;
 
     /**
      * Tells to use a message receiver instead of a message listener.
@@ -42,19 +42,10 @@ public class JMSMessageConsumerBuilder {
     private String serviceId;
 
     /**
-     * The {@link JMSServerConnectorFuture} instance represents the carbon message processor that handles the incoming
+     * The {@link JMSListener} instance represents the message listener that handles the incoming
      * messages.
      */
-    private JMSServerConnectorFuture jmsServerConnectorFuture;
-
-    /**
-     * The {@link String} instance represents the jms connection username.
-     */
-    private String username;
-    /**
-     * The {@link String} instance represents the jms connection password.
-     */
-    private String password;
+    private JMSListener jmsListener;
 
     /**
      * The retry interval (in milli seconds) if the connection is lost or if the connection cannot be established.
@@ -69,28 +60,18 @@ public class JMSMessageConsumerBuilder {
      * Initialize the builder with mandatory properties.
      *
      * @param connectionFactory The connection factory to use when creating the JMS connection
-     * @param jmsServerConnectorFuture The message processor who is going to process the consumed messages from this
+     * @param jmsListener The message listener who is going to process the consumed messages from this
      * @param serviceId The service Id which invoked this consumer
      */
-    public JMSMessageConsumerBuilder(JMSConnectionFactory connectionFactory,
-                                     JMSServerConnectorFuture jmsServerConnectorFuture, String serviceId) {
+    public JMSMessageConsumerBuilder(JMSServerConnectionFactory connectionFactory,
+                                     JMSListener jmsListener, String serviceId) {
         this.connectionFactory = connectionFactory;
-        this.jmsServerConnectorFuture = jmsServerConnectorFuture;
+        this.jmsListener = jmsListener;
         this.serviceId = serviceId;
     }
 
     public JMSMessageConsumerBuilder setUseReceiver(boolean useReceiver) {
         this.useReceiver = useReceiver;
-        return this;
-    }
-
-    public JMSMessageConsumerBuilder setUsername(String username) {
-        this.username = username;
-        return this;
-    }
-
-    public JMSMessageConsumerBuilder setPassword(String password) {
-        this.password = password;
         return this;
     }
 
@@ -111,8 +92,8 @@ public class JMSMessageConsumerBuilder {
      * @throws JMSConnectorException If initializing the consumer fails
      */
     public JMSMessageConsumer build() throws JMSConnectorException {
-        return new JMSMessageConsumer(connectionFactory, useReceiver, jmsServerConnectorFuture, serviceId, username,
-                password, retryInterval, maxRetryCount);
+        return new JMSMessageConsumer(connectionFactory, useReceiver, jmsListener, serviceId,
+                retryInterval, maxRetryCount);
     }
 
 }

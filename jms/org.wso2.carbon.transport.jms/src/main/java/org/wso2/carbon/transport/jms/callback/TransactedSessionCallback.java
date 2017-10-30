@@ -18,9 +18,7 @@
 
 package org.wso2.carbon.transport.jms.callback;
 
-import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import javax.jms.Session;
 
@@ -33,32 +31,29 @@ public class TransactedSessionCallback extends JMSCallback {
      * Creates a call back for the transacted session.
      *
      * @param session JMS Session connected with this callback
-     * @param caller {@link Object} The caller object which needs to wait for the jms acknowledgement to be completed
      */
-    public TransactedSessionCallback(Session session, Object caller) {
-        super(session, caller);
+    public TransactedSessionCallback(Session session) {
+        super(session);
+    }
+
+    @Override
+    public int getAcknowledgementMode() {
+        return Session.SESSION_TRANSACTED;
     }
 
     /**
-     * Commits the jms session or rollback if there was an error then notify the caller about operation completion.
-     *
-     * @param carbonMessage The received carbon message
+     * Update the status of the transaction to the side of the JMS transport by reading the status provided by the
+     * Ballerina
      */
-    @Override
-    public void done(CarbonMessage carbonMessage) {
-
+    public void updateTransactionStatus() {
         try {
-            if (carbonMessage.getProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS)
-                    .equals(JMSConstants.JMS_MESSAGE_DELIVERY_SUCCESS)) {
-
+            if (isSuccess()) {
                 commitSession();
             } else {
                 rollbackSession();
             }
         } catch (JMSConnectorException e) {
             throw new RuntimeException("Error completing the transaction callback operation", e);
-        } finally {
-            markAsComplete();
         }
     }
 }

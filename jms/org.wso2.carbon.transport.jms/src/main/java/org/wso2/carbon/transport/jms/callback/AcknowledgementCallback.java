@@ -18,9 +18,7 @@
 
 package org.wso2.carbon.transport.jms.callback;
 
-import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
-import org.wso2.carbon.transport.jms.utils.JMSConstants;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -39,33 +37,31 @@ public class AcknowledgementCallback extends JMSCallback {
      * Creates a acknowledgement call back to acknowledge or recover messages in client acknowledgement mode
      *
      * @param session {@link Session} JMS session related with this call back
-     * @param caller {@link Object} The caller object which needs to wait for the jms acknowledgement to be completed
      * @param message {@link Message} JMS message related with this call back
      */
-    public AcknowledgementCallback(Session session, Object caller, Message message) {
-        super(session, caller);
+    public AcknowledgementCallback(Session session, Message message) {
+        super(session);
         this.message = message;
     }
 
-    /**
-     * Acknowledges the received message or recovers the session if there was an error then notify the caller.
-     *
-     * @param carbonMessage The received message
-     */
     @Override
-    public void done(CarbonMessage carbonMessage) {
+    public int getAcknowledgementMode() {
+        return Session.CLIENT_ACKNOWLEDGE;
+    }
 
+    /**
+     * Update the status of the transaction to the side of the JMS transport by reading the status provided by the
+     * Ballerina
+     */
+    public void updateAcknowledgementStatus() {
         try {
-            if (carbonMessage.getProperty(JMSConstants.JMS_MESSAGE_DELIVERY_STATUS).toString()
-                    .equalsIgnoreCase(JMSConstants.JMS_MESSAGE_DELIVERY_SUCCESS)) {
+            if (isSuccess()) {
                 message.acknowledge();
             } else {
                 recoverSession();
             }
         } catch (JMSException | JMSConnectorException e) {
-            throw new RuntimeException("Error completing the acknowledgement callback", e);
-        } finally {
-            markAsComplete();
+            throw new RuntimeException("Error completing the transaction callback operation", e);
         }
     }
 }
