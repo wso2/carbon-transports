@@ -37,10 +37,11 @@ public class TestExistActionListener implements RemoteFileSystemListener {
     }
 
     @Override
-    public void onMessage(RemoteFileSystemBaseMessage remoteFileSystemBaseMessage) {
+    public boolean onMessage(RemoteFileSystemBaseMessage remoteFileSystemBaseMessage) {
         RemoteFileSystemMessage message = (RemoteFileSystemMessage) remoteFileSystemBaseMessage;
         fileExist = Boolean.parseBoolean(message.getText());
         latch.countDown();
+        return true;
     }
 
     @Override

@@ -23,13 +23,31 @@ package org.wso2.carbon.transport.remotefilesystem.message;
  */
 public class RemoteFileSystemEvent extends RemoteFileSystemBaseMessage {
 
-    private final String text;
+    private final String uri;
+    private long fileSize;
+    private long lastModifiedTime;
 
-    public RemoteFileSystemEvent(String text) {
-        this.text = text;
+    public RemoteFileSystemEvent(String uri) {
+        this.uri = uri;
     }
 
-    public String getText() {
-        return this.text;
+    public String getUri() {
+        return this.uri;
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public long getLastModifiedTime() {
+        return lastModifiedTime;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public void setLastModifiedTime(long lastModifiedTime) {
+        this.lastModifiedTime = lastModifiedTime;
     }
 }
