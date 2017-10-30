@@ -27,7 +27,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <packaging>bundle</packaging>
+    <packaging>jar</packaging>
     <name>WSO2 Carbon Transport Email Component</name>
     <artifactId>org.wso2.carbon.transport.email</artifactId>
 
@@ -36,14 +36,14 @@
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
-            <artifactId>org.eclipse.osgi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
-            <artifactId>org.eclipse.osgi.services</artifactId>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.wso2.eclipse.osgi</groupId>-->
+            <!--<artifactId>org.eclipse.osgi</artifactId>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.wso2.eclipse.osgi</groupId>-->
+            <!--<artifactId>org.eclipse.osgi.services</artifactId>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -97,17 +97,20 @@
         </plugins>
     </build>
 
-    <properties>
-        <export.package>
-            org.wso2.carbon.transport.email.*;version="${email.transport.package.export.version}"
-        </export.package>
-        <import.package>
-            org.osgi.framework.*;version="${osgi.framework.import.version.range}",
-            org.osgi.util.tracker;version="${osgi.service.tracker.import.version.range}",
-            org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
-            org.wso2.carbon.messaging.*;version="${carbon.messaging.package.import.version.range}",
-            com.sun.mail.*;version="${com.sun.mail.import.version.range}",
-            org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}",
-        </import.package>
-    </properties>
+    <!--<properties>-->
+        <!--<export.package>-->
+            <!--org.wso2.carbon.transport.email.*;version="${email.transport.package.export.version}"-->
+        <!--</export.package>-->
+        <!--<import.package>-->
+            <!--org.osgi.framework.*;version="${osgi.framework.import.version.range}",-->
+            <!--org.osgi.util.tracker;version="${osgi.service.tracker.import.version.range}",-->
+            <!--org.slf4j.*;version="${slf4j.logging.package.import.version.range}",-->
+            <!--org.wso2.carbon.messaging.*;version="${carbon.messaging.package.import.version.range}",-->
+            <!--com.sun.mail.*;version="${com.sun.mail.import.version.range}",-->
+            <!--org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}",-->
+        <!--</import.package>-->
+        <!--<carbon.component>-->
+            <!--osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"-->
+        <!--</carbon.component>-->
+    <!--</properties>-->
 </project>

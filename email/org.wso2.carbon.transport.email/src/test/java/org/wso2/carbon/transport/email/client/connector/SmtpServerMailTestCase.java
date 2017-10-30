@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.email.server.client.connector;
+package org.wso2.carbon.transport.email.client.connector;
 
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetupTest;
@@ -32,7 +32,7 @@ import org.wso2.carbon.transport.email.contract.EmailConnectorFactory;
 import org.wso2.carbon.transport.email.contract.message.EmailBaseMessage;
 import org.wso2.carbon.transport.email.contract.message.EmailTextMessage;
 import org.wso2.carbon.transport.email.exception.EmailConnectorException;
-import org.wso2.carbon.transport.email.server.utils.EmailTestConstant;
+import org.wso2.carbon.transport.email.utils.EmailTestConstant;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -75,7 +75,7 @@ public class SmtpServerMailTestCase {
     }
 
     @Test(description = "Test case to send emails via smtp server.")
-    public void sendingEmailViaSmtpServerTestCase1()
+    public void sendingEmailViaSmtpServerTestCase()
             throws Exception {
         // create user on mail server
         mailServer.setUser(ADDRESS, USERNAME, PASSWORD);
@@ -84,6 +84,9 @@ public class SmtpServerMailTestCase {
         clientConnector.init(initProperties);
         EmailBaseMessage emailMessage = createEmailMessage("This is test message", "text/plain",
                 "This is test message", "to@localhost", "cc@localhost", "bcc@localhost");
+        emailMessage.setHeader(EmailTestConstant.MAIL_HEADER_IN_REPLY_TO, "ab@localHost");
+        emailMessage.setHeader(EmailTestConstant.MAIL_HEADER_REPLY_TO, "replyto@localHost");
+        emailMessage.setHeader(EmailTestConstant.MAIL_HEADER_MESSAGE_ID, "1234");
         clientConnector.send(emailMessage);
         Thread.sleep(1000);
         MimeMessage[] messages = mailServer.getReceivedMessages();
@@ -99,7 +102,7 @@ public class SmtpServerMailTestCase {
         EmailConnectorFactory connectorFactory = new EmailConnectorFactoryImpl();
         EmailClientConnector clientConnector = connectorFactory.createEmailClientConnector();
         clientConnector.init(initProperties);
-        EmailBaseMessage emailMessage = createEmailMessage("This is test message", "text/plain",
+        EmailBaseMessage emailMessage = createEmailMessage("This is test message", "text/html",
                 "This is test message", "to1@localhost, to2@localhost, to3@localhost", null, null);
         clientConnector.send(emailMessage);
         Thread.sleep(1000);
@@ -107,7 +110,22 @@ public class SmtpServerMailTestCase {
         Assert.assertEquals(messages.length, 3);
     }
 
-    @Test(description = "Test case to send emails via smtp server with wait is zero.")
+    @Test(description = "Test case to test invalid contentType is given",
+            expectedExceptions = EmailConnectorException.class)
+    public void invalidContentTypeIsGiven()
+            throws IOException, MessagingException, ClientConnectorException, InterruptedException,
+            EmailConnectorException {
+        // create user on mail server
+        mailServer.setUser(ADDRESS, USERNAME, PASSWORD);
+        EmailConnectorFactory connectorFactory = new EmailConnectorFactoryImpl();
+        EmailClientConnector clientConnector = connectorFactory.createEmailClientConnector();
+        clientConnector.init(initProperties);
+        EmailBaseMessage emailMessage = createEmailMessage("This is test message", "attachment",
+                "This is test message", "to1@localhost, to2@localhost, to3@localhost", null, null);
+        clientConnector.send(emailMessage);
+    }
+
+    @Test(description = "Test case to send emails via smtp server with wait time to close the connection is zero.")
     public void sendingWithWaitTimeToCloseConnectionIsZero()
             throws IOException, MessagingException, ClientConnectorException, InterruptedException,
             EmailConnectorException {
@@ -130,6 +148,45 @@ public class SmtpServerMailTestCase {
         Thread.sleep(1000);
         MimeMessage[] messages = mailServer.getReceivedMessages();
         Assert.assertEquals(messages.length, 2);
+    }
+
+    @Test(description = "Test case user name is not given in server parameters.",
+            expectedExceptions = EmailConnectorException.class)
+    public void usernameIsNotGivenTestCase()
+            throws IOException, MessagingException, ClientConnectorException, InterruptedException,
+            EmailConnectorException {
+        // create user on mail server
+        mailServer.setUser(ADDRESS, USERNAME, PASSWORD);
+        initProperties.put(EmailTestConstant.MAIL_SENDER_USERNAME, null);
+        EmailConnectorFactory connectorFactory = new EmailConnectorFactoryImpl();
+        EmailClientConnector clientConnector = connectorFactory.createEmailClientConnector();
+        clientConnector.init(initProperties);
+    }
+
+    @Test(description = "Test case where password is not given in server parameters.",
+            expectedExceptions = EmailConnectorException.class)
+    public void passwordIsNotGivenTestCase()
+            throws IOException, MessagingException, ClientConnectorException, InterruptedException,
+            EmailConnectorException {
+        // create user on mail server
+        mailServer.setUser(ADDRESS, USERNAME, PASSWORD);
+        initProperties.put(EmailTestConstant.MAIL_SENDER_PASSWORD, null);
+        EmailConnectorFactory connectorFactory = new EmailConnectorFactoryImpl();
+        EmailClientConnector clientConnector = connectorFactory.createEmailClientConnector();
+        clientConnector.init(initProperties);
+    }
+
+    @Test(description = "Test case where invalid server is given in server parameters.",
+            expectedExceptions = EmailConnectorException.class)
+    public void invalidServerParameterIsGivenTestCase()
+            throws IOException, MessagingException, ClientConnectorException, InterruptedException,
+            EmailConnectorException {
+        // create user on mail server
+        mailServer.setUser(ADDRESS, USERNAME, PASSWORD);
+        initProperties.put("mail.smtp.port", "3000");
+        EmailConnectorFactory connectorFactory = new EmailConnectorFactoryImpl();
+        EmailClientConnector clientConnector = connectorFactory.createEmailClientConnector();
+        clientConnector.init(initProperties);
     }
 
     /**

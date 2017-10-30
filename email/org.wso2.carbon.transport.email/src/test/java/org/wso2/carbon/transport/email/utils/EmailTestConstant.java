@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.email.server.utils;
+package org.wso2.carbon.transport.email.utils;
 
 /**
  * Constant needed in Email Connector Test Cases.
@@ -31,6 +31,8 @@ public class EmailTestConstant {
      */
     public static final String POLLING_INTERVAL = "pollingInterval";
     public static final String POLLING_INTERVAL_VALUE = "3000";
+    public static final String MAX_RETRY_COUNT = "retryCount";
+    public static final String RETRY_INTERVAL = "retryInterval";
 
     /**
      * Email Receiver properties
@@ -41,6 +43,7 @@ public class EmailTestConstant {
     public static final String MAIL_RECEIVER_HOST_NAME = "hostName";
     public static final String MAIL_RECEIVER_FOLDER_NAME = "folderName";
     public static final String FOLDER_NAME = "INBOX";
+    public static final String CONTENT_TYPE = "contentType";
 
     /**
      * Action that has to carry out after processing the email.
@@ -88,6 +91,9 @@ public class EmailTestConstant {
     public static final String MAIL_HEADER_SUBJECT = "Subject";
     public static final String MAIL_HEADER_CONTENT_TYPE = "Content-Type";
     public static final String MAIL_PROPERTY_UID = "messageUid";
+    public static final String MAIL_HEADER_REPLY_TO = "Reply-To";
+    public static final String MAIL_HEADER_IN_REPLY_TO = "In-Reply-To";
+    public static final String MAIL_HEADER_MESSAGE_ID = "Message-ID";
 
     public static final String MAIL_IMAP_PORT = "mail.imap.port";
     public static final String MAIL_IMAP_PORT_VALUE = "3143";

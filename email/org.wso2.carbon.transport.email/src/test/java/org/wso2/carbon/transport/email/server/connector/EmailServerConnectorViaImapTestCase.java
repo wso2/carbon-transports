@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.transport.email.server.server.connector;
+package org.wso2.carbon.transport.email.server.connector;
 
 import com.icegreen.greenmail.user.GreenMailUser;
 import com.icegreen.greenmail.util.GreenMail;
@@ -31,8 +31,8 @@ import org.wso2.carbon.transport.email.connector.factory.EmailConnectorFactoryIm
 import org.wso2.carbon.transport.email.contract.EmailConnectorFactory;
 import org.wso2.carbon.transport.email.contract.EmailServerConnector;
 import org.wso2.carbon.transport.email.exception.EmailConnectorException;
-import org.wso2.carbon.transport.email.server.utils.EmailTestConstant;
-import org.wso2.carbon.transport.email.server.utils.TestEmailMessageListener;
+import org.wso2.carbon.transport.email.utils.EmailTestConstant;
+import org.wso2.carbon.transport.email.utils.TestEmailMessageListener;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -447,7 +447,7 @@ public class EmailServerConnectorViaImapTestCase {
     }
 
     @Test(description = "Test the scenario: receiving messages via imap server when multiple conditions"
-            + " are defined in search term.", expectedExceptions = EmailConnectorException.class)
+            + " are defined in search term in invalid format.", expectedExceptions = EmailConnectorException.class)
     public void searchByWrongConditionTestCase()
             throws MessagingException, InterruptedException, EmailConnectorException {
 
@@ -479,7 +479,7 @@ public class EmailServerConnectorViaImapTestCase {
                 "from2@localhost.com",
                 "carbon@localhost.com", "cc2@localhost.com", "bcc2@localhost.com", "text/html");
 
-        emailProperties.put("contentType", EmailTestConstant.CONTENT_TYPE_TEXT_HTML);
+        emailProperties.put(EmailTestConstant.CONTENT_TYPE, EmailTestConstant.CONTENT_TYPE_TEXT_HTML);
 
         EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
         TestEmailMessageListener messageListener = new TestEmailMessageListener();
@@ -519,6 +519,91 @@ public class EmailServerConnectorViaImapTestCase {
         emailServerConnector.destroy();
     }
 
+    @Test(description = "Test the scenario: password is not given",
+            expectedExceptions = EmailConnectorException.class)
+    public void  userNameNotTestCase()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.MAIL_RECEIVER_USERNAME, null);
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+    }
+
+    @Test(description = "Test the scenario: password is not given",
+            expectedExceptions = EmailConnectorException.class)
+    public void  passwordNotTestCase()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.MAIL_RECEIVER_PASSWORD, null);
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+    }
+
+    @Test(description = "Test the scenario: host name is not given",
+            expectedExceptions = EmailConnectorException.class)
+    public void  hostNameNotTestCase()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.MAIL_RECEIVER_HOST_NAME, null);
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+    }
+
+    @Test(description = "Test the scenario: store type name is not given",
+            expectedExceptions = EmailConnectorException.class)
+    public void  storeTypeNotTestCase()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.MAIL_RECEIVER_STORE_TYPE, null);
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+    }
+
+    @Test(description = "Test the scenario: invalid content type is given",
+            expectedExceptions = EmailConnectorException.class)
+    public void  invalidContentTypeTestCase()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.CONTENT_TYPE, "attachment");
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+    }
+
     @Test(description = "Test the scenario: invalid server parameters are given",
             expectedExceptions = EmailConnectorException.class)
     public void  invalidServerParametersTestCase()
@@ -534,6 +619,96 @@ public class EmailServerConnectorViaImapTestCase {
         EmailServerConnector emailServerConnector = emailConnectorFactory
                 .createEmailServerConnector("testEmail", emailProperties);
         emailServerConnector.init();
+    }
+
+    @Test(description = "Test the scenario: invalid server parameters are with retryCount and retryInterval",
+            expectedExceptions = EmailConnectorException.class)
+    public void  invalidServerParameterAndRetryCountIsGivenTestCase()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.MAIL_IMAP_PORT, "100");
+        emailProperties.put(EmailTestConstant.MAX_RETRY_COUNT, "3");
+        emailProperties.put(EmailTestConstant.RETRY_INTERVAL, "100");
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+    }
+
+    @Test(description = "Test the scenario: invalid retry Count is given",
+            expectedExceptions = EmailConnectorException.class)
+    public void  invalidRetryCountIsGivenTestCase()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.MAX_RETRY_COUNT, "three");
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+    }
+
+    @Test(description = "Test the scenario: invalid retry interval is given",
+            expectedExceptions = EmailConnectorException.class)
+    public void  invalidRetryIntervalTestCase()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.RETRY_INTERVAL, "1000K");
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+    }
+
+    @Test(description = "Test the scenario: invalid action after processed is given",
+            expectedExceptions = EmailConnectorException.class)
+    public void  invalidActionIsGiven()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.ACTION_AFTER_PROCESSED, "remove");
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+        emailServerConnector.start(messageListener);
+    }
+
+    @Test(description = "Test the scenario: invalid action after processed is given move and folder to move"
+            + " is not given",
+            expectedExceptions = EmailConnectorException.class)
+    public void  folderToMoveIsNotGiven()
+            throws MessagingException, ServerConnectorException, InterruptedException {
+
+        GreenMailUser user = mailServer.setUser(ADDRESS, USER_NAME, PASSWORD);
+
+        emailProperties.put(EmailTestConstant.ACTION_AFTER_PROCESSED, "MOVE");
+
+        EmailConnectorFactory emailConnectorFactory = new EmailConnectorFactoryImpl();
+        TestEmailMessageListener messageListener = new TestEmailMessageListener();
+        messageListener.setNumberOfEvent(1);
+        EmailServerConnector emailServerConnector = emailConnectorFactory
+                .createEmailServerConnector("testEmail", emailProperties);
+        emailServerConnector.init();
+        emailServerConnector.start(messageListener);
     }
 
     @Test(description = "Test the scenario: Connect with minimum parameters required")
