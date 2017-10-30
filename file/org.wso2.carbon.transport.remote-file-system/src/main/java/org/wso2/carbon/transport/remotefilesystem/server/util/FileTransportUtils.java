@@ -29,7 +29,6 @@ import org.wso2.carbon.transport.remotefilesystem.Constants;
 import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -59,28 +58,24 @@ public class FileTransportUtils {
     public static FileSystemOptions attachFileSystemOptions(Map<String, String> options, FileSystemManager fsManager)
             throws RemoteFileSystemConnectorException {
         if (options == null) {
-            return null;    //returning null as this is not an errorneous case.
+            return null;    //returning null as this is not an erroneous case.
         }
         FileSystemOptions opts = new FileSystemOptions();
         DelegatingFileSystemOptionsBuilder delegate = new DelegatingFileSystemOptionsBuilder(fsManager);
         if (Constants.SCHEME_SFTP.equals(options.get(Constants.SCHEME))) {
-            Iterator itr = options.entrySet().iterator();
-
-            while (itr.hasNext()) {
-                Map.Entry<String, String> entry = (Map.Entry<String, String>) itr.next();
-                Constants.SftpFileOption[] array = Constants.SftpFileOption.values();
-                int length = array.length;
-
-                for (int i = 0; i < length; ++i) {
-                    Constants.SftpFileOption option = array[i];
-                    if (entry.getKey().equals(option.toString()) && null != entry.getValue()) {
+            Constants.SftpFileOption[] array = Constants.SftpFileOption.values();
+            outer:
+            for (Constants.SftpFileOption fileOption : array) {
+                for (Map.Entry<String, String> entry : options.entrySet()) {
+                    if (entry.getValue() != null && entry.getKey().equals(fileOption.toString())) {
                         try {
                             delegate.setConfigString(opts, Constants.SCHEME_SFTP,
                                     entry.getKey().toLowerCase(Locale.getDefault()), entry.getValue());
+                            continue outer;
                         } catch (FileSystemException e) {
                             throw new RemoteFileSystemConnectorException(
                                     "Failed to set file transport configuration for scheme: "
-                                            + Constants.SCHEME_SFTP + " and option: " + option.toString(), e);
+                                            + Constants.SCHEME_SFTP + " and option: " + fileOption.toString(), e);
                         }
                     }
                 }
@@ -158,9 +153,7 @@ public class FileTransportUtils {
         } catch (FileSystemException e) {
             return false;
         }
-
         FileObject lockObject = null;
-
         try {
             // check whether there is an existing lock for this item, if so it is assumed
             // to be processed by an another listener (downloading) or a sender (uploading)
@@ -172,12 +165,16 @@ public class FileTransportUtils {
             }
             lockObject = fsManager.resolveFile(fullPath + ".lock", fsOpts);
             if (lockObject.exists()) {
-                log.debug("There seems to be an external lock, aborting the processing of the file " +
-                          maskURLPassword(fileObject.getName().getURI()) +
-                          ". This could possibly be due to some other party already " +
-                          "processing this file or the file is still being uploaded");
+                if (log.isDebugEnabled()) {
+                    log.debug("There seems to be an external lock, aborting the processing of the file " +
+                            maskURLPassword(fileObject.getName().getURI()) +
+                            ". This could possibly be due to some other party already " +
+                            "processing this file or the file is still being uploaded");
+                }
             } else if (processing.contains(fullPath)) {
-                log.debug(maskURLPassword(fileObject.getName().getURI()) + "is already being processed.");
+                if (log.isDebugEnabled()) {
+                    log.debug(maskURLPassword(fileObject.getName().getURI()) + "is already being processed.");
+                }
             } else {
                 //Check the original file existence before the lock file to handle concurrent access scenario
                 FileObject originalFileObject = fsManager.resolveFile(fullPath, fsOpts);

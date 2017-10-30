@@ -29,7 +29,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.transport.remote-file-system</artifactId>
-    <packaging>bundle</packaging>
+    <packaging>jar</packaging>
     <name>WSO2 Carbon Transport Remote File System Component</name>
     <description>Carbon Remote File System Transport</description>
 
@@ -46,18 +46,18 @@
             <groupId>org.apache.commons.wso2</groupId>
             <artifactId>commons-vfs2</artifactId>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.wso2.eclipse.osgi</groupId>
             <artifactId>org.eclipse.osgi</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.eclipse.osgi</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
-        </dependency>
-        <dependency>
+        </dependency>-->
+       <!-- <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jsch</artifactId>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
@@ -75,6 +75,11 @@
         <dependency>
             <groupId>org.mockftpserver</groupId>
             <artifactId>MockFtpServer</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -109,7 +114,7 @@
             </plugin>
         </plugins>
     </build>
-    <properties>
+    <!--<properties>
         <export.package>
             org.wso2.carbon.transport.remotefilesystem.*;version="${file.transport.package.export.version}"
         </export.package>
@@ -119,8 +124,7 @@
             org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
             org.wso2.carbon.messaging.*;version="${carbon.messaging.package.import.version.range}",
             org.wso2.carbon.connector.framework.*;version="${connector.framework.package.export.version}",
-            org.apache.commons.vfs2.*;version="${commons-vfs2.wso2.version.range}",
-            com.jcraft.jsch.*;version="${jsch.version}"
+            org.apache.commons.vfs2.*;version="${commons-vfs2.wso2.version.range}"
         </import.package>
         <bundle.activator>
             org.wso2.carbon.transport.remotefilesystem.internal.RemoteFileSystemConnectorBundleActivator
@@ -128,5 +132,5 @@
         <carbon.component>
             osgi.service; objectClass="org.wso2.carbon.messaging.ServerConnectorProvider"
         </carbon.component>
-    </properties>
+    </properties>-->
 </project>

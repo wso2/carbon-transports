@@ -43,11 +43,12 @@ public class TestServerRemoteFileSystemListener implements RemoteFileSystemListe
     }
 
     @Override
-    public void onMessage(RemoteFileSystemBaseMessage remoteFileSystemEvent) {
-        eventQueue.add(((RemoteFileSystemEvent) remoteFileSystemEvent).getText());
+    public boolean onMessage(RemoteFileSystemBaseMessage remoteFileSystemEvent) {
+        eventQueue.add(((RemoteFileSystemEvent) remoteFileSystemEvent).getUri());
         if (++eventCounter >= this.expectedEventCount) {
             latch.countDown();
         }
+        return true;
     }
 
     @Override
@@ -65,7 +66,7 @@ public class TestServerRemoteFileSystemListener implements RemoteFileSystemListe
         return eventQueue;
     }
 
-    public Throwable getThrowable() {
+    Throwable getThrowable() {
         return throwable;
     }
 }
