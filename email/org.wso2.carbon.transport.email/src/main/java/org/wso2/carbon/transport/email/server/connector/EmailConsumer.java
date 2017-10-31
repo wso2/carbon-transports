@@ -311,7 +311,7 @@ public class EmailConsumer {
 
                 if (log.isDebugEnabled()) {
                     log.debug("Attempting to connect to '" + storeType + "' server for : " + emailProperties
-                            .get(Constants.MAIL_RECEIVER_USERNAME) + " using " + session.getProperties());
+                            .get(Constants.MAIL_RECEIVER_USERNAME));
                 }
                 store.connect(host, username, password);
 
