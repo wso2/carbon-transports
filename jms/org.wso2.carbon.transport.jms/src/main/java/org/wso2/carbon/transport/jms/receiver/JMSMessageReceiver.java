@@ -129,4 +129,11 @@ public class JMSMessageReceiver implements Runnable, Thread.UncaughtExceptionHan
         running = false;
         logger.error("Unexpected error occurred while receiving messages", error);
     }
+
+    /**
+     * Change the state of the message receiver to stop the thread.
+     */
+    public void stopMessageReceiver() {
+        this.running = false;
+    }
 }

@@ -171,8 +171,15 @@ public class JMSClientConnectionFactory extends JMSConnectionResourceFactory {
      *
      * @param sessionWrapper SessionWrapper instance.
      */
-    public void returnSessionWrapper(SessionWrapper sessionWrapper) {
-        sessionPool.returnObject(sessionWrapper);
+    public void returnSessionWrapper(SessionWrapper sessionWrapper) throws JMSConnectorException {
+        try {
+            sessionPool.returnObject(sessionWrapper);
+        } catch (IllegalStateException e) {
+            /* Catching the runtime exception here because it can be ignored in some situations where
+             * the pool is already closed and re-initialized due to a Connection level exception.
+             */
+            throw new JMSConnectorException("Unable to return session instance to the pool. ", e);
+        }
     }
 
     /**

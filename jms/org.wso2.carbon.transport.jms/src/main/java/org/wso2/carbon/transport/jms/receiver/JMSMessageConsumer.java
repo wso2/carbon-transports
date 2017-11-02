@@ -95,6 +95,11 @@ public class JMSMessageConsumer implements MessageConsumer {
     private int maxRetryCount = 5;
 
     /**
+     * Message receiver instance.
+     */
+    private JMSMessageReceiver messageReceiver;
+
+    /**
      * Create a JMS message consumer and start consuming messages.
      *
      * @param connectionFactory The connection factory to use when creating the connection.
@@ -168,6 +173,9 @@ public class JMSMessageConsumer implements MessageConsumer {
      */
     public void closeAll() throws JMSConnectorException {
         try {
+            if (useReceiver) {
+                messageReceiver.stopMessageReceiver();
+            }
             connectionFactory.closeConsumer(messageConsumer);
             connectionFactory.closeSession(session);
             connectionFactory.closeConnection(connection);
@@ -206,8 +214,7 @@ public class JMSMessageConsumer implements MessageConsumer {
         if (logger.isDebugEnabled()) {
             logger.debug("Creating message receiver for service " + serviceId);
         }
-        JMSMessageReceiver messageReceiver =
-                new JMSMessageReceiver(jmsListener, serviceId, session, this);
+        messageReceiver = new JMSMessageReceiver(jmsListener, serviceId, session, this);
         messageReceiver.receive();
     }
 
@@ -254,4 +261,3 @@ public class JMSMessageConsumer implements MessageConsumer {
         messageConsumer.close();
     }
 }
-
