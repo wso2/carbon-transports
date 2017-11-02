@@ -29,7 +29,7 @@ import org.wso2.carbon.transport.jms.sender.JMSClientConnectorImpl;
 import java.util.Map;
 
 /**
- * Implementation of JMSConnectorFactory interface
+ * Implementation of JMSConnectorFactory interface.
  */
 public class JMSConnectorFactoryImpl implements JMSConnectorFactory {
 

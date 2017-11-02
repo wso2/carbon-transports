@@ -23,7 +23,7 @@ import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.security.JaasAuthenticationPlugin;
 
 /**
- * A simple jms server class using Activemq embedded with authentication support
+ * A simple jms server class using Activemq embedded with authentication support.
  */
 public class JMSBrokerService {
 

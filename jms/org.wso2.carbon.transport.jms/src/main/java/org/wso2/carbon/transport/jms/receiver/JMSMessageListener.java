@@ -45,9 +45,9 @@ public class JMSMessageListener implements javax.jms.MessageListener {
     /**
      * Creates a jms message receiver which receives message from a particular queue or topic.
      *
-     * @param jmsListener Message where the relevant jms message should be passed to
-     * @param serviceId        Id of the service that is interested in particular destination
-     * @param session          Relevant session that is listening to the jms destination
+     * @param jmsListener Message where the relevant jms message should be passed to.
+     * @param serviceId        Id of the service that is interested in particular destination.
+     * @param session          Relevant session that is listening to the jms destination.
      * @throws JMSConnectorException
      */
     JMSMessageListener(JMSListener jmsListener, String serviceId, Session session) throws
@@ -61,7 +61,7 @@ public class JMSMessageListener implements javax.jms.MessageListener {
     /**
      * Message is passed to application level, once the jms message is delivered.
      *
-     * @param message the next received message
+     * @param message the next received message.
      */
     @Override
     public void onMessage(Message message) {

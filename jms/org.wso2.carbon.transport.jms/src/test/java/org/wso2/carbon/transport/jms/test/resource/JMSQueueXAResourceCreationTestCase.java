@@ -38,7 +38,7 @@ import javax.jms.XASession;
 
 /**
  * A test class for JMS queue xaresource creation methods with JMS API 1.0 in
- * {@link JMSConnectionResourceFactory}
+ * {@link JMSConnectionResourceFactory}.
  */
 public class JMSQueueXAResourceCreationTestCase {
     private static final Logger logger = LoggerFactory.getLogger(JMSQueueXAResourceCreationTestCase.class);

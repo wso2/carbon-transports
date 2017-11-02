@@ -70,7 +70,7 @@ public class QueueTopicXATransactedSenderTestCase {
     /**
      * Starts the JMS Server, and create two jms client connectors.
      *
-     * @throws JMSConnectorException Client Connector Exception
+     * @throws JMSConnectorException Client Connector Exception.
      */
     @BeforeClass(groups = "jmsListening",
                  description = "Setting up the server, JMS senders")
@@ -91,18 +91,18 @@ public class QueueTopicXATransactedSenderTestCase {
     /**
      * This test will publish set of messages through XA transaction and then rollback, then publish another set of
      * messages. All this time a consumer will be running on the particular Queue, and total of the consumed messages
-     * should be equal to the total number of committed messages
+     * should be equal to the total number of committed messages.
      *
-     * @throws JMSConnectorException      Error when sending messages through JMS transport connector
-     * @throws InterruptedException       Interruption when thread sleep
-     * @throws JMSException               Error when running the test message consumer
-     * @throws SystemException            XA Transaction exceptions
-     * @throws NotSupportedException      Transaction exceptions
-     * @throws RollbackException          Transaction exceptions
-     * @throws HeuristicRollbackException Transaction exceptions
-     * @throws HeuristicMixedException    Transaction exceptions
-     * @throws NoSuchFieldException       Error when accessing the private field
-     * @throws IllegalAccessException     Error when accessing the private field
+     * @throws JMSConnectorException      Error when sending messages through JMS transport connector.
+     * @throws InterruptedException       Interruption when thread sleep.
+     * @throws JMSException               Error when running the test message consumer.
+     * @throws SystemException            XA Transaction exceptions.
+     * @throws NotSupportedException      Transaction exceptions.
+     * @throws RollbackException          Transaction exceptions.
+     * @throws HeuristicRollbackException Transaction exceptions.
+     * @throws HeuristicMixedException    Transaction exceptions.
+     * @throws NoSuchFieldException       Error when accessing the private field.
+     * @throws IllegalAccessException     Error when accessing the private field.
      */
     @Test(groups = "jmsSending",
           description = "XA transacted queue sending tested case")
@@ -124,18 +124,18 @@ public class QueueTopicXATransactedSenderTestCase {
     /**
      * This test will publish set of messages through XA transaction and then rollback, then publish another set of
      * messages. All this time a consumer will be running on the particular Topic, and total of the consumed messages
-     * should be equal to the total number of committed messages
+     * should be equal to the total number of committed messages.
      *
-     * @throws JMSConnectorException      Error when sending messages through JMS transport connector
-     * @throws InterruptedException       Interruption when thread sleep
-     * @throws JMSException               Error when running the test message consumer
-     * @throws SystemException            XA Transaction exceptions
-     * @throws NotSupportedException      Transaction exceptions
-     * @throws RollbackException          Transaction exceptions
-     * @throws HeuristicRollbackException Transaction exceptions
-     * @throws HeuristicMixedException    Transaction exceptions
-     * @throws NoSuchFieldException       Error when accessing the private field
-     * @throws IllegalAccessException     Error when accessing the private field
+     * @throws JMSConnectorException      Error when sending messages through JMS transport connector.
+     * @throws InterruptedException       Interruption when thread sleep.
+     * @throws JMSException               Error when running the test message consumer.
+     * @throws SystemException            XA Transaction exceptions.
+     * @throws NotSupportedException      Transaction exceptions.
+     * @throws RollbackException          Transaction exceptions.
+     * @throws HeuristicRollbackException Transaction exceptions.
+     * @throws HeuristicMixedException    Transaction exceptions.
+     * @throws NoSuchFieldException       Error when accessing the private field.
+     * @throws IllegalAccessException     Error when accessing the private field.
      */
     @Test(groups = "jmsSending",
           description = "XA transacted topic sending tested case")
@@ -193,10 +193,10 @@ public class QueueTopicXATransactedSenderTestCase {
 
     /**
      * Run a message Listener, perform the message publish and wait for a pre-defined time interval until it consumes
-     * all the messages from the destination
+     * all the messages from the destination.
      *
-     * @throws JMSException         Error when consuming messages
-     * @throws InterruptedException interruption occurred while sleeping
+     * @throws JMSException         Error when consuming messages.
+     * @throws InterruptedException interruption occurred while sleeping.
      */
     private void performPublishAndConsume(JMSClientConnector clientConnector, String destinationName, boolean isTopic)
             throws JMSException, HeuristicMixedException, RollbackException, SystemException, JMSConnectorException,

@@ -34,10 +34,10 @@ public class AcknowledgementCallback extends JMSCallback {
     private Message message;
 
     /**
-     * Creates a acknowledgement call back to acknowledge or recover messages in client acknowledgement mode
+     * Creates a acknowledgement call back to acknowledge or recover messages in client acknowledgement mode.
      *
-     * @param session {@link Session} JMS session related with this call back
-     * @param message {@link Message} JMS message related with this call back
+     * @param session {@link Session} JMS session related with this callback.
+     * @param message {@link Message} JMS message related with this callback.
      */
     public AcknowledgementCallback(Session session, Message message) {
         super(session);
@@ -51,7 +51,7 @@ public class AcknowledgementCallback extends JMSCallback {
 
     /**
      * Update the status of the transaction to the side of the JMS transport by reading the status provided by the
-     * Ballerina
+     * Ballerina.
      */
     public void updateAcknowledgementStatus() {
         try {

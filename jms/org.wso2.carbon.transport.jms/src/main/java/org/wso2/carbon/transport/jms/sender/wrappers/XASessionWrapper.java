@@ -24,7 +24,7 @@ import javax.jms.XASession;
 
 /**
  * Wrapper Class for JMS Sessions. This wll also hold the MessageProducer instance created on the Session.
- * Instances of this class will be used as objects in the Session pool in the JMSClientConnectionFactory
+ * Instances of this class will be used as objects in the Session pool in the JMSClientConnectionFactory.
  */
 public class XASessionWrapper extends SessionWrapper {
     private XASession xASession;

@@ -40,7 +40,7 @@ import javax.jms.Session;
 
 /**
  * A test class for JMS Queue resource creation under JMS PAI 1.0 methods in
- * {@link JMSConnectionResourceFactory}
+ * {@link JMSConnectionResourceFactory}.
  */
 public class JMSQueueResourceCreationTestCase {
     private static final Logger logger = LoggerFactory.getLogger(JMSQueueResourceCreationTestCase.class);
