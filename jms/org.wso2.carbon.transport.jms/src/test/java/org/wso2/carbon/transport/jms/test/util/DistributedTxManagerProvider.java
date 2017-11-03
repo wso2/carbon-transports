@@ -17,10 +17,12 @@
 */
 package org.wso2.carbon.transport.jms.test.util;
 
+import com.atomikos.icatch.config.UserTransactionServiceImp;
 import com.atomikos.icatch.jta.UserTransactionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Properties;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
@@ -34,8 +36,14 @@ public class DistributedTxManagerProvider {
     private TransactionManager transactionManager;
 
     protected DistributedTxManagerProvider() {
+        Properties properties = new Properties();
+        properties.setProperty(JMSTestConstants.ATOMIKOS_BASE_DIRECTORY_PROP, JMSTestConstants.TEST_LOG_DIR);
+
         try {
+            UserTransactionServiceImp service = new UserTransactionServiceImp(properties);
+            service.init();
             UserTransactionManager utm = new UserTransactionManager();
+            utm.setStartupTransactionService(false);
             utm.init();
             this.transactionManager = utm;
         } catch (SystemException e) {

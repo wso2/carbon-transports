@@ -34,6 +34,14 @@ public class JMSTestConstants {
     public static final String TOPIC_NAME = "testtopic";
     public static final String TOPIC_NAME_1 = "testtopic1";
     public static final String TOPIC_NAME_2 = "testtopic2";
+
+    public static final String TEST_LOG_DIR = "./target/logs";
+
     public static final String ACTIVEMQ_FACTORY_INITIAL = "org.apache.activemq.jndi.ActiveMQInitialContextFactory";
     public static final String ACTIVEMQ_LOGIN_CONFIG = "java.security.auth.login.config";
+    public static final String ACTIVEMQ_LOGIN_CONFIG_DIR =  "conf/login.config";
+
+    public static final String ATOMIKOS_BASE_DIRECTORY_PROP = "com.atomikos.icatch.log_base_dir";
+
+
 }
