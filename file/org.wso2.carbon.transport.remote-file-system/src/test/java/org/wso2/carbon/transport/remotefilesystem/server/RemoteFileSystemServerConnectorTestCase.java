@@ -80,7 +80,7 @@ public class RemoteFileSystemServerConnectorTestCase {
                 connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
         testConnector.start();
         fileSystem.add(new FileEntry("/home/wso2/file2.txt"));
-        latch.await(3, TimeUnit.SECONDS);
+        latch.await(1, TimeUnit.MINUTES);
         List<String> eventList = fileSystemListener.getEventList();
         if (eventList.size() == 0) {
             Assert.fail("File event didn't triggered.");
@@ -107,7 +107,7 @@ public class RemoteFileSystemServerConnectorTestCase {
         RemoteFileSystemServerConnector testConnector =
                 connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
         testConnector.start();
-        latch.await(3, TimeUnit.SECONDS);
+        latch.await(1, TimeUnit.MINUTES);
         List<String> eventList = fileSystemListener.getEventList();
         if (eventList.size() == 0) {
             Assert.fail("File event didn't triggered.");
@@ -136,7 +136,7 @@ public class RemoteFileSystemServerConnectorTestCase {
         RemoteFileSystemServerConnector testConnector =
                 connectorFactory.createServerConnector("TestService", parameters, fileSystemListener);
         testConnector.start();
-        latch.await(3, TimeUnit.SECONDS);
+        latch.await(1, TimeUnit.MINUTES);
         List<String> eventList = fileSystemListener.getEventList();
         if (eventList.size() == 0) {
             Assert.fail("File event didn't triggered.");
@@ -171,7 +171,7 @@ public class RemoteFileSystemServerConnectorTestCase {
                             "But the given path does not refer to a folder.");
             throw e;
         }
-        latch.await(3, TimeUnit.SECONDS);
+        latch.await(1, TimeUnit.MINUTES);
         Assert.assertNotNull(fileSystemListener.getThrowable(), "Expected exception didn't throw.");
     }
 
