@@ -43,5 +43,4 @@ public class JMSTestConstants {
 
     public static final String ATOMIKOS_BASE_DIRECTORY_PROP = "com.atomikos.icatch.log_base_dir";
 
-
 }

@@ -42,10 +42,10 @@ public class DistributedTxManagerProvider {
         try {
             UserTransactionServiceImp service = new UserTransactionServiceImp(properties);
             service.init();
-            UserTransactionManager utm = new UserTransactionManager();
-            utm.setStartupTransactionService(false);
-            utm.init();
-            this.transactionManager = utm;
+            UserTransactionManager atomikosTransactionManager = new UserTransactionManager();
+            atomikosTransactionManager.setStartupTransactionService(false);
+            atomikosTransactionManager.init();
+            this.transactionManager = atomikosTransactionManager;
         } catch (SystemException e) {
             logger.error("Error when creating the XA provider ", e);
         }

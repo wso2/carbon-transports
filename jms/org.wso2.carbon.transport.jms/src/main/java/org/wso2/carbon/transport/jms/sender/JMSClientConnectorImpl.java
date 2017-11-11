@@ -220,8 +220,10 @@ public class JMSClientConnectorImpl implements JMSClientConnector {
         case JMSConstants.TEXT_MESSAGE_TYPE:
             jmsMessage = session.createTextMessage();
             break;
-        case JMSConstants.MAP_MESSAGE_TYPE:
         case JMSConstants.OBJECT_MESSAGE_TYPE:
+            jmsMessage = session.createObjectMessage();
+            break;
+        case JMSConstants.MAP_MESSAGE_TYPE:
             jmsMessage = session.createMapMessage();
             break;
         case JMSConstants.BYTES_MESSAGE_TYPE:
