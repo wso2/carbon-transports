@@ -23,7 +23,7 @@ import javax.jms.Connection;
 
 /**
  * Wrapper class for JMS Connection objects. This class will hold JMSConnection and a counter to maintain the
- * number of JMSSessions currently active based on the Connection
+ * number of JMSSessions currently active based on the Connection.
  */
 public class ConnectionWrapper {
     private Connection connection;

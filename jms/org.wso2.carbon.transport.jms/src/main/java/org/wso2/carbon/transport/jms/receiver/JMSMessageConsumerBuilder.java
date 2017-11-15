@@ -59,9 +59,9 @@ public class JMSMessageConsumerBuilder {
     /**
      * Initialize the builder with mandatory properties.
      *
-     * @param connectionFactory The connection factory to use when creating the JMS connection
-     * @param jmsListener The message listener who is going to process the consumed messages from this
-     * @param serviceId The service Id which invoked this consumer
+     * @param connectionFactory The connection factory to use when creating the JMS connection.
+     * @param jmsListener The message listener who is going to process the consumed messages from this.
+     * @param serviceId The service Id which invoked this consumer.
      */
     public JMSMessageConsumerBuilder(JMSServerConnectionFactory connectionFactory,
                                      JMSListener jmsListener, String serviceId) {
@@ -87,9 +87,9 @@ public class JMSMessageConsumerBuilder {
 
     /**
      * Build the {@link JMSMessageConsumer} with the given data.
-     * @return the JMS consumer initialized with all required data
+     * @return the JMS consumer initialized with all required data.
      *
-     * @throws JMSConnectorException If initializing the consumer fails
+     * @throws JMSConnectorException If initializing the consumer fails.
      */
     public JMSMessageConsumer build() throws JMSConnectorException {
         return new JMSMessageConsumer(connectionFactory, useReceiver, jmsListener, serviceId,

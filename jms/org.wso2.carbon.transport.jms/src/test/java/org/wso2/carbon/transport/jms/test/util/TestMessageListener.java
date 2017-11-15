@@ -31,9 +31,9 @@ public class TestMessageListener implements JMSListener {
     private int count = 0;
 
     /**
-     * To get the count of the messages received
+     * To get the count of the messages received.
      *
-     * @return Number of messages
+     * @return Number of messages.
      */
     public int getCount() {
         return count;

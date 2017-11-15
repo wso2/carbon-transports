@@ -27,10 +27,7 @@ public final class Constants {
     public static final String META_FILE_SIZE = "file-size";
     public static final String META_FILE_LAST_MODIFIED_TIME = "last-modified-time";
 
-    //transport properties
-    public static final String FILE_TRANSPORT_PROPERTY_SERVICE_NAME = "TRANSPORT_FILE_SERVICE_NAME";
-
-    public static final String TRANSPORT_FILE_FILE_URI = "dirURI";
+    public static final String TRANSPORT_FILE_URI = "dirURI";
     public static final String FILE_SORT_PARAM = "fileSortAttribute";
     public static final String FILE_SORT_VALUE_NAME = "name";
     public static final String FILE_SORT_VALUE_SIZE = "size";

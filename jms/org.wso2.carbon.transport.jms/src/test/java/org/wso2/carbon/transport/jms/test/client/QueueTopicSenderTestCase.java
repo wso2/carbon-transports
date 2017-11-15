@@ -43,7 +43,7 @@ import javax.jms.MessageListener;
 import javax.jms.Session;
 
 /**
- * Test case for queue topic sending
+ * Test case for queue topic sending.
  */
 public class QueueTopicSenderTestCase {
     private static final Logger logger = LoggerFactory.getLogger(QueueTopicAutoAckListeningTestCase.class);
@@ -61,7 +61,7 @@ public class QueueTopicSenderTestCase {
     /**
      * Starts the JMS Server, and create two jms client connectors.
      *
-     * @throws JMSConnectorException Client Connector Exception
+     * @throws JMSConnectorException Client Connector Exception.
      */
     @BeforeClass(groups = "jmsListening",
                  description = "Setting up the server, JMS senders")
@@ -81,13 +81,13 @@ public class QueueTopicSenderTestCase {
 
     /**
      * This test will publish set of messages to a queue and then validate whether the same number of messages
-     * consumed by the listener
+     * consumed by the listener.
      *
-     * @throws JMSConnectorException  Error when sending messages through JMS transport connector
-     * @throws InterruptedException   Interruption when thread sleep
-     * @throws JMSException           Error when running the test message consumer
-     * @throws NoSuchFieldException   Error when accessing the private field
-     * @throws IllegalAccessException Error when accessing the private field
+     * @throws JMSConnectorException  Error when sending messages through JMS transport connector.
+     * @throws InterruptedException   Interruption when thread sleep.
+     * @throws JMSException           Error when running the test message consumer.
+     * @throws NoSuchFieldException   Error when accessing the private field.
+     * @throws IllegalAccessException Error when accessing the private field.
      */
     @Test(groups = "jmsSending",
           description = "Queue sending test case")
@@ -106,13 +106,13 @@ public class QueueTopicSenderTestCase {
 
     /**
      * This test will publish set of messages to a queue and then validate whether the same number of messages
-     * consumed by the listener
+     * consumed by the listener.
      *
-     * @throws JMSConnectorException  Error when sending messages through JMS transport connector
-     * @throws InterruptedException   Interruption when thread sleep
-     * @throws JMSException           Error when running the test message consumer
-     * @throws NoSuchFieldException   Error when accessing the private field
-     * @throws IllegalAccessException Error when accessing the private field
+     * @throws JMSConnectorException  Error when sending messages through JMS transport connector.
+     * @throws InterruptedException   Interruption when thread sleep.
+     * @throws JMSException           Error when running the test message consumer.
+     * @throws NoSuchFieldException   Error when accessing the private field.
+     * @throws IllegalAccessException Error when accessing the private field.
      */
     @Test(groups = "jmsSending",
           description = "Topic sending test case")
@@ -131,12 +131,12 @@ public class QueueTopicSenderTestCase {
 
     /**
      * Run a message Listener, perform the message publish and wait for a pre-defined time interval until it consumes
-     * all the messages from the destination
+     * all the messages from the destination.
      *
      * @return int instance
-     * @throws JMSException          Error when consuming messages
-     * @throws InterruptedException  interruption occurred while sleeping
-     * @throws JMSConnectorException Error when publishing the messages
+     * @throws JMSException          Error when consuming messages.
+     * @throws InterruptedException  interruption occurred while sleeping.
+     * @throws JMSConnectorException Error when publishing the messages.
      */
     protected int performPublishAndConsume(JMSClientConnector clientConnector, String destinationName, boolean isTopic,
             JMSServer jmsServer) throws JMSException, InterruptedException, JMSConnectorException {
@@ -185,7 +185,7 @@ public class QueueTopicSenderTestCase {
     }
 
     /**
-     * Sample Message Listener to count the number of consumed messages
+     * Sample Message Listener to count the number of consumed messages.
      */
     class MessageListenerCounter implements MessageListener {
 

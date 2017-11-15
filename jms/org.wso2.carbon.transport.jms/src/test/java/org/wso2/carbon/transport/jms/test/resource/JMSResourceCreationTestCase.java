@@ -39,7 +39,7 @@ import javax.jms.Session;
 
 /**
  * A test class for JMS resource creation methods with JMS API 1.1 in
- * {@link org.wso2.carbon.transport.jms.factory.JMSConnectionResourceFactory}
+ * {@link org.wso2.carbon.transport.jms.factory.JMSConnectionResourceFactory}.
  */
 public class JMSResourceCreationTestCase {
     private static final Logger logger = LoggerFactory.getLogger(JMSResourceCreationTestCase.class);

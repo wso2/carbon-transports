@@ -85,7 +85,7 @@ public class JMSConnectionResourceFactory {
      */
     private boolean transactedSession = false;
     /**
-     * The {@link Boolean} instance representing whether the connection factory is created for distributed transactions
+     * The {@link Boolean} instance representing whether the connection factory is created for distributed transactions.
      */
     private boolean xATransacted = false;
     /**
@@ -101,22 +101,22 @@ public class JMSConnectionResourceFactory {
      */
     protected String clientId;
     /**
-     * The {@link Properties} instance representing jms configuration properties
+     * The {@link Properties} instance representing jms configuration properties.
      */
     private Properties properties;
     /**
-     * The {@link String} instance representing username for connecting the broker
+     * The {@link String} instance representing username for connecting the broker.
      */
     private String username;
     /**
-     * The {@link String} instance representing password for connecting the broker
+     * The {@link String} instance representing password for connecting the broker.
      */
     private String password;
 
     /**
      * Initialization of JMS ConnectionFactory with the user specified properties.
      *
-     * @param properties Properties to be added to the initial context
+     * @param properties Properties to be added to the initial context.
      * @throws JMSConnectorException Thrown when initial context name is wrong or when creating connection factory.
      */
     public JMSConnectionResourceFactory(Properties properties) throws JMSConnectorException {
@@ -192,7 +192,7 @@ public class JMSConnectionResourceFactory {
     /**
      * To get the JMS Connection Factory.
      *
-     * @return JMS Connection Factory
+     * @return JMS Connection Factory.
      * @throws JMSConnectorException Thrown when creating jms connection.
      */
     public ConnectionFactory getConnectionFactory() throws JMSConnectorException {
@@ -238,10 +238,10 @@ public class JMSConnectionResourceFactory {
     }
 
     /**
-     * Create a {@link Connection} instance using the initialized configurations
+     * Create a {@link Connection} instance using the initialized configurations.
      *
-     * @return Connection instance
-     * @throws JMSException thrown when creating the connection object from JMS connection factory
+     * @return Connection instance.
+     * @throws JMSException thrown when creating the connection object from JMS connection factory.
      */
     public Connection createConnection() throws JMSException {
         if (null == connectionFactory) {
@@ -297,10 +297,10 @@ public class JMSConnectionResourceFactory {
     }
 
     /**
-     * Create a {@link XAConnection} instance using the initialized configurations
+     * Create a {@link XAConnection} instance using the initialized configurations.
      *
-     * @return XAConnection instance
-     * @throws JMSException thrown when creating the XAconnection object from JMS XAconnection factory
+     * @return XAConnection instance.
+     * @throws JMSException thrown when creating the XAconnection object from JMS XAconnection factory.
      */
     public XAConnection createXAConnection() throws JMSException {
         if (null == xAConnectionFactory) {
@@ -359,10 +359,10 @@ public class JMSConnectionResourceFactory {
     /**
      * To create the destination.
      *
-     * @param session         relevant session to create the destination
-     * @param destinationName Destination jms destination
-     * @return the destination that is created from session
-     * @throws JMSConnectorException Thrown when looking up destination
+     * @param session         relevant session to create the destination.
+     * @param destinationName Destination jms destination.
+     * @return the destination that is created from session.
+     * @throws JMSConnectorException Thrown when looking up destination.
      */
     public Destination createDestination(Session session, String destinationName) throws JMSConnectorException {
         Destination destination = null;
@@ -410,11 +410,11 @@ public class JMSConnectionResourceFactory {
     }
 
     /**
-     * Create JMS {@link Session} instance on top of the provided {@link Connection} instance
+     * Create JMS {@link Session} instance on top of the provided {@link Connection} instance.
      *
-     * @param connection JMS Connection
-     * @return Session instance
-     * @throws JMSConnectorException Error when creating the JMS Session
+     * @param connection JMS Connection.
+     * @return Session instance.
+     * @throws JMSConnectorException Error when creating the JMS Session.
      */
     public Session createSession(Connection connection) throws JMSConnectorException {
         try {
@@ -437,11 +437,11 @@ public class JMSConnectionResourceFactory {
     }
 
     /**
-     * Create JMS {@link XASession} instance on top of the provided {@link Connection} instance
+     * Create JMS {@link XASession} instance on top of the provided {@link Connection} instance.
      *
-     * @param xAConnection JMS Connection
-     * @return Session instance
-     * @throws JMSConnectorException Error when creating the XASession
+     * @param xAConnection JMS Connection.
+     * @return Session instance.
+     * @throws JMSConnectorException Error when creating the XASession.
      */
     public XASession createXASession(XAConnection xAConnection) throws JMSConnectorException {
         try {
@@ -464,11 +464,11 @@ public class JMSConnectionResourceFactory {
     }
 
     /**
-     * Create {@link MessageProducer} instance for the provided session
+     * Create {@link MessageProducer} instance for the provided session.
      *
-     * @param session JMS Session instance
-     * @return Message producer
-     * @throws JMSConnectorException Error when creating the JMS Message Producer
+     * @param session JMS Session instance.
+     * @return Message producer.
+     * @throws JMSConnectorException Error when creating the JMS Message Producer.
      */
     public MessageProducer createMessageProducer(Session session) throws JMSConnectorException {
         try {
@@ -508,38 +508,38 @@ public class JMSConnectionResourceFactory {
 
     /**
      * This method will get invoked by the JMS Connection Error listener whenever as error occurs in the
-     * JMS Connection level
+     * JMS Connection level.
      * <p>
      * This can be used to close all the Connections, Sessions, Producer, Consumers created on top of this
-     * Connection factory and initialize again
+     * Connection factory and initialize again.
      *
-     *  @param ex JMS Exception that occurred in Connection
+     *  @param ex JMS Exception that occurred in Connection.
      */
     public void notifyError(JMSException ex) {
     }
 
     /**
-     * Get JMS specification version
+     * Get JMS specification version.
      *
-     * @return 1.0, 1.1 or 2.0
+     * @return 1.0, 1.1 or 2.0.
      */
     public String getJmsSpec() {
         return jmsSpec;
     }
 
     /**
-     * Get destination type of this Connection factory
+     * Get destination type of this Connection factory.
      *
-     * @return queue or topic
+     * @return queue or topic.
      */
     public JMSConstants.JMSDestinationType getDestinationType() {
         return destinationType;
     }
 
     /**
-     * Close a JMS {@link Connection}
-     * @param connection Connection that need to be closed
-     * @throws JMSException if an error occurs while closing the connection
+     * Close a JMS {@link Connection}.
+     * @param connection Connection that need to be closed.
+     * @throws JMSException if an error occurs while closing the connection.
      */
     public void closeConnection(Connection connection) throws JMSException {
         if (connection != null) {
@@ -560,9 +560,9 @@ public class JMSConnectionResourceFactory {
     }
 
     /**
-     * Close a JMS {@link Session}
-     * @param session Session that needs to be closed
-     * @throws JMSException if an error occurs while closing the session
+     * Close a JMS {@link Session}.
+     * @param session Session that needs to be closed.
+     * @throws JMSException if an error occurs while closing the session.
      */
     public void closeSession(Session session) throws JMSException {
         if (session != null) {
@@ -583,9 +583,9 @@ public class JMSConnectionResourceFactory {
     }
 
     /**
-     * Close a JMS {@link MessageProducer}
-     * @param messageProducer JMS Message Producer that needs to be closed
-     * @throws JMSException if an error occurs while closing the producer
+     * Close a JMS {@link MessageProducer}.
+     * @param messageProducer JMS Message Producer that needs to be closed.
+     * @throws JMSException if an error occurs while closing the producer.
      */
     public void closeProducer(MessageProducer messageProducer) throws JMSException {
         if (messageProducer != null) {
@@ -606,9 +606,9 @@ public class JMSConnectionResourceFactory {
     }
 
     /**
-     * Close a JMS {@link MessageConsumer}
-     * @param messageConsumer JMS Message Consumer that needs to be closed
-     * @throws JMSException if an error occurs while closing the consumer
+     * Close a JMS {@link MessageConsumer}.
+     * @param messageConsumer JMS Message Consumer that needs to be closed.
+     * @throws JMSException if an error occurs while closing the consumer.
      */
     public void closeConsumer(MessageConsumer messageConsumer) throws JMSException {
         if (messageConsumer != null) {
@@ -635,9 +635,9 @@ public class JMSConnectionResourceFactory {
     /**
      * Start the jms connection to start the message delivery.
      *
-     * @param connection Connection that need to be started
-     * @throws JMSConnectorException Thrown when starting jms connection
-     * @throws JMSSecurityException Thrown for issues in security (eg: credentials)
+     * @param connection Connection that need to be started.
+     * @throws JMSConnectorException Thrown when starting jms connection.
+     * @throws JMSSecurityException Thrown for issues in security (eg: credentials).
      */
     public void start(Connection connection) throws JMSConnectorException, JMSSecurityException {
         try {
@@ -656,8 +656,8 @@ public class JMSConnectionResourceFactory {
     /**
      * Stop the jms connection to stop the message delivery.
      *
-     * @param connection JMS connection that need to be stopped
-     * @throws JMSConnectorException Thrown when stopping jms connection
+     * @param connection JMS connection that need to be stopped.
+     * @throws JMSConnectorException Thrown when stopping jms connection.
      */
     public void stop(Connection connection) throws JMSConnectorException {
         try {
@@ -674,8 +674,8 @@ public class JMSConnectionResourceFactory {
     }
 
     /**
-     * Get ConnectionFactory Name
-     * @return Connection factory name
+     * Get ConnectionFactory Name.
+     * @return Connection factory name.
      */
     protected String getConnectionFactoryString() {
         return this.connectionFactoryString;

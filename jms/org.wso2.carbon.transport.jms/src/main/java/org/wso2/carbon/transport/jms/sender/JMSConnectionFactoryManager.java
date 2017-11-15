@@ -31,7 +31,7 @@ import java.util.UUID;
 import javax.naming.Context;
 
 /**
- * Singleton class to manage JMSConnectionFactories
+ * Singleton class to manage JMSConnectionFactories.
  */
 public class JMSConnectionFactoryManager {
 
@@ -46,17 +46,17 @@ public class JMSConnectionFactoryManager {
     }
 
     /**
-     * Compare two values preventing NPEs
+     * Compare two values preventing NPEs.
      */
     private static boolean equals(Object s1, Object s2) {
         return s1 == s2 || s1 != null && s1.equals(s2);
     }
 
     /**
-     * Get an instance of this Singleton class
+     * Get an instance of this Singleton class.
      *
      * jmsConnectionFactoryManager object has initialized in the class level to avoid unnecessary synchronization
-     * overhead in runtime
+     * overhead in runtime.
      *
      * @return instance of {@link JMSConnectionFactoryManager}
      */
@@ -65,11 +65,11 @@ public class JMSConnectionFactoryManager {
     }
 
     /**
-     * Get the JMSServerConnectionFactory against the passed parameters. Return if it already exists, create new if not
+     * Get the JMSServerConnectionFactory against the passed parameters. Return if it already exists, create new if not.
      *
-     * @param properties JMS properties
-     * @return JMSServerConnectionFactory
-     * @throws JMSConnectorException if an error occurs when creating the connection factory
+     * @param properties JMS properties.
+     * @return JMSServerConnectionFactory.
+     * @throws JMSConnectorException if an error occurs when creating the connection factory.
      */
     public synchronized JMSClientConnectionFactory getJMSConnectionFactory(Properties properties)
             throws JMSConnectorException {
@@ -108,9 +108,9 @@ public class JMSConnectionFactoryManager {
     }
 
     /**
-     * Check if the caching is set in the properties
-     * @param properties Connection factory properties
-     * @return false is the caching is disabled, true otherwise
+     * Check if the caching is set in the properties.
+     * @param properties Connection factory properties.
+     * @return false is the caching is disabled, true otherwise.
      */
     private boolean isCached(Properties properties) {
         String cacheLevel = properties.getProperty(JMSConstants.PARAM_JMS_CACHING);

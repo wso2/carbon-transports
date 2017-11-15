@@ -48,11 +48,11 @@ public class JMSMessageReceiver implements Runnable, Thread.UncaughtExceptionHan
     /**
      * Initializes the message receiver with consumer and session details.
      *
-     * @param jmsListener The message listener which is going to process the received messages
-     * @param serviceId        Id of the service that is interested in particular destination
-     * @param session          The session that is used to create the consumer
-     * @param messageConsumer  The {@link MessageConsumer} to use to receive messages
-     * @throws JMSConnectorException Throws if message handler cannot be initialized
+     * @param jmsListener The message listener which is going to process the received messages.
+     * @param serviceId        Id of the service that is interested in particular destination.
+     * @param session          The session that is used to create the consumer.
+     * @param messageConsumer  The {@link MessageConsumer} to use to receive messages.
+     * @throws JMSConnectorException Throws if message handler cannot be initialized.
      */
     JMSMessageReceiver(JMSListener jmsListener, String serviceId, Session session,
                        MessageConsumer messageConsumer) throws JMSConnectorException {
@@ -121,12 +121,19 @@ public class JMSMessageReceiver implements Runnable, Thread.UncaughtExceptionHan
     /**
      * Any exception that was thrown when receiving messages from the receiver thread will be reported here.
      *
-     * @param thread The thread which produced the error
-     * @param error  The error
+     * @param thread The thread which produced the error.
+     * @param error  The error.
      */
     @Override
     public void uncaughtException(Thread thread, Throwable error) {
         running = false;
         logger.error("Unexpected error occurred while receiving messages", error);
+    }
+
+    /**
+     * Change the state of the message receiver to stop the thread.
+     */
+    public void stopMessageReceiver() {
+        this.running = false;
     }
 }

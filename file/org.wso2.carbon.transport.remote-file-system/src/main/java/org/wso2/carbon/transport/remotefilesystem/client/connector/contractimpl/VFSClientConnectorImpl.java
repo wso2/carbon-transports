@@ -28,9 +28,9 @@ import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.Constants;
 import org.wso2.carbon.transport.remotefilesystem.client.connector.contract.VFSClientConnector;
+import org.wso2.carbon.transport.remotefilesystem.exception.RemoteFileSystemConnectorException;
 import org.wso2.carbon.transport.remotefilesystem.listener.RemoteFileSystemListener;
 import org.wso2.carbon.transport.remotefilesystem.message.RemoteFileSystemMessage;
 
@@ -87,7 +87,7 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                     boolean isFolder = Boolean.parseBoolean(connectorConfig.getOrDefault(Constants.CREATE_FOLDER,
                             "false"));
                     if (path.exists()) {
-                        throw new ClientConnectorException("File already exists: " + path.getName().getURI());
+                        throw new RemoteFileSystemConnectorException("File already exists: " + path.getName().getURI());
                     }
                     if (isFolder) {
                         path.createFolder();
@@ -121,7 +121,7 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                             logger.debug(filesDeleted + " files successfully deleted");
                         }
                     } else {
-                        throw new ClientConnectorException(
+                        throw new RemoteFileSystemConnectorException(
                                 "Failed to delete file: " + path.getName().getURI() + " not found");
                     }
                     break;
@@ -131,7 +131,7 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                         FileObject dest = fsManager.resolveFile(destination, opts);
                         dest.copyFrom(path, Selectors.SELECT_ALL);
                     } else {
-                        throw new ClientConnectorException(
+                        throw new RemoteFileSystemConnectorException(
                                 "Failed to copy file: " + path.getName().getURI() + " not found");
                     }
                     break;
@@ -147,11 +147,11 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                         if (!newPath.exists()) {
                             path.moveTo(newPath);
                         } else {
-                            throw new ClientConnectorException("The file at " + newPath.getURL().toString() +
+                            throw new RemoteFileSystemConnectorException("The file at " + newPath.getURL().toString() +
                                     " already exists or it is a directory");
                         }
                     } else {
-                        throw new ClientConnectorException(
+                        throw new RemoteFileSystemConnectorException(
                                 "Failed to move file: " + path.getName().getURI() + " not found");
                     }
                     break;
@@ -163,7 +163,7 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                         RemoteFileSystemMessage fileContent = new RemoteFileSystemMessage(ByteBuffer.wrap(bytes));
                         remoteFileSystemListener.onMessage(fileContent);
                     } else {
-                        throw new ClientConnectorException(
+                        throw new RemoteFileSystemConnectorException(
                                 "Failed to read file: " + path.getName().getURI() + " not found");
                     }
                     break;
@@ -175,7 +175,7 @@ public class VFSClientConnectorImpl implements VFSClientConnector {
                     break;
             }
             remoteFileSystemListener.done();
-        } catch (ClientConnectorException | IOException e) {
+        } catch (RemoteFileSystemConnectorException | IOException e) {
             remoteFileSystemListener.onError(e);
         } finally {
             if (path != null) {

@@ -51,7 +51,7 @@ public class QueueTopicSessionTransactedTestCase {
      * Starts the JMS Server, and create two jms server connectors.
      * Make the server connectors to listen to topic and queue.
      *
-     * @throws JMSConnectorException Server Connector Exception
+     * @throws JMSConnectorException Server Connector Exception.
      */
     @BeforeClass(groups = "jmsListening",
                  description = "Setting up the server, JMS receiver and message processor")

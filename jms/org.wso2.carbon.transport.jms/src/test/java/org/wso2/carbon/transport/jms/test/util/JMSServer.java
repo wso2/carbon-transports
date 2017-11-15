@@ -61,8 +61,8 @@ public class JMSServer {
     /**
      * To publish the messages to a queue.
      *
-     * @throws JMSException         JMS Exception
-     * @throws InterruptedException Interrupted exception while waiting in between messages
+     * @throws JMSException         JMS Exception.
+     * @throws InterruptedException Interrupted exception while waiting in between messages.
      */
     public void publishMessagesToQueue(String queueName) throws JMSException, InterruptedException {
         QueueConnection queueConn = (QueueConnection) connectionFactory.createConnection();
@@ -86,8 +86,8 @@ public class JMSServer {
     /**
      * To publish the messages to a topic.
      *
-     * @throws JMSException         JMS Exception
-     * @throws InterruptedException Interrupted exception while waiting in between messages
+     * @throws JMSException         JMS Exception.
+     * @throws InterruptedException Interrupted exception while waiting in between messages.
      */
     public void publishMessagesToTopic(String topicName) throws JMSException, InterruptedException {
         TopicConnection topicConnection = (TopicConnection) connectionFactory.createConnection();
@@ -111,8 +111,8 @@ public class JMSServer {
     /**
      * To receive a message from a queue.
      *
-     * @throws JMSException         JMS Exception
-     * @throws InterruptedException Interrupted exception while waiting in between messages
+     * @throws JMSException         JMS Exception.
+     * @throws InterruptedException Interrupted exception while waiting in between messages.
      */
     public void receiveMessagesFromQueue() throws JMSException, InterruptedException {
         QueueConnection queueConn = (QueueConnection) connectionFactory.createConnection();

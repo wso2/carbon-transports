@@ -23,7 +23,7 @@ import org.wso2.carbon.transport.jms.exception.JMSConnectorException;
 import java.util.Map;
 
 /**
- * Allows you create JMS server and JMS client connectors
+ * Allows you create JMS server and JMS client connectors.
  */
 public interface JMSConnectorFactory {
 
