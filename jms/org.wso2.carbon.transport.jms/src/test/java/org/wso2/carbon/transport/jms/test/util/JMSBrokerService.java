@@ -27,14 +27,16 @@ import org.apache.activemq.security.JaasAuthenticationPlugin;
  */
 public class JMSBrokerService {
 
+    public static final String BROKER_NAME = "activemq-jms-localhost";
+
     private BrokerService broker;
 
     public JMSBrokerService(String url) throws Exception {
         System.setProperty(JMSTestConstants.ACTIVEMQ_LOGIN_CONFIG,
-                getClass().getClassLoader().getResource("conf/login.config").getPath());
-
+                getClass().getClassLoader().getResource(JMSTestConstants.ACTIVEMQ_LOGIN_CONFIG_DIR).getPath());
         broker = new BrokerService();
-        broker.setBrokerName("activemq-jms-localhost");
+        broker.setDataDirectory(JMSTestConstants.TEST_LOG_DIR);
+        broker.setBrokerName(BROKER_NAME);
         broker.addConnector(url);
         broker.setPlugins(new BrokerPlugin[] { new JaasAuthenticationPlugin() });
     }
