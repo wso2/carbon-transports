@@ -1,3 +1,8 @@
+# This repository is no longer maintained.
+
+Issue reports and pull requests will not be attended.
+
+
 # Welcome to WSO2 Carbon Transports 
 This repository holds all the protocol handling implementations for C5 based products. 
 
